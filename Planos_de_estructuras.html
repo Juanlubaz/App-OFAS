@@ -334,61 +334,63 @@
       }
     }
 
-    function onIdChange() {
-      var selectId = document.getElementById('selectId');
-      var selectPack = document.getElementById('selectPack');
-      var infoSection = document.getElementById('infoSection');
-      
-      selectedId = selectId.value;
-      
-      console.log('=== ID seleccionado:', selectedId, '===');
-      
-      selectPack.innerHTML = '<option value="">-- Selecciona un PACK --</option>';
-      selectPack.disabled = !selectedId;
-      infoSection.classList.add('hidden');
-      
-      if (selectedId) {
-        var filteredData = [];
-        for (var i = 0; i < data.length; i++) {
-          console.log('Fila', i, '- ID:', data[i].ID, '- Coincide:', data[i].ID === selectedId);
-          if (data[i].ID && data[i].ID.toString() === selectedId.toString()) {
-            filteredData.push(data[i]);
-            console.log('  -> Coincidencia encontrada! PAQUETE:', data[i].PAQUETE);
-          }
-        }
-        
-        console.log('Total filas filtradas:', filteredData.length);
-        
-        var packs = [];
-        for (var j = 0; j < filteredData.length; j++) {
-          if (filteredData[j].PAQUETE) {
-            packs.push(filteredData[j].PAQUETE);
-          }
-        }
-        
-        console.log('PACKs extraídos:', packs);
-        
-        var uniquePacks = [];
-        for (var k = 0; k < packs.length; k++) {
-          if (uniquePacks.indexOf(packs[k]) === -1) {
-            uniquePacks.push(packs[k]);
-          }
-        }
-        
-        console.log('PACKs únicos:', uniquePacks);
-        
-        for (var m = 0; m < uniquePacks.length; m++) {
-          var option = document.createElement('option');
-          option.value = uniquePacks[m];
-          option.textContent = uniquePacks[m];
-          selectPack.appendChild(option);
-        }
-        
-        if (uniquePacks.length === 0) {
-          console.warn('⚠️ No se encontraron PACKs para este ID');
+    
+  function onIdChange() {
+    var selectId = document.getElementById('selectId');
+    var selectPack = document.getElementById('selectPack');
+    var infoSection = document.getElementById('infoSection');
+  
+    selectedId = selectId.value;
+  
+    console.log('=== ZONA seleccionada:', selectedId, '===');
+  
+    selectPack.innerHTML = '<option value="">-- Selecciona un PACK --</option>';
+    selectPack.disabled = !selectedId;
+    infoSection.classList.add('hidden');
+  
+    if (selectedId) {
+      var filteredData = [];
+      // 🔴 CAMBIO: Filtrar por ZONA en lugar de ID
+      for (var i = 0; i < data.length; i++) {
+        console.log('Fila', i, '- ZONA:', data[i].ZONA, '- Coincide:', data[i].ZONA === selectedId);
+        if (data[i].ZONA && data[i].ZONA.toString() === selectedId.toString()) {
+          filteredData.push(data[i]);
+          console.log('  -> Coincidencia encontrada! PAQUETE:', data[i].PAQUETE);
         }
       }
+    
+      console.log('Total filas filtradas:', filteredData.length);
+    
+      var packs = [];
+      for (var j = 0; j < filteredData.length; j++) {
+        if (filteredData[j].PAQUETE) {
+          packs.push(filteredData[j].PAQUETE);
+        }
+      }
+    
+      console.log('PACKs extraídos:', packs);
+    
+      var uniquePacks = [];
+      for (var k = 0; k < packs.length; k++) {
+        if (uniquePacks.indexOf(packs[k]) === -1) {
+          uniquePacks.push(packs[k]);
+        }
+      }
+    
+      console.log('PACKs únicos:', uniquePacks);
+    
+      for (var m = 0; m < uniquePacks.length; m++) {
+        var option = document.createElement('option');
+        option.value = uniquePacks[m];
+        option.textContent = uniquePacks[m];
+        selectPack.appendChild(option);
+      }
+    
+      if (uniquePacks.length === 0) {
+        console.warn('⚠️ No se encontraron PACKs para esta ZONA');
+      }
     }
+  }
 
     function onPackChange() {
       var selectPack = document.getElementById('selectPack');
@@ -457,6 +459,7 @@
   </script>
 </body>
 </html>
+
 
 
 
