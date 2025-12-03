@@ -353,7 +353,7 @@
           console.log('Fila', i, '- ID:', data[i].ID, '- Coincide:', data[i].ID === selectedId);
           if (data[i].ID && data[i].ID.toString() === selectedId.toString()) {
             filteredData.push(data[i]);
-            console.log('  -> Coincidencia encontrada! PACK:', data[i].PACK);
+            console.log('  -> Coincidencia encontrada! PACK:', data[i].PAQUETE);
           }
         }
         
@@ -361,8 +361,8 @@
         
         var packs = [];
         for (var j = 0; j < filteredData.length; j++) {
-          if (filteredData[j].PACK) {
-            packs.push(filteredData[j].PACK);
+          if (filteredData[j].PAQUETE) {
+            packs.push(filteredData[j].PAQUETE);
           }
         }
         
@@ -399,7 +399,7 @@
       if (selectedId && selectedPack) {
         var item = null;
         for (var i = 0; i < data.length; i++) {
-          if (data[i].ID === selectedId && data[i].PACK === selectedPack) {
+          if (data[i].ID === selectedId && data[i].PAQUETE === selectedPack) {
             item = data[i];
             break;
           }
@@ -457,5 +457,6 @@
   </script>
 </body>
 </html>
+
 
 
