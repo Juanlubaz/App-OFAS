@@ -1,0 +1,19 @@
+PROCESO;ZONA;ESTRUCTURA;PAQUETE;PLANOS DE FABRICACION;PLANOS DE MONTAJE;DESCRIPCION
+Solubilización;Dosificación de sólidos;ST-04;1;;https://drive.google.com/file/d/1o_LX0NnR_xeXOLmTZili2iuo71CdGuUh/view?usp=drive_link;Sistema de dosificación sólida para los reactores
+Solubilización;Dosificación de sólidos;ST-04;2;;https://drive.google.com/file/d/1NmYeL8631p4y2nPAvA-tVW4LYMZTppaN/view?usp=drive_link;
+Solubilización;Scrubbers de solubilización;ST-05;1;;https://drive.google.com/file/d/1PtkQYpaUSkfcJ0PmiUM7sCWBJtpiMIjA/view?usp=drive_link;
+Solubilización;Scrubbers de solubilización;ST-05;2;;https://drive.google.com/file/d/12nBadbQIsCyKKRV2ev5J_pRMw-2phUJo/view?usp=drive_link;Soporte de chimenea
+Granulación;Filtros de rotativos;ST-15;1;https://drive.google.com/file/d/1tJCjBb5M3Abp2srwESDCxkMF9YeYvbDj/view?usp=drive_link;https://drive.google.com/file/d/1gBJO9s8VQ004oLrWrZLxfJaMsROA7x3J/view?usp=drive_link;
+Granulación;Filtros de rotativos;ST-15;2;https://drive.google.com/file/d/1Dp8mJSjsExiFo64PQXNaFVOl_KDrKJVm/view?usp=drive_link;https://drive.google.com/file/d/1G9vwkPCl-DJAmL8ro1pfSXVLOH3UjGDO/view?usp=drive_link;
+Granulación;Filtros de rotativos;ST-15;3;https://drive.google.com/file/d/1geXWVDa6nqKXYFadh8ZErFSlhXCDIL4S/view?usp=drive_link;https://drive.google.com/file/d/1VYVZKLEbxKjfxyXwsOemeAv9DvN67GAb/view?usp=drive_link;
+Granulación;Filtros de rotativos;ST-15;4;https://drive.google.com/file/d/1p01vG6SsdxV4POls0zbyuWCD6I_hDucI/view?usp=drive_link;https://drive.google.com/file/d/1jcgMNewBtVeVTUCKtv8XQaFBJVOdPeQa/view?usp=drive_link;
+Granulación;Filtros de rotativos;ST-15;5;;;
+Granulación;Filtros de rotativos;ST-15;6;https://drive.google.com/file/d/1l8bxx2jDK0aIz0xR4N9Cc30S79rzVEzp/view?usp=drive_link;https://drive.google.com/file/d/1cQPUawe0Fbmw0QNpL1fDeoqcR4p2ihGv/view?usp=drive_link;
+Granulación;Estructura de granulador;ST-21;1;https://drive.google.com/file/d/1Ibp6z16m9fbPmhQb6FFQInHMG8wVZQww/view?usp=drive_link;https://drive.google.com/file/d/1_0BnLkQ_QdkEwkX961gype9SN7ZK86pw/view?usp=drive_link;
+Granulación;Estructura de granulador;ST-21;2;https://drive.google.com/file/d/1wW1K-zovDPI9_ARoGCekX11-JHzJ64qK/view?usp=drive_link;https://drive.google.com/file/d/1p98fKatKtL-1AQH90fSJtcYLv7Si5dWU/view?usp=drive_link;
+Granulación;Pasarela de acondicionador;ST-25;1;;https://drive.google.com/file/d/1QBkM5s83D_r4-HSTChWlal1xQMLJf3x_/view?usp=drive_link;
+Granulación;Fitros area cribas;ST-26;1;https://drive.google.com/file/d/1HaK-pMl1vAYSTdbIMcLzkiSF7mBRkDw0/view?usp=drive_link;https://drive.google.com/file/d/10Ms06rJRdq5THWNZ6Tu4gdbLYyzUxfJw/view?usp=drive_link;
+Granulación;Fitros area cribas;ST-27;1;;https://drive.google.com/file/d/1ZnSl8JahaRHjFKfSLA9nZdpQerDxYVGX/view?usp=drive_link;
+Granulación;Cribas area 1;ST-28;1;https://drive.google.com/file/d/1sMxyv5jk3okVu_QHvbpJjGsU5shxyr2i/view?usp=drive_link;https://drive.google.com/file/d/1-r3Gogtac6rPmbKu3SNA_CPhaSTLKA7n/view?usp=drive_link;
+Granulación;Cribas area 2;ST-29;1;https://drive.google.com/file/d/1c6NcjOC-OGabmvS2IEzQPtHNBheScTD4/view?usp=drive_link;https://drive.google.com/file/d/1unEgyz3q2fnoxFhhPt3k732U66gdpO8w/view?usp=drive_link;
+Granulación;Estructuras cintas de granulador;ST-30;1;https://drive.google.com/file/d/1kuXJ0CnNJ9IgBIeBQ3m3f4OWH0itrnEK/view?usp=drive_link;https://drive.google.com/file/d/1rrRYghD0QGCy_ukBsDgOqZzSoGTy1X5F/view?usp=drive_link;
