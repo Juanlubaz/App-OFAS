@@ -350,7 +350,7 @@
   
     if (selectedId) {
       var filteredData = [];
-      // 🔴 CAMBIO: Filtrar por ZONA en lugar de ID
+      // 🔴: Filtrar por ZONA 
       for (var i = 0; i < data.length; i++) {
         console.log('Fila', i, '- ZONA:', data[i].ZONA, '- Coincide:', data[i].ZONA === selectedId);
         if (data[i].ZONA && data[i].ZONA.toString() === selectedId.toString()) {
@@ -401,7 +401,7 @@
       if (selectedId && selectedPack) {
         var item = null;
         for (var i = 0; i < data.length; i++) {
-          if (data[i].ID === selectedId && data[i].PAQUETE === selectedPack) {
+          if (data[i].ZONA === selectedId && data[i].PAQUETE === selectedPack) {
             item = data[i];
             break;
           }
@@ -425,27 +425,27 @@
       
       buttonsContainer.innerHTML = '';
       
-      if (item['DIRECTION OF DRAWING MANUFACTURING']) {
+      if (item['PLANOS DE FABRICACION']) {
         var btn1 = document.createElement('button');
         btn1.className = 'btn btn-manufacturing';
-        btn1.innerHTML = '<span>🏭</span> DIRECTION OF DRAWING MANUFACTURING';
+        btn1.innerHTML = '<span>🏭</span> PLANOS DE FABRICACION';
         btn1.onclick = function() {
-          window.open(item['DIRECTION OF DRAWING MANUFACTURING'], '_blank');
+          window.open(item['PLANOS DE FABRICACION'], '_blank');
         };
         buttonsContainer.appendChild(btn1);
       }
       
-      if (item['DIRECTION OF DRAWING ERECTION']) {
+      if (item['PLANOS DE MONTAJE']) {
         var btn2 = document.createElement('button');
         btn2.className = 'btn btn-erection';
-        btn2.innerHTML = '<span>🏗️</span> DIRECTION OF DRAWING ERECTION';
+        btn2.innerHTML = '<span>🏗️</span> PLANOS DE MONTAJE';
         btn2.onclick = function() {
-          window.open(item['DIRECTION OF DRAWING ERECTION'], '_blank');
+          window.open(item['PLANOS DE MONTAJE'], '_blank');
         };
         buttonsContainer.appendChild(btn2);
       }
       
-      if (!item['DIRECTION OF DRAWING MANUFACTURING'] && !item['DIRECTION OF DRAWING ERECTION']) {
+      if (!item['PLANOS DE FABRICACION'] && !item['PLANOS DE MONTAJE']) {
         buttonsContainer.innerHTML = '<p style="text-align: center; color: #999; font-style: italic;">No hay enlaces disponibles</p>';
       }
       
@@ -459,6 +459,7 @@
   </script>
 </body>
 </html>
+
 
 
 
