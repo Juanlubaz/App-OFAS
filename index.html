@@ -5,12 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Acceso - Gestiproject</title>
 <style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
         font-family: Arial, sans-serif;
         background: linear-gradient(135deg, #6fb543, #79c255);
@@ -20,7 +15,6 @@
         align-items: center;
         padding: 20px;
     }
-    
     .container {
         background: white;
         width: 100%;
@@ -30,31 +24,10 @@
         box-shadow: 0 6px 20px rgba(0,0,0,0.15);
         text-align: center;
     }
-    
-    .logos img {
-        max-height: 110px;
-        margin-bottom: 25px;
-    }
-    
-    h1 {
-        color: #4e7e28;
-        margin-bottom: 30px;
-        font-size: 26px;
-    }
-
-    .form-group {
-        text-align: left;
-        margin-bottom: 20px;
-    }
-
-    label {
-        display: block;
-        color: #4e7e28;
-        font-size: 14px;
-        margin-bottom: 8px;
-        font-weight: bold;
-    }
-
+    .logos img { max-height: 110px; margin-bottom: 25px; }
+    h1 { color: #4e7e28; margin-bottom: 30px; font-size: 26px; }
+    .form-group { text-align: left; margin-bottom: 20px; }
+    label { display: block; color: #4e7e28; font-size: 14px; margin-bottom: 8px; font-weight: bold; }
     input {
         width: 100%;
         padding: 15px;
@@ -65,19 +38,8 @@
         background: #f9f9f9;
         transition: all 0.3s ease;
     }
-
-    input:focus {
-        border-color: #79c255;
-        background: white;
-    }
-
-    .button-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
-        margin-top: 30px;
-    }
-    
+    input:focus { border-color: #79c255; background: white; }
+    .button-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 30px; }
     button {
         padding: 18px;
         border-radius: 12px;
@@ -90,46 +52,30 @@
         font-weight: 600;
         color: #333;
     }
-
-    .btn-next {
-        background: #4e7e28;
-        color: white;
-    }
-    
+    .btn-next { background: #4e7e28; color: white; }
     @media (hover: hover) {
         button:hover { background: #e8e8e8; transform: translateY(-3px); }
         .btn-next:hover { background: #3d6320; }
     }
-
-    #message {
-        margin-top: 15px;
-        font-size: 14px;
-        font-weight: bold;
-        min-height: 20px;
-    }
+    #message { margin-top: 15px; font-size: 14px; font-weight: bold; min-height: 20px; }
 </style>
 </head>
 <body>
 
 <div class="container">
     <div class="logos">
-        <img src="https://raw.githubusercontent.com/Juanlubaz/Enlaces-estructuras-TSP3/main/GESTI.png" alt="Gestiproject Logo">
+        <img src="https://raw.githubusercontent.com/Juanlubaz/Enlaces-estructuras-TSP3/main/GESTI.png" alt="Logo">
     </div>
-    
     <h1>LOGIN ACCESS</h1>
-
     <div class="form-group">
         <label>USER</label>
         <input type="text" id="userInput" placeholder="Username">
     </div>
-
     <div class="form-group">
         <label>PASSWORD</label>
         <input type="password" id="passInput" placeholder="Password">
     </div>
-
     <div id="message"></div>
-
     <div class="button-grid">
         <button onclick="clearFields()">CHANGE</button>
         <button class="btn-next" onclick="validateLogin()">NEXT</button>
@@ -137,7 +83,8 @@
 </div>
 
 <script>
-    const CSV_URL = 'https://raw.githubusercontent.com/Juanlubaz/Enlaces-estructuras-TSP3/main/access.csv';
+    // URL de tu CSV. Si el archivo está en la misma carpeta en GitHub Pages, puedes usar solo 'Access.csv'
+    const CSV_URL = 'Access.csv'; 
 
     function clearFields() {
         document.getElementById('userInput').value = '';
@@ -161,21 +108,23 @@
             messageDiv.innerText = "Verificando...";
 
             const response = await fetch(CSV_URL);
-            const data = await response.text();
+            let data = await response.text();
             
-            // 1. Limpiamos filas y quitamos espacios en blanco
+            // Limpiar el BOM (carácter invisible de Excel) si existe
+            data = data.replace(/^\uFEFF/, "");
+
             const rows = data.split(/\r?\n/).map(row => row.trim()).filter(row => row !== "");
             
             let userFound = false;
             let accessGranted = false;
 
             for (let i = 1; i < rows.length; i++) {
-                // 2. Detectamos si usa coma o punto y coma automáticamente
                 let cols = rows[i].includes(';') ? rows[i].split(';') : rows[i].split(',');
 
-                // 3. Limpiamos posibles comillas y espacios de los datos del CSV
+                // AJUSTE DE COLUMNAS SEGÚN TU ARCHIVO:
+                // cols[0] es USER, cols[1] es PASSWORD
                 const dbUser = cols[0] ? cols[0].replace(/['"]+/g, '').trim().toLowerCase() : "";
-                const dbPass = cols[2] ? cols[2].replace(/['"]+/g, '').trim() : "";
+                const dbPass = cols[1] ? cols[1].replace(/['"]+/g, '').trim() : "";
 
                 if (dbUser === userValue) {
                     userFound = true;
@@ -195,18 +144,14 @@
             } else {
                 messageDiv.style.color = "#4e7e28";
                 messageDiv.innerText = "ACCESO CORRECTO";
-                setTimeout(() => {
-                    window.location.href = 'principal.html';
-                }, 800);
+                setTimeout(() => { window.location.href = 'principal.html'; }, 800);
             }
 
         } catch (error) {
             messageDiv.style.color = "red";
-            messageDiv.innerText = "Error al conectar con el archivo CSV";
-            console.error(error);
+            messageDiv.innerText = "Error al cargar el archivo de acceso";
         }
     }
 </script>
-
 </body>
 </html>
