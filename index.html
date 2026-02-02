@@ -40,7 +40,6 @@
         color: #4e7e28;
         margin-bottom: 30px;
         font-size: 26px;
-        letter-spacing: 1px;
     }
 
     .form-group {
@@ -70,7 +69,6 @@
     input:focus {
         border-color: #79c255;
         background: white;
-        box-shadow: 0 0 8px rgba(121, 194, 85, 0.2);
     }
 
     .button-grid {
@@ -98,19 +96,9 @@
         color: white;
     }
     
-    button:active {
-        transform: translateY(1px);
-    }
-    
     @media (hover: hover) {
-        button:hover {
-            background: #e8e8e8;
-            transform: translateY(-3px);
-        }
-        .btn-next:hover {
-            background: #3d6320;
-            box-shadow: 0 6px 15px rgba(0,0,0,0.2);
-        }
+        button:hover { background: #e8e8e8; transform: translateY(-3px); }
+        .btn-next:hover { background: #3d6320; }
     }
 
     #message {
@@ -118,7 +106,6 @@
         font-size: 14px;
         font-weight: bold;
         min-height: 20px;
-        transition: all 0.3s;
     }
 </style>
 </head>
@@ -133,12 +120,12 @@
 
     <div class="form-group">
         <label>USER</label>
-        <input type="text" id="userInput" placeholder="Enter your username">
+        <input type="text" id="userInput" placeholder="Username">
     </div>
 
     <div class="form-group">
         <label>PASSWORD</label>
-        <input type="password" id="passInput" placeholder="Enter your password">
+        <input type="password" id="passInput" placeholder="Password">
     </div>
 
     <div id="message"></div>
@@ -150,7 +137,6 @@
 </div>
 
 <script>
-    // URL del CSV en tu repo de GitHub
     const CSV_URL = 'https://raw.githubusercontent.com/Juanlubaz/Enlaces-estructuras-TSP3/main/access.csv';
 
     function clearFields() {
@@ -172,24 +158,24 @@
 
         try {
             messageDiv.style.color = "#666";
-            messageDiv.innerText = "Verificando credenciales...";
+            messageDiv.innerText = "Verificando...";
 
             const response = await fetch(CSV_URL);
             const data = await response.text();
             
-            // Procesar las filas del CSV
-            const rows = data.split(/\r?\n/).filter(row => row.trim() !== "");
+            // 1. Limpiamos filas y quitamos espacios en blanco
+            const rows = data.split(/\r?\n/).map(row => row.trim()).filter(row => row !== "");
             
             let userFound = false;
             let accessGranted = false;
 
-            // Empezamos en 1 para saltar la fila de encabezados (user, email, password)
             for (let i = 1; i < rows.length; i++) {
-                const cols = rows[i].split(',');
-                if (cols.length < 3) continue;
+                // 2. Detectamos si usa coma o punto y coma automáticamente
+                let cols = rows[i].includes(';') ? rows[i].split(';') : rows[i].split(',');
 
-                const dbUser = cols[0].trim().toLowerCase();
-                const dbPass = cols[2].trim();
+                // 3. Limpiamos posibles comillas y espacios de los datos del CSV
+                const dbUser = cols[0] ? cols[0].replace(/['"]+/g, '').trim().toLowerCase() : "";
+                const dbPass = cols[2] ? cols[2].replace(/['"]+/g, '').trim() : "";
 
                 if (dbUser === userValue) {
                     userFound = true;
@@ -208,27 +194,18 @@
                 messageDiv.innerText = "CONTRASEÑA INCORRECTA";
             } else {
                 messageDiv.style.color = "#4e7e28";
-                messageDiv.innerText = "ACCESO CONCEDIDO. Entrando...";
-                
-                // Redirección al formulario principal.html tras un breve retardo
+                messageDiv.innerText = "ACCESO CORRECTO";
                 setTimeout(() => {
                     window.location.href = 'principal.html';
                 }, 800);
             }
 
         } catch (error) {
-            console.error("Error de conexión:", error);
             messageDiv.style.color = "red";
-            messageDiv.innerText = "Error al conectar con la base de datos de GitHub.";
+            messageDiv.innerText = "Error al conectar con el archivo CSV";
+            console.error(error);
         }
     }
-
-    // Permitir enviar el formulario al pulsar "Enter"
-    document.addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-            validateLogin();
-        }
-    });
 </script>
 
 </body>
