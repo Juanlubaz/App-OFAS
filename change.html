@@ -5,156 +5,65 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Cambiar Contraseña - Gestiproject</title>
 <style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
         font-family: Arial, sans-serif;
         background: linear-gradient(135deg, #6fb543, #79c255);
         min-height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 20px;
+        display: flex; justify-content: center; align-items: center; padding: 20px;
     }
-    
     .container {
-        background: white;
-        width: 100%;
-        max-width: 450px;
-        border-radius: 20px;
-        padding: 40px;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        background: white; width: 100%; max-width: 450px;
+        border-radius: 20px; padding: 40px; box-shadow: 0 6px 20px rgba(0,0,0,0.15);
         text-align: center;
     }
-    
-    .logos img {
-        max-height: 100px;
-        margin-bottom: 20px;
-    }
-    
-    h1 {
-        color: #4e7e28;
-        margin-bottom: 25px;
-        font-size: 24px;
-        text-transform: uppercase;
-    }
-
-    .form-group {
-        text-align: left;
-        margin-bottom: 15px;
-    }
-
-    label {
-        display: block;
-        color: #4e7e28;
-        font-size: 13px;
-        margin-bottom: 6px;
-        font-weight: bold;
-    }
-
+    .logos img { max-height: 100px; margin-bottom: 20px; }
+    h1 { color: #4e7e28; margin-bottom: 25px; font-size: 24px; }
+    .form-group { text-align: left; margin-bottom: 15px; }
+    label { display: block; color: #4e7e28; font-size: 13px; margin-bottom: 6px; font-weight: bold; }
     input {
-        width: 100%;
-        padding: 14px;
-        border: 2px solid #f3f3f3;
-        border-radius: 12px;
-        font-size: 15px;
-        outline: none;
-        background: #f9f9f9;
-        transition: all 0.3s ease;
+        width: 100%; padding: 14px; border: 2px solid #f3f3f3;
+        border-radius: 12px; font-size: 15px; outline: none; background: #f9f9f9;
     }
-
-    input:focus {
-        border-color: #79c255;
-        background: white;
-    }
-
+    input:focus { border-color: #79c255; background: white; }
     .btn-update {
-        width: 100%;
-        padding: 16px;
-        margin-top: 20px;
-        background: #4e7e28;
-        color: white;
-        border: none;
-        border-radius: 12px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
+        width: 100%; padding: 16px; margin-top: 20px;
+        background: #4e7e28; color: white; border: none;
+        border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer;
     }
-
-    .btn-update:disabled {
-        background: #ccc;
-        cursor: not-allowed;
-    }
-
-    @media (hover: hover) {
-        .btn-update:not(:disabled):hover {
-            background: #3d6320;
-            transform: translateY(-2px);
-        }
-    }
-
-    .back-link {
-        display: inline-block;
-        margin-top: 20px;
-        color: #666;
-        text-decoration: none;
-        font-size: 14px;
-    }
-
-    #message {
-        margin-top: 15px;
-        font-size: 14px;
-        font-weight: bold;
-        min-height: 20px;
-    }
+    #message { margin-top: 15px; font-size: 14px; font-weight: bold; }
 </style>
 </head>
 <body>
 
 <div class="container">
     <div class="logos">
-        <img src="https://raw.githubusercontent.com/Juanlubaz/Enlaces-estructuras-TSP3/main/GESTI.png" alt="Gestiproject Logo">
+        <img src="https://raw.githubusercontent.com/Juanlubaz/Enlaces-estructuras-TSP3/main/GESTI.png" alt="Logo">
     </div>
-    
     <h1>Change Password</h1>
-
     <div class="form-group">
         <label>USER</label>
         <input type="text" id="changeUser" placeholder="Confirm your username">
     </div>
-
     <div class="form-group">
         <label>OLD PASSWORD</label>
         <input type="password" id="oldPass" placeholder="Current password">
     </div>
-
-    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-
     <div class="form-group">
         <label>NEW PASSWORD</label>
-        <input type="password" id="newPass1" placeholder="Enter new password">
+        <input type="password" id="newPass1" placeholder="New password">
     </div>
-
     <div class="form-group">
         <label>CONFIRM NEW PASSWORD</label>
         <input type="password" id="newPass2" placeholder="Repeat new password">
     </div>
-
     <div id="message"></div>
-
     <button class="btn-update" id="submitBtn" onclick="processChange()">UPDATE PASSWORD</button>
-    
-    <a href="index.html" class="back-link">← Back to Login</a>
+    <br><a href="index.html" style="display:inline-block; margin-top:20px; color:#666; text-decoration:none; font-size:14px;">← Back</a>
 </div>
 
 <script>
-    // IMPORTANTE: Pega aquí la URL de tu implementación de Google Apps Script
-    const API_URL = "https://script.google.com/macros/s/AKfycbwTx0bAS0b0uOqu7cutos-2BfxICE0kEp3hG7Ce3f5mtAxZgkRBbQnkFRvuzCNZeAbi2A/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbwTx0bAS0b0uOqu7cutos-2BfxICE0kEp3hG7Ce3f5mtAxZgkRBbQnkFRvuzCNZeAbi2A/exec"; 
 
     async function processChange() {
         const user = document.getElementById('changeUser').value.trim();
@@ -164,30 +73,28 @@
         const msg = document.getElementById('message');
         const btn = document.getElementById('submitBtn');
 
-        // Validaciones iniciales
         if (!user || !oldP || !n1 || !n2) {
             msg.style.color = "orange";
-            msg.innerText = "Por favor, rellena todos los campos.";
+            msg.innerText = "Rellena todos los campos.";
             return;
         }
 
         if (n1 !== n2) {
-            msg.style.color = "#d93025";
-            msg.innerText = "Las nuevas contraseñas no coinciden.";
+            msg.style.color = "red";
+            msg.innerText = "Las nuevas claves no coinciden.";
             return;
         }
 
-        // Bloquear botón y mostrar carga
         btn.disabled = true;
         msg.style.color = "#666";
-        msg.innerText = "Conectando con la base de datos...";
+        msg.innerText = "Actualizando...";
 
         try {
-            // Usamos fetch con la URL de Google
-            // Nota: Usamos mode 'cors' para intentar leer la respuesta, 
-            // pero si falla, Google Apps Script a veces requiere redirecciones.
-            const response = await fetch(API_URL, {
+            // Enviamos como texto plano para evitar bloqueos de CORS
+            await fetch(API_URL, {
                 method: 'POST',
+                mode: 'no-cors', 
+                headers: { 'Content-Type': 'text/plain' },
                 body: JSON.stringify({
                     user: user,
                     oldPassword: oldP,
@@ -195,37 +102,22 @@
                 })
             });
 
-            const result = await response.json();
-
-            if (result.result === "success") {
-                msg.style.color = "#4e7e28";
-                msg.innerText = "¡Contraseña actualizada con éxito!";
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 2000);
-            } else {
-                msg.style.color = "#d93025";
-                msg.innerText = "Error: " + result.message;
-                btn.disabled = false;
-            }
-
-        } catch (error) {
-            console.error("Error:", error);
-            // Manejo de la respuesta silenciosa de Google (si hay problemas de CORS)
-            msg.style.color = "orange";
-            msg.innerText = "Procesando... Verifica tu Google Sheet en unos segundos.";
+            // Con 'no-cors' no podemos leer la respuesta, pero si llega aquí
+            // la petición ha salido hacia Google.
+            msg.style.color = "#4e7e28";
+            msg.innerText = "Solicitud enviada. Verificando...";
             
             setTimeout(() => {
+                alert("Si los datos eran correctos, tu clave ha sido cambiada.");
                 window.location.href = 'index.html';
-            }, 4000);
+            }, 2500);
+
+        } catch (error) {
+            msg.style.color = "red";
+            msg.innerText = "Error de conexión.";
+            btn.disabled = false;
         }
     }
-
-    // Permitir Enter
-    document.addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') processChange();
-    });
 </script>
-
 </body>
 </html>
