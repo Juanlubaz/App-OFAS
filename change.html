@@ -5,65 +5,147 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Cambiar Contraseña - Gestiproject</title>
 <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
     body {
         font-family: Arial, sans-serif;
         background: linear-gradient(135deg, #6fb543, #79c255);
         min-height: 100vh;
-        display: flex; justify-content: center; align-items: center; padding: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
     }
+    
     .container {
-        background: white; width: 100%; max-width: 450px;
-        border-radius: 20px; padding: 40px; box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        background: white;
+        width: 100%;
+        max-width: 450px;
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
         text-align: center;
     }
-    .logos img { max-height: 100px; margin-bottom: 20px; }
-    h1 { color: #4e7e28; margin-bottom: 25px; font-size: 24px; }
-    .form-group { text-align: left; margin-bottom: 15px; }
-    label { display: block; color: #4e7e28; font-size: 13px; margin-bottom: 6px; font-weight: bold; }
+    
+    .logos img {
+        max-height: 100px;
+        margin-bottom: 20px;
+    }
+    
+    h1 {
+        color: #4e7e28;
+        margin-bottom: 25px;
+        font-size: 24px;
+        text-transform: uppercase;
+    }
+
+    .form-group {
+        text-align: left;
+        margin-bottom: 15px;
+    }
+
+    label {
+        display: block;
+        color: #4e7e28;
+        font-size: 13px;
+        margin-bottom: 6px;
+        font-weight: bold;
+    }
+
     input {
-        width: 100%; padding: 14px; border: 2px solid #f3f3f3;
-        border-radius: 12px; font-size: 15px; outline: none; background: #f9f9f9;
+        width: 100%;
+        padding: 14px;
+        border: 2px solid #f3f3f3;
+        border-radius: 12px;
+        font-size: 15px;
+        outline: none;
+        background: #f9f9f9;
+        transition: all 0.3s ease;
     }
-    input:focus { border-color: #79c255; background: white; }
+
+    input:focus {
+        border-color: #79c255;
+        background: white;
+    }
+
     .btn-update {
-        width: 100%; padding: 16px; margin-top: 20px;
-        background: #4e7e28; color: white; border: none;
-        border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer;
+        width: 100%;
+        padding: 16px;
+        margin-top: 20px;
+        background: #4e7e28;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
     }
-    #message { margin-top: 15px; font-size: 14px; font-weight: bold; }
+
+    .btn-update:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+    }
+
+    .back-link {
+        display: inline-block;
+        margin-top: 20px;
+        color: #666;
+        text-decoration: none;
+        font-size: 14px;
+    }
+
+    #message {
+        margin-top: 15px;
+        font-size: 14px;
+        font-weight: bold;
+        min-height: 20px;
+    }
 </style>
 </head>
 <body>
 
 <div class="container">
     <div class="logos">
-        <img src="https://raw.githubusercontent.com/Juanlubaz/Enlaces-estructuras-TSP3/main/GESTI.png" alt="Logo">
+        <img src="https://raw.githubusercontent.com/Juanlubaz/Enlaces-estructuras-TSP3/main/GESTI.png" alt="Gestiproject Logo">
     </div>
+    
     <h1>Change Password</h1>
+
     <div class="form-group">
         <label>USER</label>
-        <input type="text" id="changeUser" placeholder="Confirm your username">
+        <input type="text" id="changeUser" placeholder="Confirm username">
     </div>
+
     <div class="form-group">
         <label>OLD PASSWORD</label>
         <input type="password" id="oldPass" placeholder="Current password">
     </div>
+
     <div class="form-group">
         <label>NEW PASSWORD</label>
         <input type="password" id="newPass1" placeholder="New password">
     </div>
+
     <div class="form-group">
         <label>CONFIRM NEW PASSWORD</label>
         <input type="password" id="newPass2" placeholder="Repeat new password">
     </div>
+
     <div id="message"></div>
+
     <button class="btn-update" id="submitBtn" onclick="processChange()">UPDATE PASSWORD</button>
-    <br><a href="index.html" style="display:inline-block; margin-top:20px; color:#666; text-decoration:none; font-size:14px;">← Back</a>
+    
+    <a href="index.html" class="back-link">← Back to Login</a>
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbwTx0bAS0b0uOqu7cutos-2BfxICE0kEp3hG7Ce3f5mtAxZgkRBbQnkFRvuzCNZeAbi2A/exec"; 
+    // 1. REEMPLAZA ESTA URL con tu URL de implementación (la que termina en /exec)
+    const API_URL = "https://script.google.com/macros/s/AKfycbywtgH4NBBCvNh4Kd_uNwRxdlvq1YfCM2IBCU2spXkD0CFJN-8xmHTAuzR7tBq4LgcBIg/exec"; 
 
     async function processChange() {
         const user = document.getElementById('changeUser').value.trim();
@@ -75,49 +157,56 @@
 
         if (!user || !oldP || !n1 || !n2) {
             msg.style.color = "orange";
-            msg.innerText = "Rellena todos los campos.";
+            msg.innerText = "Por favor, completa todos los campos.";
             return;
         }
 
         if (n1 !== n2) {
             msg.style.color = "red";
-            msg.innerText = "Las nuevas claves no coinciden.";
+            msg.innerText = "Las nuevas contraseñas no coinciden.";
             return;
         }
 
         btn.disabled = true;
         msg.style.color = "#666";
-        msg.innerText = "Actualizando...";
+        msg.innerText = "Enviando solicitud a la base de datos...";
+
+        // Objeto de datos que espera el script de Google
+        const payload = {
+            user: user,
+            oldPassword: oldP,
+            newPassword: n1
+        };
 
         try {
-            // Enviamos como texto plano para evitar bloqueos de CORS
+            // Usamos mode: 'no-cors' para asegurar que la petición salga sin bloqueos
             await fetch(API_URL, {
                 method: 'POST',
-                mode: 'no-cors', 
-                headers: { 'Content-Type': 'text/plain' },
-                body: JSON.stringify({
-                    user: user,
-                    oldPassword: oldP,
-                    newPassword: n1
-                })
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'text/plain'
+                },
+                body: JSON.stringify(payload)
             });
 
-            // Con 'no-cors' no podemos leer la respuesta, pero si llega aquí
-            // la petición ha salido hacia Google.
+            // Con no-cors no podemos leer la respuesta de éxito de Google,
+            // así que asumimos que se envió y damos instrucciones al usuario.
             msg.style.color = "#4e7e28";
-            msg.innerText = "Solicitud enviada. Verificando...";
-            
+            msg.innerText = "Solicitud procesada. Verificando cambios...";
+
             setTimeout(() => {
-                alert("Si los datos eran correctos, tu clave ha sido cambiada.");
+                alert("Si los datos eran correctos, tu contraseña ha sido actualizada. Redirigiendo...");
                 window.location.href = 'index.html';
             }, 2500);
 
         } catch (error) {
+            console.error("Error de red:", error);
             msg.style.color = "red";
-            msg.innerText = "Error de conexión.";
+            msg.innerText = "Error de conexión. Inténtalo de nuevo.";
             btn.disabled = false;
         }
     }
 </script>
+
 </body>
 </html>
