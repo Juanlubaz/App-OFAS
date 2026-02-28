@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consulta de Estructuras</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+  <style>
+    /* Estilos originales mantenidos */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; background: linear-gradient(135deg, #5a7f3a 0%, #8fbc3f 50%, #6b8e23 100%); min-height: 100vh; padding: 20px; }
+    .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); padding: 30px; }
+    h1 { color: #5a7f3a; text-align: center; margin-bottom: 10px; font-size: 2em; }
+    .logos-container { display: flex; justify-content: center; align-items: center; margin-bottom: 30px; padding: 20px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 15px; }
+    .logo { max-width: 220px; height: auto; }
+    .form-group { margin-bottom: 25px; }
+    label { display: block; color: #555; font-weight: 600; margin-bottom: 8px; font-size: 1.1em; }
+    select { width: 100%; padding: 12px 15px; border: 2px solid #ddd; border-radius: 10px; font-size: 16px; background: white; cursor: pointer; transition: border-color 0.3s; }
+    select:focus { outline: none; border-color: #8fbc3f; }
+    select:disabled { background: #f5f5f5; cursor: not-allowed; }
+    .buttons-section { margin-top: 30px; }
+    .buttons-section h3 { color: #5a7f3a; margin-bottom: 15px; font-size: 1.2em; }
+    .btn { width: 100%; padding: 15px 20px; border: none; border-radius: 10px; font-size: 1em; font-weight: 600; cursor: pointer; transition: all 0.3s; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; color: white; text-decoration: none; }
+    .btn-manufacturing { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+    .btn-erection { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+    .btn-3d { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .loading, .error { text-align: center; padding: 40px; }
+    .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #8fbc3f; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .error { color: #e74c3c; }
+    .hidden { display: none; }
+    @media (max-width: 600px) { .container { padding: 20px; } h1 { font-size: 1.5em; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="loading" class="loading">
+      <div class="spinner"></div>
+      <p>Cargando datos...</p>
+    </div>
+
+    <div id="error" class="error hidden">
+      <h2>⚠️ Error</h2>
+      <p id="errorMessage"></p>
+      <button class="btn btn-manufacturing" onclick="location.reload()">Reintentar</button>
+    </div>
+
+    <div id="app" class="hidden">
+      <div class="logos-container">
+        <img src="https://raw.githubusercontent.com/Juanlubaz/Enlaces-estructuras-TSP3/main/GESTI.png" alt="GESTIPROJEC Logo" class="logo">
+      </div>
+      
+      <h1>📊 Consulta de Estructuras</h1>
+
+      <div class="form-group">
+        <label for="selectEquipo">Selecciona Equipo:</label>
+        <select id="selectEquipo">
+          <option value="">-- Selecciona un EQUIPO --</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="selectId">Structure name (Zona):</label>
+        <select id="selectId" disabled>
+          <option value="">-- Selecciona una ZONA --</option>
+        </select>
+      </div>
+
+      <div id="infoSection" class="hidden">
+        <div class="buttons-section">
+          <h3>Documentación y Visualización:</h3>
+          <div id="buttonsContainer"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var data = [];
+    var selectedEquipo = '';
+    var GITHUB_URL = 'https://raw.githubusercontent.com/Juanlubaz/App-OFAS/main/Enlaces%20corregidos.csv';
+
+    function loadCSVFromGithub() {
+      fetch(GITHUB_URL)
+        .then(response => {
+          if (!response.ok) throw new Error('No se pudo cargar el archivo CSV');
+          return response.text();
+        })
+        .then(csvText => {
+          Papa.parse(csvText, {
+            header: true,
+            skipEmptyLines: true,
+            complete: function(results) {
+              data = results.data;
+              populateEquipoSelect();
+              document.getElementById('loading').classList.add('hidden');
+              document.getElementById('app').classList.remove('hidden');
+            },
+            error: err => { throw new Error('Error al parsear CSV: ' + err.message); }
+          });
+        })
+        .catch(err => {
+          document.getElementById('loading').classList.add('hidden');
+          document.getElementById('error').classList.remove('hidden');
+          document.getElementById('errorMessage').textContent = err.message;
+        });
+    }
+
+    function populateEquipoSelect() {
+      var selectEquipo = document.getElementById('selectEquipo');
+      var uniqueEquipos = [...new Set(data.map(item => item.EQUIPO))].filter(Boolean).sort();
+      
+      uniqueEquipos.forEach(equipo => {
+        var option = document.createElement('option');
+        option.value = equipo;
+        option.textContent = equipo;
+        selectEquipo.appendChild(option);
+      });
+    }
+
+    function onEquipoChange() {
+      selectedEquipo = document.getElementById('selectEquipo').value;
+      var selectId = document.getElementById('selectId');
+      
+      selectId.innerHTML = '<option value="">-- Selecciona una ZONA --</option>';
+      selectId.disabled = !selectedEquipo;
+      document.getElementById('infoSection').classList.add('hidden');
+
+      if (selectedEquipo) {
+        // Filtrar zonas que pertenecen al equipo seleccionado
+        var zones = [...new Set(data.filter(item => item.EQUIPO === selectedEquipo).map(item => item.ZONA))].filter(Boolean).sort();
+        zones.forEach(zone => {
+          var option = document.createElement('option');
+          option.value = zone;
+          option.textContent = zone;
+          selectId.appendChild(option);
+        });
+      }
+    }
+
+    function onIdChange() {
+      var selectedId = document.getElementById('selectId').value;
+      if (selectedEquipo && selectedId) {
+        // Buscamos la fila que coincida con Equipo y Zona
+        var item = data.find(i => i.EQUIPO === selectedEquipo && i.ZONA === selectedId);
+        if (item) displayItemInfo(item);
+      } else {
+        document.getElementById('infoSection').classList.add('hidden');
+      }
+    }
+
+    function displayItemInfo(item) {
+      var buttonsContainer = document.getElementById('buttonsContainer');
+      buttonsContainer.innerHTML = '';
+      
+      const links = [
+        { key: 'VISOR 3D', class: 'btn-3d', icon: '🌐', label: 'VISOR 3D' },
+        { key: 'PLANOS DE FABRICACION', class: 'btn-manufacturing', icon: '🏭', label: 'PLANOS DE FABRICACION' },
+        { key: 'PLANOS DE MONTAJE', class: 'btn-erection', icon: '🏗️', label: 'PLANOS DE MONTAJE' }
+      ];
+
+      let hasLinks = false;
+      links.forEach(link => {
+        if (item[link.key]) {
+          hasLinks = true;
+          var btn = document.createElement('button');
+          btn.className = 'btn ' + link.class;
+          btn.innerHTML = `<span>${link.icon}</span> ${link.label}`;
+          btn.onclick = () => window.open(item[link.key], '_blank');
+          buttonsContainer.appendChild(btn);
+        }
+      });
+      
+      if (!hasLinks) {
+        buttonsContainer.innerHTML = '<p style="text-align: center; color: #999; font-style: italic;">No hay enlaces disponibles</p>';
+      }
+      
+      document.getElementById('infoSection').classList.remove('hidden');
+    }
+
+    document.getElementById('selectEquipo').addEventListener('change', onEquipoChange);
+    document.getElementById('selectId').addEventListener('change', onIdChange);
+    
+    loadCSVFromGithub();
+  </script>
+</body>
+</html>
