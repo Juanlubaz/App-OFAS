@@ -1,20 +1,20 @@
 PROCESO;EQUIPO;ZONA;ESTRUCTURA;PAQUETE;PLANOS DE MONTAJE;VISOR 3D;DESCRIPCION
-Solubilizaci髇;Reactors;Support structure for reactors (sol to bunker);ST-01;1;https://drive.google.com/file/d/1NIWeW6TIWcy_9MjbhoJ_oFgAOir8DII5/view?usp=drive_link;https://autode.sk/3LWbc1J;
-Solubilizaci髇;Reactors;Support structure for campanas and reactor 1 beams ;ST-02;1;https://drive.google.com/file/d/1RTte-JvRKwAi4KvLsDIXQITRD2avyFlo/view?usp=drive_link;https://autode.sk/45ycNl3;
-Solubilizaci髇;Reactors;Support structure for campanas and reactor 2 beams ;ST-02;2;https://drive.google.com/file/d/1nTCGd_OHQoicTKFE6tlhsZVLBVJcA0a0/view?usp=drive_link;https://autode.sk/46uJEYk;
-Solubilizaci髇;Reactors;Acces of reactor;ST-02;3;;https://autode.sk/4sd2ueR;
-Solubilizaci髇;Reactors;Beam of reactors;ST-02;4;https://drive.google.com/file/d/1g_DPqSGsmhP1JT3VpW6IbV1Jp7OKmz4r/view?usp=drive_link;https://autode.sk/4rNEkYO;
-Solubilizaci髇;Reactors;Scraper;ST-02;6;;https://autode.sk/4sfAh7i;
-Solubilizaci髇;Reactors;Support for reactor 1 duct;ST-03;1;https://drive.google.com/file/d/1kfOcQ8ujU8AQuk1-4CkTyJnAKzk4W3Td/view?usp=drive_link;https://autode.sk/49L3EYI;
-Solubilizaci髇;Reactors;Support for reactor 2 duct;ST-03;2;https://drive.google.com/file/d/1_cJnDwPfigIx9QF3ECtC0eODffap0PNZ/view?usp=drive_link;https://autode.sk/46uKbcK;
-Solubilizaci髇;Reactors;Platforme  Continue of reactors;ST-03;3;https://drive.google.com/file/d/1l_lUFnN0P-ZQzRb9LFcZXyN_Iu5p9GIx/view?usp=drive_link;;
-Solubilizaci髇;Dosing;Solid dosing system support for reactor;ST-04;1;https://drive.google.com/file/d/1o_LX0NnR_xeXOLmTZili2iuo71CdGuUh/view?usp=drive_link;https://autode.sk/4t0pVJt;Sistema de dosificaci髇 s髄ida para los reactores
-Solubilizaci髇;Dosing;Foundation - base plates;ST-04;2;https://drive.google.com/file/d/1NmYeL8631p4y2nPAvA-tVW4LYMZTppaN/view?usp=drive_link;;
-Solubilizaci髇;Scrubbers of solubilization;Structure for scrubbers of solubilization;ST-05;1;https://drive.google.com/file/d/1PtkQYpaUSkfcJ0PmiUM7sCWBJtpiMIjA/view?usp=drive_link;https://autode.sk/4bml1jM;
-Solubilizaci髇;Scrubbers of solubilization;Support cheminey;ST-05;2;https://drive.google.com/file/d/1ehBrOHdWiKlSGCN9QdmR-50JeUncilZx/view?usp=drive_link;https://autode.sk/4u0bOVd;
-Solubilizaci髇;Cable try;Electrical rack for solubilisation;ST-06;1;https://drive.google.com/file/d/16leo8dbX10xrlbyvpUUqZvyvn1cmR83P/view?usp=drive_link;https://autode.sk/3LEPhvY;
-Solubilizaci髇;Grinding;Structure for grinding  station;ST-08;1;;https://autode.sk/4tYOyqF;
-Solubilizaci髇;Grinding;Support cheminey ;ST-08;2;https://drive.google.com/file/d/1tAiYDElrw_lI8TrpDEqJ8N4EGvUVLWuz/view?usp=drive_link;;
+Solubilizaci贸n;Reactors;Support structure for reactors (sol to bunker);ST-01;1;https://drive.google.com/file/d/1NIWeW6TIWcy_9MjbhoJ_oFgAOir8DII5/view?usp=drive_link;https://autode.sk/3LWbc1J;
+Solubilizaci贸n;Reactors;Support structure for campanas and reactor 1 beams ;ST-02;1;https://drive.google.com/file/d/1RTte-JvRKwAi4KvLsDIXQITRD2avyFlo/view?usp=drive_link;https://autode.sk/45ycNl3;
+Solubilizaci贸n;Reactors;Support structure for campanas and reactor 2 beams ;ST-02;2;https://drive.google.com/file/d/1nTCGd_OHQoicTKFE6tlhsZVLBVJcA0a0/view?usp=drive_link;https://autode.sk/46uJEYk;
+Solubilizaci贸n;Reactors;Acces of reactor;ST-02;3;;https://autode.sk/4sd2ueR;
+Solubilizaci贸n;Reactors;Beam of reactors;ST-02;4;https://drive.google.com/file/d/1g_DPqSGsmhP1JT3VpW6IbV1Jp7OKmz4r/view?usp=drive_link;https://autode.sk/4rNEkYO;
+Solubilizaci贸n;Reactors;Scraper;ST-02;6;;https://autode.sk/4sfAh7i;
+Solubilizaci贸n;Reactors;Support for reactor 1 duct;ST-03;1;https://drive.google.com/file/d/1kfOcQ8ujU8AQuk1-4CkTyJnAKzk4W3Td/view?usp=drive_link;https://autode.sk/49L3EYI;
+Solubilizaci贸n;Reactors;Support for reactor 2 duct;ST-03;2;https://drive.google.com/file/d/1_cJnDwPfigIx9QF3ECtC0eODffap0PNZ/view?usp=drive_link;https://autode.sk/46uKbcK;
+Solubilizaci贸n;Reactors;Platforme  Continue of reactors;ST-03;3;https://drive.google.com/file/d/1l_lUFnN0P-ZQzRb9LFcZXyN_Iu5p9GIx/view?usp=drive_link;;
+Solubilizaci贸n;Dosing;Solid dosing system support for reactor;ST-04;1;https://drive.google.com/file/d/1o_LX0NnR_xeXOLmTZili2iuo71CdGuUh/view?usp=drive_link;https://autode.sk/4t0pVJt;Sistema de dosificaci贸n s贸lida para los reactores
+Solubilizaci贸n;Dosing;Foundation - base plates;ST-04;2;https://drive.google.com/file/d/1NmYeL8631p4y2nPAvA-tVW4LYMZTppaN/view?usp=drive_link;;
+Solubilizaci贸n;Scrubbers of solubilization;Structure for scrubbers of solubilization;ST-05;1;https://drive.google.com/file/d/1PtkQYpaUSkfcJ0PmiUM7sCWBJtpiMIjA/view?usp=drive_link;https://autode.sk/4bml1jM;
+Solubilizaci贸n;Scrubbers of solubilization;Support cheminey;ST-05;2;https://drive.google.com/file/d/1ehBrOHdWiKlSGCN9QdmR-50JeUncilZx/view?usp=drive_link;https://autode.sk/4u0bOVd;
+Solubilizaci贸n;Cable try;Electrical rack for solubilisation;ST-06;1;https://drive.google.com/file/d/16leo8dbX10xrlbyvpUUqZvyvn1cmR83P/view?usp=drive_link;https://autode.sk/3LEPhvY;
+Solubilizaci贸n;Grinding;Structure for grinding  station;ST-08;1;;https://autode.sk/4rMHQ5o;
+Solubilizaci贸n;Grinding;Support cheminey ;ST-08;2;https://drive.google.com/file/d/1tAiYDElrw_lI8TrpDEqJ8N4EGvUVLWuz/view?usp=drive_link;;
 Equipment;Rack;Rack between general rack nd sulfuric acid zone;ST-11;1;https://drive.google.com/file/d/1CEDU9RSZA_im7oUk9R7o9ZuUa2ywN7Yx/view?usp=drive_link;https://autode.sk/4aTpR6e;
 Equipment;Rack;Rack between general rack and granulation virole;ST-13;1;;https://autode.sk/4kWmU9A;
 Granulation;Cheminey rotary filters;Structure, walkways and stais for cheminey;ST-14;1;;https://autode.sk/3Na81nD;
@@ -52,4 +52,5 @@ Granulation;Conveyor platforms;Structure at the granulation entrance;ST-30;1;htt
 Granulation;Conveyor platforms;Transference tower structure of BC04 and 06;ST-31;1;;https://autode.sk/3OE5PoV;
 Granulation;Conveyor platforms;The conveyor structures toward the granulator (Indusal st6);ST-31;2;https://drive.google.com/file/d/1XO7d_qOGgrvdwVLtNCEvFB0umls4BYeY/view?usp=drive_link;https://autode.sk/4bg5f9B;
 Granulation;Conveyor platforms;The conveyor structures toward the granulator (Indusal st5);ST-31;3;https://drive.google.com/file/d/1dExFroZTsQs_HZYklVwfELbHtXo-PUMD/view?usp=drive_link;https://autode.sk/402xOBc;
-Granulation;Scrubbers of granulations;Structure of granulation磗 scrubbers;ST-37;1;;https://autode.sk/3Oyhd5P;
+Granulation;Scrubbers of granulations;Structure of granulation麓s scrubbers;ST-37;1;;https://autode.sk/3Oyhd5P;
+
