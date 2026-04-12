@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cambiar Contraseña - Gestiproject</title>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #6fb543, #79c255);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
+    
+    .container {
+        background: white;
+        width: 100%;
+        max-width: 450px;
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        text-align: center;
+    }
+    
+    .logos img {
+        max-height: 100px;
+        margin-bottom: 20px;
+    }
+    
+    h1 {
+        color: #4e7e28;
+        margin-bottom: 25px;
+        font-size: 24px;
+        text-transform: uppercase;
+    }
+
+    .form-group {
+        text-align: left;
+        margin-bottom: 15px;
+    }
+
+    label {
+        display: block;
+        color: #4e7e28;
+        font-size: 13px;
+        margin-bottom: 6px;
+        font-weight: bold;
+    }
+
+    input {
+        width: 100%;
+        padding: 14px;
+        border: 2px solid #f3f3f3;
+        border-radius: 12px;
+        font-size: 15px;
+        outline: none;
+        background: #f9f9f9;
+        transition: all 0.3s ease;
+    }
+
+    input:focus {
+        border-color: #79c255;
+        background: white;
+    }
+
+    .btn-update {
+        width: 100%;
+        padding: 16px;
+        margin-top: 20px;
+        background: #4e7e28;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-update:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+    }
+
+    .back-link {
+        display: inline-block;
+        margin-top: 20px;
+        color: #666;
+        text-decoration: none;
+        font-size: 14px;
+    }
+
+    #message {
+        margin-top: 15px;
+        font-size: 14px;
+        font-weight: bold;
+        min-height: 20px;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="logos">
+        <img src="https://raw.githubusercontent.com/Juanlubaz/Enlaces-estructuras-TSP3/main/GESTI.png" alt="Gestiproject Logo">
+    </div>
+    
+    <h1>Change Password</h1>
+
+    <div class="form-group">
+        <label>USER</label>
+        <input type="text" id="changeUser" placeholder="Confirm username" autocomplete="username">
+    </div>
+
+    <div class="form-group">
+        <label>OLD PASSWORD</label>
+        <input type="password" id="oldPass" placeholder="Current password" autocomplete="current-password">
+    </div>
+
+    <div class="form-group">
+        <label>NEW PASSWORD</label>
+        <input type="password" id="newPass1" placeholder="New password" autocomplete="new-password">
+    </div>
+
+    <div class="form-group">
+        <label>CONFIRM NEW PASSWORD</label>
+        <input type="password" id="newPass2" placeholder="Repeat new password" autocomplete="new-password">
+    </div>
+
+    <div id="message"></div>
+
+    <button class="btn-update" id="submitBtn" onclick="processChange()">UPDATE PASSWORD</button>
+    
+    <a href="index.html" class="back-link">← Back to Login</a>
+</div>
+
+<script>
+    const API_URL = "TU_URL_DEL_SCRIPT";
+
+    async function processChange() {
+        const user = document.getElementById('changeUser').value.trim().toLowerCase();
+        const oldP = document.getElementById('oldPass').value.trim();
+        const n1 = document.getElementById('newPass1').value.trim();
+        const n2 = document.getElementById('newPass2').value.trim();
+        const msg = document.getElementById('message');
+        const btn = document.getElementById('submitBtn');
+
+        if (!user || !oldP || !n1 || !n2) {
+            msg.style.color = "orange";
+            msg.innerText = "Completa todos los campos.";
+            return;
+        }
+
+        if (n1 !== n2) {
+            msg.style.color = "red";
+            msg.innerText = "Las nuevas contraseñas no coinciden.";
+            return;
+        }
+
+        btn.disabled = true;
+        msg.style.color = "#666";
+        msg.innerText = "Procesando...";
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'text/plain;charset=utf-8'
+                },
+                body: JSON.stringify({
+                    action: 'changePassword',
+                    user: user,
+                    oldPassword: oldP,
+                    newPassword: n1
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error("Respuesta no válida del servidor");
+            }
+
+            const result = await response.json();
+
+            if (result.success) {
+                msg.style.color = "#4e7e28";
+                msg.innerText = result.message || "CONTRASEÑA ACTUALIZADA";
+
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1500);
+            } else {
+                msg.style.color = "red";
+                msg.innerText = result.message || "No se pudo cambiar la contraseña.";
+            }
+
+        } catch (error) {
+            console.error("Error:", error);
+            msg.style.color = "red";
+            msg.innerText = "Error de conexión con la base de datos.";
+        } finally {
+            btn.disabled = false;
+        }
+    }
+</script>
+
+</body>
+</html>
