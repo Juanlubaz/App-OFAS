@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Acceso - Gestiproject</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #6fb543, #79c255);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
+    .container {
+        background: white;
+        width: 100%;
+        max-width: 480px;
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        text-align: center;
+    }
+    .logos img { max-height: 110px; margin-bottom: 25px; }
+    h1 { color: #4e7e28; margin-bottom: 30px; font-size: 26px; }
+    .form-group { text-align: left; margin-bottom: 20px; }
+    label { display: block; color: #4e7e28; font-size: 14px; margin-bottom: 8px; font-weight: bold; }
+    input {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid #f3f3f3;
+        border-radius: 12px;
+        font-size: 16px;
+        outline: none;
+        background: #f9f9f9;
+        transition: all 0.3s ease;
+    }
+    input:focus { border-color: #79c255; background: white; }
+    .button-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 30px; }
+    button {
+        padding: 18px;
+        border-radius: 12px;
+        font-size: 16px;
+        border: none;
+        cursor: pointer;
+        background: #f3f3f3;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        transition: all 0.2s ease;
+        font-weight: 600;
+        color: #333;
+    }
+    .btn-next { background: #4e7e28; color: white; }
+    #message { margin-top: 15px; font-size: 14px; font-weight: bold; min-height: 20px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="logos">
+        <img src="https://raw.githubusercontent.com/Juanlubaz/Enlaces-estructuras-TSP3/main/GESTI.png" alt="Logo">
+    </div>
+    <h1>LOGIN ACCESS</h1>
+
+    <div class="form-group">
+        <label>USER</label>
+        <input type="text" id="userInput" placeholder="Username" autocomplete="username">
+    </div>
+
+    <div class="form-group">
+        <label>PASSWORD</label>
+        <input type="password" id="passInput" placeholder="Password" autocomplete="current-password">
+    </div>
+
+    <div id="message"></div>
+
+    <div class="button-grid">
+        <button onclick="window.location.href='change.html'">CHANGE</button>
+        <button class="btn-next" id="loginBtn" onclick="validateLogin()">NEXT</button>
+    </div>
+</div>
+
+<script>
+    const API_URL = 'https://script.google.com/macros/s/TU_SCRIPT/exec';
+
+    async function validateLogin() {
+        const userValue = document.getElementById('userInput').value.trim().toLowerCase();
+        const passValue = document.getElementById('passInput').value.trim();
+        const messageDiv = document.getElementById('message');
+        const loginBtn = document.getElementById('loginBtn');
+
+        if (!userValue || !passValue) {
+            messageDiv.style.color = 'orange';
+            messageDiv.innerText = 'Por favor, rellena todos los campos';
+            return;
+        }
+
+        loginBtn.disabled = true;
+        messageDiv.style.color = '#666';
+        messageDiv.innerText = 'Verificando...';
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'text/plain;charset=utf-8'
+                },
+                body: JSON.stringify({
+                    action: 'login',
+                    user: userValue,
+                    password: passValue
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Respuesta no válida del servidor');
+            }
+
+            const result = await response.json();
+
+            if (result.success) {
+                messageDiv.style.color = '#4e7e28';
+                messageDiv.innerText = 'ACCESO CORRECTO';
+
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('loggedUser', userValue);
+
+                setTimeout(() => {
+                    window.location.href = 'principal.html';
+                }, 800);
+            } else {
+                messageDiv.style.color = '#d93025';
+                messageDiv.innerText = result.message || 'Usuario o contraseña incorrectos';
+            }
+        } catch (error) {
+            console.error(error);
+            messageDiv.style.color = 'red';
+            messageDiv.innerText = 'Error al conectar con la base de datos';
+        } finally {
+            loginBtn.disabled = false;
+        }
+    }
+</script>
+
+</body>
+</html>
