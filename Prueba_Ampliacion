@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Menú Principal</title>
+<style>
+    /* ... (Mantenemos tus estilos originales) ... */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #6fb543, #79c255); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+    .container { background: white; width: 100%; max-width: 900px; border-radius: 20px; padding: 40px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); text-align: center; }
+    .logos { display: flex; justify-content: center; align-items: center; margin-bottom: 30px; flex-wrap: wrap; }
+    .logos img { max-height: 120px; max-width: 100%; height: auto; width: auto; object-fit: contain; }
+    h1 { color: #4e7e28; margin-bottom: 40px; font-size: 28px; }
+    .button-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; padding: 0 40px; }
+    button { padding: 18px; border-radius: 12px; font-size: 18px; border: none; cursor: pointer; background: #f3f3f3; box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: all 0.2s ease; font-weight: 600; color: #333; }
+    button:hover { background: #e8e8e8; transform: translateY(-3px); }
+
+    /* ESTILOS DEL MODAL (CUADRO EMERGENTE) */
+    .modal {
+        display: none; 
+        position: fixed;
+        z-index: 1000;
+        left: 0; top: 0; width: 100%; height: 100%;
+        background-color: rgba(0,0,0,0.5);
+    }
+    .modal-content {
+        background-color: white;
+        margin: 15% auto;
+        padding: 30px;
+        border-radius: 15px;
+        width: 80%;
+        max-width: 500px;
+        text-align: left;
+    }
+    .modal-content h2 { color: #4e7e28; margin-bottom: 15px; }
+    .modal-content input {
+        width: 100%;
+        padding: 12px;
+        margin: 10px 0;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+    }
+    .modal-buttons { display: flex; gap: 10px; margin-top: 15px; }
+    .btn-search { background: #79c255; color: white; flex: 1; }
+    .btn-cancel { background: #ccc; flex: 1; }
+
+    @media (max-width: 600px) {
+        .button-grid { grid-template-columns: 1fr; }
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="logos">
+        <div class="logo-container">
+            <img src="https://raw.githubusercontent.com/Juanlubaz/Enlaces-estructuras-TSP3/main/GESTI.png" 
+                 alt="Gestiproject Logo" 
+                 onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'logo-placeholder\'>Gestiproject Logo</div>';" />
+        </div>
+    </div>
+    <h1>Select an option</h1>
+    <div class="button-grid">
+        <button onclick="openPage('Planos_de_estructuras.html')">STRUCTURES</button>
+        <button onclick="openSearchModal()" style="background: #eef9e8; border: 2px solid #79c255;">ENGINEERING</button>
+    </div>
+</div>
+
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <h2>Engineering Search</h2>
+        <p>¿Qué estás buscando?</p>
+        <input type="text" id="searchInput" placeholder="Ej: Plano cimentación, Cálculo..." onkeypress="handleKeyPress(event)">
+        
+        <div class="modal-buttons">
+            <button class="btn-search" onclick="executeSearch('drive')">Buscar en Drive</button>
+            <button class="btn-search" style="background:#4285F4" onclick="executeSearch('google')">Buscar en Google</button>
+            <button class="btn-cancel" onclick="closeSearchModal()">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openPage(file) {
+        window.location.href = './' + file;
+    }
+
+    // Funciones para el buscador
+    function openSearchModal() {
+        document.getElementById('searchModal').style.display = 'block';
+        document.getElementById('searchInput').focus();
+    }
+
+    function closeSearchModal() {
+        document.getElementById('searchModal').style.display = 'none';
+        document.getElementById('searchInput').value = '';
+    }
+
+    function handleKeyPress(e) {
+        if (e.key === 'Enter') executeSearch('drive');
+    }
+
+    function executeSearch(type) {
+        const query = document.getElementById('searchInput').value;
+        if (!query) return alert("Por favor, escribe algo para buscar.");
+
+        if (type === 'drive') {
+            // ID de tu carpeta: 1cMfIH2y-_2cmZqJGmRwtybZTGHUTcQs-
+            // Usamos el operador 'in' para buscar dentro de esa carpeta y subcarpetas
+            const folderId = "1cMfIH2y-_2cmZqJGmRwtybZTGHUTcQs-";
+            const driveUrl = `https://drive.google.com/drive/u/0/search?q=parent:'${folderId}'%20${encodeURIComponent(query)}`;
+            window.open(driveUrl, '_blank');
+        } else {
+            const googleUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+            window.open(googleUrl, '_blank');
+        }
+        closeSearchModal();
+    }
+
+    // Cerrar modal si se hace clic fuera de él
+    window.onclick = function(event) {
+        let modal = document.getElementById('searchModal');
+        if (event.target == modal) closeSearchModal();
+    }
+</script>
+
+</body>
+</html>
