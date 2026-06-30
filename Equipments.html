@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Equipments - Search Menu</title>
+<style>
+    /* ESTILOS BASE (Mantenidos de tu principal.html para consistencia estética) */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #6fb543, #79c255); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+    .container { background: white; width: 100%; max-width: 900px; border-radius: 20px; padding: 40px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); text-align: center; }
+    .logos { display: flex; justify-content: center; align-items: center; margin-bottom: 30px; flex-wrap: wrap; }
+    .logos img { max-height: 120px; max-width: 100%; height: auto; width: auto; object-fit: contain; }
+    h1 { color: #4e7e28; margin-bottom: 30px; font-size: 28px; }
+
+    /* RECUADRO DE BOTONES OPCIONALES (TAG / EQUIPMENT NAME) */
+    .options-box {
+        border: 2px dashed #79c255;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 25px;
+        background-color: #f9fdf6;
+    }
+    .options-title {
+        font-size: 14px;
+        color: #4e7e28;
+        font-weight: bold;
+        margin-bottom: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .options-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    /* CUADRO DE BÚSQUEDA */
+    .search-box-container {
+        max-width: 740px;
+        margin: 0 auto 35px auto;
+    }
+    .search-input {
+        width: 100%;
+        padding: 16px 20px;
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        font-size: 18px;
+        outline: none;
+        transition: border-color 0.2s ease;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.03);
+    }
+    .search-input:focus {
+        border-color: #4e7e28;
+    }
+
+    /* CUADRÍCULA PARA LOS CUATRO BOTONES DE ACCIÓN */
+    .action-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 25px;
+        padding: 0 40px;
+    }
+
+    /* ESTILO GENERAL DE LOS BOTONES (Heredado de tus estilos originales) */
+    button { 
+        padding: 18px; 
+        border-radius: 12px; 
+        font-size: 18px; 
+        border: none; 
+        cursor: pointer; 
+        background: #f3f3f3; 
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+        transition: all 0.2s ease; 
+        font-weight: 600; 
+        color: #333; 
+    }
+    button:hover { background: #e8e8e8; transform: translateY(-3px); }
+    button:active { background: #e0e0e0; transform: translateY(1px); }
+
+    /* Variación estética para los botones opcionales cuando están ACTIVOS */
+    .btn-option {
+        background: #fff;
+        border: 2px solid #ccc;
+    }
+    .btn-option.active {
+        background: #79c255;
+        color: white;
+        border-color: #4e7e28;
+    }
+
+    /* Botón de volver atrás opcional */
+    .back-link {
+        display: inline-block;
+        margin-top: 30px;
+        color: #79c255;
+        text-decoration: none;
+        font-weight: bold;
+        font-size: 16px;
+    }
+    .back-link:hover { text-decoration: underline; }
+
+    @media (max-width: 600px) { 
+        .action-grid, .options-grid { grid-template-columns: 1fr; padding: 0; } 
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="logos">
+        <img src="https://raw.githubusercontent.com/Juanlubaz/Enlaces-estructuras-TSP3/main/GESTI.png" alt="Gestiproject Logo" />
+    </div>
+    
+    <h1>Equipment Search</h1>
+
+    <div class="options-box">
+        <div class="options-title">Search Criteria</div>
+        <div class="options-grid">
+            <button type="button" id="btnTag" class="btn-option active" onclick="selectCriteria('tag')">TAG</button>
+            <button type="button" id="btnName" class="btn-option" onclick="selectCriteria('name')">EQUIPMENT NAME</button>
+        </div>
+    </div>
+
+    <div class="search-box-container">
+        <input type="text" id="equipmentSearchInput" class="search-input" placeholder="Enter TAG or Equipment Name to look for...">
+    </div>
+
+    <div class="action-grid">
+        <button type="button" onclick="executeEquipmentSearch('dossier')">Quality dossier</button>
+        <button type="button" onclick="executeEquipmentSearch('planes')">Planes</button>
+        <button type="button" onclick="executeEquipmentSearch('maintenance')">Maintenance manual</button>
+        <button type="button" onclick="executeEquipmentSearch('assembly')">Assembly manual</button>
+    </div>
+
+    <a href="principal.html" class="back-link">← Back to Principal</a>
+</div>
+
+<script>
+    // Variable global para saber qué criterio está seleccionado (por defecto 'tag')
+    let currentCriteria = 'tag';
+
+    // Función para alternar visualmente entre TAG y EQUIPMENT NAME
+    function selectCriteria(criteria) {
+        currentCriteria = criteria;
+        const btnTag = document.getElementById('btnTag');
+        const btnName = document.getElementById('btnName');
+        const inputField = document.getElementById('equipmentSearchInput');
+
+        if (criteria === 'tag') {
+            btnTag.classList.add('active');
+            btnName.classList.remove('active');
+            inputField.placeholder = "Enter TAG to look for...";
+        } else {
+            btnName.classList.add('active');
+            btnTag.classList.remove('active');
+            inputField.placeholder = "Enter Equipment Name to look for...";
+        }
+        inputField.focus();
+    }
+
+    // Función base para cuando se haga click en los 4 botones (Aquí meteremos tus instrucciones)
+    function executeEquipmentSearch(searchType) {
+        const query = document.getElementById('equipmentSearchInput').value.trim();
+        
+        if (!query) {
+            alert("Por favor, introduce un término de búsqueda.");
+            return;
+        }
+
+        console.log("Criterio:", currentCriteria);
+        console.log("Buscar:", query);
+        console.log("Tipo de documento:", searchType);
+        
+        // Quedo a la espera de tus instrucciones para programar la lógica aquí dentro...
+    }
+</script>
+
+</body>
+</html>
