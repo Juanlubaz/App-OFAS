@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Equipments - Search Menu</title>
 <style>
-    /* ESTILOS BASE (Mantenidos para consistencia estética) */
+    /* ESTILOS BASE (Consistencia estética con tu principal.html) */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #6fb543, #79c255); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
     .container { background: white; width: 100%; max-width: 900px; border-radius: 20px; padding: 40px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); text-align: center; }
@@ -56,12 +56,12 @@
         border-color: #4e7e28;
     }
 
-    /* CUADRÍCULA PARA LOS CUATRO BOTONES DE ACCIÓN */
+    /* CUADRÍCULA PARA LOS TRES BOTONES DE ACCIÓN */
     .action-grid {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 25px;
-        padding: 0 40px;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        padding: 0 20px;
     }
 
     /* ESTILO GENERAL DE LOS BOTONES */
@@ -100,8 +100,9 @@
     }
     .back-link:hover { text-decoration: underline; }
 
-    @media (max-width: 600px) { 
-        .action-grid, .options-grid { grid-template-columns: 1fr; padding: 0; } 
+    @media (max-width: 768px) { 
+        .action-grid { grid-template-columns: 1fr; gap: 15px; padding: 0; }
+        .options-grid { grid-template-columns: 1fr; } 
     }
 </style>
 </head>
@@ -128,10 +129,9 @@
     </div>
 
     <div class="action-grid">
-        <button type="button" onclick="executeEquipmentSearch('dossier')">Quality dossier</button>
-        <button type="button" onclick="executeEquipmentSearch('planes')">Planes</button>
-        <button type="button" onclick="executeEquipmentSearch('maintenance')">Maintenance manual</button>
-        <button type="button" onclick="executeEquipmentSearch('assembly')">Assembly manual</button>
+        <button type="button" onclick="executeEquipmentSearch('DATA SHEET')">DATA SHEET</button>
+        <button type="button" onclick="executeEquipmentSearch('PLANOS')">PLANOS</button>
+        <button type="button" onclick="executeEquipmentSearch('MANUAL')">MANUAL</button>
     </div>
 
     <a href="principal.html" class="back-link">← Back to Principal</a>
@@ -139,45 +139,45 @@
 
 <script>
     let currentCriteria = 'tag';
-    let equipmentsData = [];
+    // Diccionario global para indexar toda la fila por cada equipo
+    let remoteSheetDatabase = {}; 
 
-    // ID de tu documento de Google Sheets
     const SHEET_ID = '1xOQPbBJcmm12enAF6ln6s0bC2vAMWAQg';
-    
-    // Conectamos mediante la API de visualización solicitando la columna A (EQUIPO)
-    const GOOGLE_SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tq=SELECT%20A&tqx=responseHandler:processData`;
+    // Pedimos las columnas A, C, D y E (Equipo, Data Sheet, Planos, Manual) de forma limpia
+    const GOOGLE_SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tq=SELECT%20A,C,D,E&tqx=responseHandler:processData`;
 
-    // Función que descarga los datos usando una etiqueta <script> para evitar bloqueos de seguridad (CORS)
     function loadDataDynamically() {
         const script = document.createElement('script');
         script.src = GOOGLE_SHEET_URL;
         document.body.appendChild(script);
     }
 
-    // Esta función recibe los datos reales de tu Google Sheet en tiempo real
     function processData(response) {
         if (!response || !response.table || !response.table.rows) {
-            console.error("No se pudieron recibir los datos correctamente.");
+            console.error("No se pudieron recibir los datos de Google Sheets.");
             return;
         }
 
-        equipmentsData = [];
+        remoteSheetDatabase = {};
         const rows = response.table.rows;
 
-        // Empezamos en i = 1 para saltarnos la fila del encabezado ("EQUIPO")
+        // Recorremos omitiendo la fila 0 (Cabeceras)
         for (let i = 1; i < rows.length; i++) {
-            if (rows[i].c && rows[i].c[0] && rows[i].c[0].v) {
-                const equipoName = rows[i].c[0].v.toString().trim();
-                if (equipoName && !equipmentsData.includes(equipoName)) {
-                    equipmentsData.push(equipoName);
+            const row = rows[i];
+            if (row.c && row.c[0] && row.c[0].v) {
+                const equipoName = row.c[0].v.toString().trim();
+                
+                if (equipoName) {
+                    // Mapeamos los valores de las celdas de forma segura
+                    remoteSheetDatabase[equipoName] = {
+                        'DATA SHEET': (row.c[1] && row.c[1].v) ? row.c[1].v.toString().trim() : '',
+                        'PLANOS':     (row.c[2] && row.c[2].v) ? row.c[2].v.toString().trim() : '',
+                        'MANUAL':     (row.c[3] && row.c[3].v) ? row.c[3].v.toString().trim() : ''
+                    };
                 }
             }
         }
 
-        // Ordenamos alfabéticamente las sugerencias
-        equipmentsData.sort();
-
-        // Rellenamos el datalist para que el autocompletado responda al escribir
         updateDatalist();
     }
 
@@ -185,7 +185,10 @@
         const datalist = document.getElementById('equipmentsList');
         datalist.innerHTML = ''; 
 
-        equipmentsData.forEach(equipo => {
+        // Extraemos las llaves del diccionario (nombres de equipos) y las ordenamos
+        const sortedEquipments = Object.keys(remoteSheetDatabase).sort();
+
+        sortedEquipments.forEach(equipo => {
             const option = document.createElement('option');
             option.value = equipo;
             datalist.appendChild(option);
@@ -210,16 +213,34 @@
         inputField.focus();
     }
 
-    function executeEquipmentSearch(searchType) {
+    // LÓGICA DE DIRECCIONAMIENTO DIRECTO A LA CELDA
+    function executeEquipmentSearch(columnType) {
         const query = document.getElementById('equipmentSearchInput').value.trim();
+        
         if (!query) {
-            alert("Por favor, introduce un término de búsqueda.");
+            alert("Por favor, introduce o selecciona un equipo.");
             return;
         }
-        console.log("Criterio:", currentCriteria, "| Buscar:", query, "| Tipo:", searchType);
+
+        // Buscamos si el texto ingresado coincide con un equipo de la base de datos
+        const equipmentInfo = remoteSheetDatabase[query];
+
+        if (!equipmentInfo) {
+            alert(`El equipo "${query}" no se encuentra en el inventario actual.`);
+            return;
+        }
+
+        // Extraemos el enlace de la columna correspondiente al botón pulsado
+        const targetUrl = equipmentInfo[columnType];
+
+        if (targetUrl && (targetUrl.startsWith('http://') || targetUrl.startsWith('https://'))) {
+            // Abre de inmediato el contenido de la celda (enlace a Drive o web) en otra pestaña
+            window.open(targetUrl, '_blank');
+        } else {
+            alert(`El equipo "${query}" no tiene ningún documento registrado en la columna de ${columnType}.`);
+        }
     }
 
-    // Lanzamos la consulta al cargar la página
     window.onload = loadDataDynamically;
 </script>
 
