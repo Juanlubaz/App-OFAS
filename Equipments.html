@@ -64,7 +64,7 @@
         padding: 0 40px;
     }
 
-    /* ESTILO GENERAL DE LOS BOTONES (Heredado de tus estilos originales) */
+    /* ESTILO GENERAL DE LOS BOTONES */
     button { 
         padding: 18px; 
         border-radius: 12px; 
@@ -140,26 +140,36 @@
 </div>
 
 <script>
-    // Variable global para saber qué criterio está seleccionado (por defecto 'tag')
     let currentCriteria = 'tag';
-    // Repositorio en memoria de los nombres obtenidos de la columna EQUIPO
     let equipmentsData = [];
 
-    // URL de exportación CSV de tu Google Sheet (Asegúrate de realizar el paso "Publicar en la web" -> formato CSV)
-    const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSzRJuqEZ4IBCQMYIS32j0j4eERs4mY_9LwYL3Iwo9Xrk51AJ_Bh-wdOJ1H6i_2mA/pub?output=csv";
+    // URL de exportación CSV de tu Google Sheet publicado
+    const CSV_URL = "https://docs.google.com/spreadsheets/d/1xOQPbBJcmm12enAF6ln6s0bC2vAMWAQg/pub?output=csv";
 
-    // Carga los datos de la hoja en cuanto se abre el documento
+    // Función auxiliar para parsear correctamente filas CSV respetando comas internas entre comillas
+    function parseCSVLine(text) {
+        let p = '', r = [];
+        let q = false;
+        for (let i = 0; i < text.length; i++) {
+            let c = text.charAt(i);
+            if (c === '"') { q = !q; }
+            else if (c === ',' && !q) { r.push(p); p = ''; }
+            else { p += c; }
+        }
+        r.push(p);
+        return r;
+    }
+
     async function loadEquipmentsFromSheet() {
         try {
             const response = await fetch(CSV_URL);
             const data = await response.text();
             
-            // Dividimos por filas
             const rows = data.split(/\r?\n/);
             if (rows.length === 0) return;
 
-            // Encontramos en qué índice de columna está la palabra "EQUIPO"
-            const headers = rows[0].split(',');
+            // Procesamos cabecera usando el parseador seguro
+            const headers = parseCSVLine(rows[0]);
             const equipoIndex = headers.findIndex(h => h.trim().toUpperCase() === 'EQUIPO');
 
             if (equipoIndex === -1) {
@@ -168,19 +178,18 @@
             }
 
             equipmentsData = [];
-            // Recorremos las filas omitiendo los encabezados (i = 1)
             for (let i = 1; i < rows.length; i++) {
-                const columns = rows[i].split(',');
+                if (!rows[i].trim()) continue;
+                
+                const columns = parseCSVLine(rows[i]);
                 if (columns[equipoIndex]) {
-                    const equipoName = columns[equipoIndex].replace(/"/g, '').trim();
-                    // Evitamos añadir celdas vacías o elementos duplicados repetidos
+                    const equipoName = columns[equipoIndex].trim();
                     if (equipoName && !equipmentsData.includes(equipoName)) {
                         equipmentsData.push(equipoName);
                     }
                 }
             }
 
-            // Inyectamos las opciones en el datalist para habilitar el autocompletado en el navegador
             updateDatalist();
 
         } catch (error) {
@@ -199,7 +208,6 @@
         });
     }
 
-    // Función para alternar visualmente entre TAG y EQUIPMENT NAME
     function selectCriteria(criteria) {
         currentCriteria = criteria;
         const btnTag = document.getElementById('btnTag');
@@ -218,23 +226,15 @@
         inputField.focus();
     }
 
-    // Función base para cuando se haga click en los 4 botones
     function executeEquipmentSearch(searchType) {
         const query = document.getElementById('equipmentSearchInput').value.trim();
-        
         if (!query) {
             alert("Por favor, introduce un término de búsqueda.");
             return;
         }
-
-        console.log("Criterio:", currentCriteria);
-        console.log("Buscar:", query);
-        console.log("Tipo de documento:", searchType);
-        
-        // Quedo a la espera de las reglas de negocio para enlazar las acciones finales aquí...
+        console.log("Criterio:", currentCriteria, "| Buscar:", query, "| Tipo:", searchType);
     }
 
-    // Ejecución inicial automática
     window.onload = loadEquipmentsFromSheet;
 </script>
 
