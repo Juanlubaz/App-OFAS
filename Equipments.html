@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Equipments - Search Menu</title>
 <style>
-    /* ESTILOS BASE (Mantenidos de tu principal.html para consistencia estética) */
+    /* ESTILOS BASE */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #6fb543, #79c255); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
     .container { background: white; width: 100%; max-width: 900px; border-radius: 20px; padding: 40px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); text-align: center; }
@@ -13,7 +13,7 @@
     .logos img { max-height: 120px; max-width: 100%; height: auto; width: auto; object-fit: contain; }
     h1 { color: #4e7e28; margin-bottom: 30px; font-size: 28px; }
 
-    /* RECUADRO DE BOTONES OPCIONALES (TAG / EQUIPMENT NAME) */
+    /* RECUADRO DE BOTONES OPCIONALES */
     .options-box {
         border: 2px dashed #79c255;
         border-radius: 15px;
@@ -80,7 +80,6 @@
     button:hover { background: #e8e8e8; transform: translateY(-3px); }
     button:active { background: #e0e0e0; transform: translateY(1px); }
 
-    /* Variación estética para los botones opcionales cuando están ACTIVOS */
     .btn-option {
         background: #fff;
         border: 2px solid #ccc;
@@ -91,7 +90,6 @@
         border-color: #4e7e28;
     }
 
-    /* Botón de volver atrás opcional */
     .back-link {
         display: inline-block;
         margin-top: 30px;
@@ -143,57 +141,38 @@
     let currentCriteria = 'tag';
     let equipmentsData = [];
 
-    // URL de exportación CSV de tu Google Sheet publicado
-    const CSV_URL = "https://docs.google.com/spreadsheets/d/1xOQPbBJcmm12enAF6ln6s0bC2vAMWAQg/pub?output=csv";
-
-    // Función auxiliar para parsear correctamente filas CSV respetando comas internas entre comillas
-    function parseCSVLine(text) {
-        let p = '', r = [];
-        let q = false;
-        for (let i = 0; i < text.length; i++) {
-            let c = text.charAt(i);
-            if (c === '"') { q = !q; }
-            else if (c === ',' && !q) { r.push(p); p = ''; }
-            else { p += c; }
-        }
-        r.push(p);
-        return r;
-    }
+    // ID de tu documento y consulta SQL para traer solo la columna A (EQUIPO) de manera segura sin CORS
+    const SHEET_ID = '1xOQPbBJcmm12enAF6ln6s0bC2vAMWAQg';
+    const GOOGLE_API_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqc=1&tq=SELECT%20A`;
 
     async function loadEquipmentsFromSheet() {
         try {
-            const response = await fetch(CSV_URL);
-            const data = await response.text();
+            const response = await fetch(GOOGLE_API_URL);
+            const text = await response.text();
             
-            const rows = data.split(/\r?\n/);
-            if (rows.length === 0) return;
-
-            // Procesamos cabecera usando el parseador seguro
-            const headers = parseCSVLine(rows[0]);
-            const equipoIndex = headers.findIndex(h => h.trim().toUpperCase() === 'EQUIPO');
-
-            if (equipoIndex === -1) {
-                console.error("No se encontró una columna con el encabezado 'EQUIPO'.");
-                return;
-            }
-
+            // Google retorna un formato con basura de seguridad al inicio (/*O_o*/...), la limpiamos:
+            const jsonString = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
+            const jsonData = JSON.parse(jsonString);
+            
             equipmentsData = [];
+            const rows = jsonData.table.rows;
+
+            // Recorremos las filas desde la 1 (saltando la cabecera 'EQUIPO')
             for (let i = 1; i < rows.length; i++) {
-                if (!rows[i].trim()) continue;
-                
-                const columns = parseCSVLine(rows[i]);
-                if (columns[equipoIndex]) {
-                    const equipoName = columns[equipoIndex].trim();
+                if (rows[i].c && rows[i].c[0] && rows[i].c[0].v) {
+                    const equipoName = rows[i].c[0].v.toString().trim();
                     if (equipoName && !equipmentsData.includes(equipoName)) {
                         equipmentsData.push(equipoName);
                     }
                 }
             }
 
-            updateDatalist();
+            // Ordenamos alfabéticamente para mejorar la experiencia del usuario
+            equipmentsData.sort();
 
+            updateDatalist();
         } catch (error) {
-            console.error("Error al descargar o procesar el Google Sheet:", error);
+            console.error("Error al obtener datos mediante API de Google:", error);
         }
     }
 
@@ -235,6 +214,7 @@
         console.log("Criterio:", currentCriteria, "| Buscar:", query, "| Tipo:", searchType);
     }
 
+    // Ejecuta la carga remota al abrir la página
     window.onload = loadEquipmentsFromSheet;
 </script>
 
