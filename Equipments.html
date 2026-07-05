@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Equipments - Search Menu</title>
 <style>
-    /* ESTILOS BASE */
+    /* ESTILOS BASE (Mantenidos para consistencia estética) */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #6fb543, #79c255); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
     .container { background: white; width: 100%; max-width: 900px; border-radius: 20px; padding: 40px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); text-align: center; }
@@ -13,7 +13,7 @@
     .logos img { max-height: 120px; max-width: 100%; height: auto; width: auto; object-fit: contain; }
     h1 { color: #4e7e28; margin-bottom: 30px; font-size: 28px; }
 
-    /* RECUADRO DE BOTONES OPCIONALES */
+    /* RECUADRO DE BOTONES OPCIONALES (TAG / EQUIPMENT NAME) */
     .options-box {
         border: 2px dashed #79c255;
         border-radius: 15px;
@@ -141,39 +141,44 @@
     let currentCriteria = 'tag';
     let equipmentsData = [];
 
-    // ID de tu documento y consulta SQL para traer solo la columna A (EQUIPO) de manera segura sin CORS
+    // ID de tu documento de Google Sheets
     const SHEET_ID = '1xOQPbBJcmm12enAF6ln6s0bC2vAMWAQg';
-    const GOOGLE_API_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqc=1&tq=SELECT%20A`;
+    
+    // Conectamos mediante la API de visualización solicitando la columna A (EQUIPO)
+    const GOOGLE_SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tq=SELECT%20A&tqx=responseHandler:processData`;
 
-    async function loadEquipmentsFromSheet() {
-        try {
-            const response = await fetch(GOOGLE_API_URL);
-            const text = await response.text();
-            
-            // Google retorna un formato con basura de seguridad al inicio (/*O_o*/...), la limpiamos:
-            const jsonString = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
-            const jsonData = JSON.parse(jsonString);
-            
-            equipmentsData = [];
-            const rows = jsonData.table.rows;
+    // Función que descarga los datos usando una etiqueta <script> para evitar bloqueos de seguridad (CORS)
+    function loadDataDynamically() {
+        const script = document.createElement('script');
+        script.src = GOOGLE_SHEET_URL;
+        document.body.appendChild(script);
+    }
 
-            // Recorremos las filas desde la 1 (saltando la cabecera 'EQUIPO')
-            for (let i = 1; i < rows.length; i++) {
-                if (rows[i].c && rows[i].c[0] && rows[i].c[0].v) {
-                    const equipoName = rows[i].c[0].v.toString().trim();
-                    if (equipoName && !equipmentsData.includes(equipoName)) {
-                        equipmentsData.push(equipoName);
-                    }
+    // Esta función recibe los datos reales de tu Google Sheet en tiempo real
+    function processData(response) {
+        if (!response || !response.table || !response.table.rows) {
+            console.error("No se pudieron recibir los datos correctamente.");
+            return;
+        }
+
+        equipmentsData = [];
+        const rows = response.table.rows;
+
+        // Empezamos en i = 1 para saltarnos la fila del encabezado ("EQUIPO")
+        for (let i = 1; i < rows.length; i++) {
+            if (rows[i].c && rows[i].c[0] && rows[i].c[0].v) {
+                const equipoName = rows[i].c[0].v.toString().trim();
+                if (equipoName && !equipmentsData.includes(equipoName)) {
+                    equipmentsData.push(equipoName);
                 }
             }
-
-            // Ordenamos alfabéticamente para mejorar la experiencia del usuario
-            equipmentsData.sort();
-
-            updateDatalist();
-        } catch (error) {
-            console.error("Error al obtener datos mediante API de Google:", error);
         }
+
+        // Ordenamos alfabéticamente las sugerencias
+        equipmentsData.sort();
+
+        // Rellenamos el datalist para que el autocompletado responda al escribir
+        updateDatalist();
     }
 
     function updateDatalist() {
@@ -214,8 +219,8 @@
         console.log("Criterio:", currentCriteria, "| Buscar:", query, "| Tipo:", searchType);
     }
 
-    // Ejecuta la carga remota al abrir la página
-    window.onload = loadEquipmentsFromSheet;
+    // Lanzamos la consulta al cargar la página
+    window.onload = loadDataDynamically;
 </script>
 
 </body>
