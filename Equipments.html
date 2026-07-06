@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Equipments - Search Menu</title>
 <style>
-    /* ESTILOS BASE (Consistencia estética con tu principal.html) */
+    /* ESTILOS BASE */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #6fb543, #79c255); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
     .container { background: white; width: 100%; max-width: 900px; border-radius: 20px; padding: 40px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); text-align: center; }
@@ -139,12 +139,10 @@
 
 <script>
     let currentCriteria = 'tag';
-    // Diccionario global para indexar toda la fila por cada equipo
     let remoteSheetDatabase = {}; 
 
     const SHEET_ID = '1xOQPbBJcmm12enAF6ln6s0bC2vAMWAQg';
-    // Pedimos las columnas A, C, D y E (Equipo, Data Sheet, Planos, Manual) de forma limpia
-    const GOOGLE_SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tq=SELECT%20A,C,D,E&tqx=responseHandler:processData`;
+    const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tq=SELECT%20A,C,D,E&tqx=responseHandler:processData';
 
     function loadDataDynamically() {
         const script = document.createElement('script');
@@ -154,21 +152,18 @@
 
     function processData(response) {
         if (!response || !response.table || !response.table.rows) {
-            console.error("No se pudieron recibir los datos de Google Sheets.");
+            console.error("No se pudieron recibir los datos.");
             return;
         }
 
         remoteSheetDatabase = {};
         const rows = response.table.rows;
 
-        // Recorremos omitiendo la fila 0 (Cabeceras)
         for (let i = 1; i < rows.length; i++) {
             const row = rows[i];
             if (row.c && row.c[0] && row.c[0].v) {
                 const equipoName = row.c[0].v.toString().trim();
-                
                 if (equipoName) {
-                    // Mapeamos los valores de las celdas de forma segura
                     remoteSheetDatabase[equipoName] = {
                         'DATA SHEET': (row.c[1] && row.c[1].v) ? row.c[1].v.toString().trim() : '',
                         'PLANOS':     (row.c[2] && row.c[2].v) ? row.c[2].v.toString().trim() : '',
@@ -177,18 +172,14 @@
                 }
             }
         }
-
         updateDatalist();
     }
 
     function updateDatalist() {
         const datalist = document.getElementById('equipmentsList');
         datalist.innerHTML = ''; 
-
-        // Extraemos las llaves del diccionario (nombres de equipos) y las ordenamos
         const sortedEquipments = Object.keys(remoteSheetDatabase).sort();
-
-        sortedEquipments.forEach(equipo => {
+        sortedEquipments.forEach(function(equipo) {
             const option = document.createElement('option');
             option.value = equipo;
             datalist.appendChild(option);
@@ -213,31 +204,24 @@
         inputField.focus();
     }
 
-    // LÓGICA DE DIRECCIONAMIENTO DIRECTO A LA CELDA
     function executeEquipmentSearch(columnType) {
         const query = document.getElementById('equipmentSearchInput').value.trim();
-        
         if (!query) {
             alert("Por favor, introduce o selecciona un equipo.");
             return;
         }
 
-        // Buscamos si el texto ingresado coincide con un equipo de la base de datos
         const equipmentInfo = remoteSheetDatabase[query];
-
         if (!equipmentInfo) {
-            alert(`El equipo "${query}" no se encuentra en el inventario actual.`);
+            alert("El equipo '" + query + "' no se encuentra en el inventario actual.");
             return;
         }
 
-        // Extraemos el enlace de la columna correspondiente al botón pulsado
         const targetUrl = equipmentInfo[columnType];
-
         if (targetUrl && (targetUrl.startsWith('http://') || targetUrl.startsWith('https://'))) {
-            // Abre de inmediato el contenido de la celda (enlace a Drive o web) en otra pestaña
             window.open(targetUrl, '_blank');
         } else {
-            alert(`El equipo "${query}" no tiene ningún documento registrado en la columna de ${columnType}.`);
+            alert("El equipo '" + query + "' no tiene ningún documento registrado en la columna de " + columnType + ".");
         }
     }
 
