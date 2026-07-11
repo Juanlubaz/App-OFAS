@@ -8,7 +8,7 @@
     /* ESTILOS BASE */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #6fb543, #79c255); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
-    .container { background: white; width: 100%; max-width: 950px; border-radius: 20px; padding: 40px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); text-align: center; }
+    .container { background: white; width: 100%; max-width: 900px; border-radius: 20px; padding: 40px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); text-align: center; }
     .logos { display: flex; justify-content: center; align-items: center; margin-bottom: 30px; flex-wrap: wrap; }
     .logos img { max-height: 120px; max-width: 100%; height: auto; width: auto; object-fit: contain; }
     h1 { color: #4e7e28; margin-bottom: 30px; font-size: 28px; }
@@ -21,85 +21,49 @@
         margin-bottom: 25px;
         background-color: #f9fdf6;
     }
-    .options-title {
-        font-size: 14px;
-        color: #4e7e28;
-        font-weight: bold;
-        margin-bottom: 12px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-    .options-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
-        max-width: 500px;
-        margin: 0 auto;
-    }
+    .options-title { font-size: 14px; color: #4e7e28; font-weight: bold; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+    .options-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; max-width: 500px; margin: 0 auto; }
 
     /* CUADRO DE BÚSQUEDA */
-    .search-box-container {
-        max-width: 740px;
-        margin: 0 auto 25px auto;
-    }
-    .search-input {
-        width: 100%;
-        padding: 16px 20px;
-        border: 2px solid #e0e0e0;
-        border-radius: 12px;
-        font-size: 18px;
-        outline: none;
-        transition: border-color 0.2s ease;
-        box-shadow: inset 0 2px 4px rgba(0,0,0,0.03);
-    }
+    .search-box-container { max-width: 740px; margin: 0 auto 25px auto; }
+    .search-input { width: 100%; padding: 16px 20px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 18px; outline: none; transition: border-color 0.2s ease; box-shadow: inset 0 2px 4px rgba(0,0,0,0.03); }
     .search-input:focus { border-color: #4e7e28; }
 
-    /* CONTENEDOR VISUAL PARA MOSTRAR LA CARPETA INTEGRADA */
-    .folder-viewer-box {
+    /* CONTENEDOR DINÁMICO PARA LOS BOTONES DE LA CARPETA */
+    .multi-docs-box {
         display: none;
         background: #f4fbf1;
         border: 1px solid #ccebc4;
         border-radius: 12px;
-        padding: 15px;
+        padding: 20px;
         margin: 0 auto 25px auto;
         max-width: 740px;
         text-align: left;
     }
-    .folder-viewer-title {
-        font-size: 15px;
-        color: #4e7e28;
-        font-weight: bold;
-        margin-bottom: 10px;
+    .multi-docs-title { font-size: 15px; color: #4e7e28; font-weight: bold; margin-bottom: 12px; }
+    .multi-docs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+    
+    .btn-doc-link {
+        background: #79c255 !important;
+        color: white !important;
+        font-size: 14px !important;
+        padding: 12px !important;
+        border-radius: 8px !important;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
+        text-align: left !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        display: block !important;
+        width: 100% !important;
     }
-    .folder-iframe {
-        width: 100%;
-        height: 350px;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        background: white;
-    }
+    .btn-doc-link:hover { background: #609e42 !important; transform: translateY(-2px) !important; }
 
     /* CUADRÍCULA PARA LOS TRES BOTONES DE ACCIÓN */
-    .action-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 20px;
-        padding: 0 20px;
-    }
+    .action-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 0 20px; }
 
     /* ESTILO GENERAL DE LOS BOTONES */
-    button { 
-        padding: 18px; 
-        border-radius: 12px; 
-        font-size: 18px; 
-        border: none; 
-        cursor: pointer; 
-        background: #f3f3f3; 
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
-        transition: all 0.2s ease; 
-        font-weight: 600; 
-        color: #333; 
-    }
+    button { padding: 18px; border-radius: 12px; font-size: 18px; border: none; cursor: pointer; background: #f3f3f3; box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: all 0.2s ease; font-weight: 600; color: #333; }
     button:hover { background: #e8e8e8; transform: translateY(-3px); }
     button:active { background: #e0e0e0; transform: translateY(1px); }
 
@@ -109,10 +73,7 @@
     .back-link { display: inline-block; margin-top: 30px; color: #79c255; text-decoration: none; font-weight: bold; font-size: 16px; }
     .back-link:hover { text-decoration: underline; }
 
-    @media (max-width: 768px) { 
-        .action-grid { grid-template-columns: 1fr; gap: 15px; padding: 0; }
-        .options-grid { grid-template-columns: 1fr; } 
-    }
+    @media (max-width: 768px) { .action-grid { grid-template-columns: 1fr; gap: 15px; padding: 0; } .options-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -133,13 +94,13 @@
     </div>
 
     <div class="search-box-container">
-        <input type="text" id="equipmentSearchInput" class="search-input" list="equipmentsList" placeholder="Enter TAG to look for..." oninput="hideFolderBox()">
+        <input type="text" id="equipmentSearchInput" class="search-input" list="equipmentsList" placeholder="Enter TAG to look for..." oninput="hideMultiDocsBox()">
         <datalist id="equipmentsList"></datalist>
     </div>
 
-    <div id="folderBox" class="folder-viewer-box">
-        <div id="folderTitle" class="folder-viewer-title">Contenido de la carpeta de documentos:</div>
-        <iframe id="folderFrame" class="folder-iframe" src=""></iframe>
+    <div id="multiDocsBox" class="multi-docs-box">
+        <div id="multiDocsTitle" class="multi-docs-title">Archivos dentro de la carpeta:</div>
+        <div id="multiDocsGrid" class="multi-docs-grid"></div>
     </div>
 
     <div class="action-grid">
@@ -158,6 +119,9 @@
     const SHEET_ID = '1xOQPbBJcmm12enAF6ln6s0bC2vAMWAQg';
     const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tq=SELECT%20A,C,D,E&tqx=responseHandler:processData';
 
+    // PEGA AQUÍ LA URL DE TU COMPILACIÓN DE GOOGLE APPS SCRIPT DEL PASO 1:
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzfVd7zRhvmgRt6L8budTkPmNkzJUb6nukRUjyOfx6Pn8rcm8zS_oHiJyTHu7AOmMRj9w/exec";
+
     function loadDataDynamically() {
         const script = document.createElement('script');
         script.src = GOOGLE_SHEET_URL;
@@ -168,7 +132,6 @@
         if (!response || !response.table || !response.table.rows) return;
         remoteSheetDatabase = {};
         const rows = response.table.rows;
-
         for (let i = 1; i < rows.length; i++) {
             const row = rows[i];
             if (row.c && row.c[0] && row.c[0].v) {
@@ -198,11 +161,10 @@
 
     function selectCriteria(criteria) {
         currentCriteria = criteria;
+        hideMultiDocsBox();
         const btnTag = document.getElementById('btnTag');
         const btnName = document.getElementById('btnName');
         const inputField = document.getElementById('equipmentSearchInput');
-        hideFolderBox();
-
         if (criteria === 'tag') {
             btnTag.classList.add('active');
             btnName.classList.remove('active');
@@ -215,14 +177,12 @@
         inputField.focus();
     }
 
-    function hideFolderBox() {
-        document.getElementById('folderBox').style.display = 'none';
-        document.getElementById('folderFrame').src = '';
+    function hideMultiDocsBox() {
+        document.getElementById('multiDocsBox').style.display = 'none';
     }
 
-    // NUEVA INTELIGENCIA: DISCRIMINA ENTRE CARPETA DRIVE O ARCHIVO INDIVIDUAL
     function executeEquipmentSearch(columnType) {
-        hideFolderBox();
+        hideMultiDocsBox();
         const query = document.getElementById('equipmentSearchInput').value.trim();
         if (!query) return alert("Por favor, introduce o selecciona un equipo.");
 
@@ -230,34 +190,55 @@
         if (!equipmentInfo) return alert("El equipo '" + query + "' no se encuentra en el inventario.");
 
         const targetUrl = equipmentInfo[columnType];
-        if (!targetUrl || (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://'))) {
-            return alert("El equipo '" + query + "' no tiene un enlace válido registrado en " + columnType + ".");
+        if (!targetUrl || !targetUrl.startsWith('http')) {
+            return alert("No hay un enlace válido para " + columnType);
         }
 
-        // Analizamos si la URL contiene indicios de ser una carpeta de Google Drive
-        const isFolder = targetUrl.includes('/folders/') || targetUrl.includes('drive.google.com/drive/folders');
+        // Detectamos si es una carpeta de Google Drive analizando el texto de la URL
+        const isFolder = targetUrl.includes('/folders/') || targetUrl.includes('id=');
+        const isDirectFile = targetUrl.includes('/file/d/');
 
-        if (isFolder) {
-            // DETECTÓ CARPETA: Extraemos el ID e incrustamos la vista de los archivos directo en la web
-            const folderBox = document.getElementById('folderBox');
-            const folderTitle = document.getElementById('folderTitle');
-            const folderFrame = document.getElementById('folderFrame');
-
-            folderTitle.innerText = "Mostrando archivos de la carpeta [" + columnType + "] para " + query + ":";
-            
-            // Adaptamos el enlace para que Drive permita visualizarlo dentro de un iframe de forma limpia
-            let embedUrl = targetUrl;
-            if(targetUrl.includes('?usp=')) {
-                embedUrl = targetUrl.split('?')[0];
+        if (isFolder && !isDirectFile) {
+            // Es una carpeta: Extraemos su ID único de Drive
+            let folderId = '';
+            if (targetUrl.includes('/folders/')) {
+                folderId = targetUrl.split('/folders/')[1].split('?')[0];
+            } else if (targetUrl.includes('id=')) {
+                folderId = targetUrl.split('id=')[1].split('&')[0];
             }
-            embedUrl = embedUrl.replace('/drive/folders/', '/drive/u/0/folders/') + '?embed=true';
 
-            folderFrame.src = embedUrl;
-            folderBox.style.display = 'block';
+            // Llamamos a nuestro script puente mediante JSONP para pintar los botones
+            const finalScriptUrl = SCRIPT_URL + "?folderId=" + folderId + "&callback=renderFolderButtons";
+            const scriptNode = document.createElement('script');
+            scriptNode.src = finalScriptUrl;
+            document.body.appendChild(scriptNode);
         } else {
-            // DETECTÓ ARCHIVO (PDF directo): Clic y apertura directa e instantánea
+            // Es un archivo directo: Se abre instantáneamente sin esperas
             window.open(targetUrl, '_blank');
         }
+    }
+
+    // Esta función recibe de forma segura los archivos reales de la carpeta y genera los botones
+    function renderFolderButtons(filesList) {
+        if (!filesList || filesList.error || filesList.length === 0) {
+            return alert("No se encontraron archivos accesibles dentro de esta carpeta de Drive.");
+        }
+
+        const multiBox = document.getElementById('multiDocsBox');
+        const multiGrid = document.getElementById('multiDocsGrid');
+        multiGrid.innerHTML = ''; 
+
+        filesList.forEach(function(file) {
+            const subBtn = document.createElement('button');
+            subBtn.type = 'button';
+            subBtn.className = 'btn-doc-link';
+            subBtn.title = file.name;
+            subBtn.innerText = "📄 " + file.name;
+            subBtn.onclick = function() { window.open(file.url, '_blank'); };
+            multiGrid.appendChild(subBtn);
+        });
+
+        multiBox.style.display = 'block';
     }
 
     window.onload = loadDataDynamically;
