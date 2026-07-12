@@ -117,9 +117,10 @@
     let remoteSheetDatabase = {}; 
 
     const SHEET_ID = '1xOQPbBJcmm12enAF6ln6s0bC2vAMWAQg';
-    const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tq=SELECT%20A,C,D,E&tqx=responseHandler:processData';
+    // Modificado a SELECT * para traer toda la hoja sin importar el orden físico de las columnas
+    const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tq=SELECT%20*&tqx=responseHandler:processData';
 
-    // PEGA AQUÍ LA URL DE TU COMPILACIÓN DE GOOGLE APPS SCRIPT DEL PASO 1:
+    // URL DE TU GOOGLE APPS SCRIPT PUENTE DEL PASO ANTERIOR (OBLIGATORIO)
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzfVd7zRhvmgRt6L8budTkPmNkzJUb6nukRUjyOfx6Pn8rcm8zS_oHiJyTHu7AOmMRj9w/exec";
 
     function loadDataDynamically() {
@@ -129,18 +130,35 @@
     }
 
     function processData(response) {
-        if (!response || !response.table || !response.table.rows) return;
+        if (!response || !response.table || !response.table.cols || !response.table.rows) return;
+        
         remoteSheetDatabase = {};
+        const cols = response.table.cols;
         const rows = response.table.rows;
-        for (let i = 1; i < rows.length; i++) {
+
+        // Buscamos dinámicamente en qué columna cayó cada palabra clave en tu Excel
+        let equipoIdx = cols.findIndex(c => c.label && c.label.trim().toUpperCase() === 'EQUIPO');
+        let dataSheetIdx = cols.findIndex(c => c.label && c.label.trim().toUpperCase() === 'DATA SHEET');
+        let planosIdx = cols.findIndex(c => c.label && c.label.trim().toUpperCase() === 'PLANOS');
+        let manualIdx = cols.findIndex(c => c.label && c.label.trim().toUpperCase() === 'MANUAL');
+
+        // Si por alguna razón la etiqueta no leyó el nombre, asignamos índices por defecto típicos
+        if (equipoIdx === -1) equipoIdx = 0; 
+        if (dataSheetIdx === -1) dataSheetIdx = 2;
+        if (planosIdx === -1) planosIdx = 3;
+        if (manualIdx === -1) manualIdx = 4;
+
+        for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
-            if (row.c && row.c[0] && row.c[0].v) {
-                const equipoName = row.c[0].v.toString().trim();
-                if (equipoName) {
+            if (row.c && row.c[equipoIdx] && row.c[equipoIdx].v) {
+                const equipoName = row.c[equipoIdx].v.toString().trim();
+                
+                // Evitamos procesar la fila de la cabecera propiamente dicha
+                if (equipoName && equipoName.toUpperCase() !== 'EQUIPO') {
                     remoteSheetDatabase[equipoName] = {
-                        'DATA SHEET': (row.c[1] && row.c[1].v) ? row.c[1].v.toString().trim() : '',
-                        'PLANOS':     (row.c[2] && row.c[2].v) ? row.c[2].v.toString().trim() : '',
-                        'MANUAL':     (row.c[3] && row.c[3].v) ? row.c[3].v.toString().trim() : ''
+                        'DATA SHEET': (row.c[dataSheetIdx] && row.c[dataSheetIdx].v) ? row.c[dataSheetIdx].v.toString().trim() : '',
+                        'PLANOS':     (row.c[planosIdx] && row.c[planosIdx].v) ? row.c[planosIdx].v.toString().trim() : '',
+                        'MANUAL':     (row.c[manualIdx] && row.c[manualIdx].v) ? row.c[manualIdx].v.toString().trim() : ''
                     };
                 }
             }
@@ -191,15 +209,13 @@
 
         const targetUrl = equipmentInfo[columnType];
         if (!targetUrl || !targetUrl.startsWith('http')) {
-            return alert("No hay un enlace válido para " + columnType);
+            return alert("El equipo '" + query + "' no tiene un enlace registrado en " + columnType + ".");
         }
 
-        // Detectamos si es una carpeta de Google Drive analizando el texto de la URL
         const isFolder = targetUrl.includes('/folders/') || targetUrl.includes('id=');
         const isDirectFile = targetUrl.includes('/file/d/');
 
         if (isFolder && !isDirectFile) {
-            // Es una carpeta: Extraemos su ID único de Drive
             let folderId = '';
             if (targetUrl.includes('/folders/')) {
                 folderId = targetUrl.split('/folders/')[1].split('?')[0];
@@ -207,18 +223,19 @@
                 folderId = targetUrl.split('id=')[1].split('&')[0];
             }
 
-            // Llamamos a nuestro script puente mediante JSONP para pintar los botones
+            if(SCRIPT_URL.includes("REEMPLAZA_CON_LA_URL")) {
+                 return alert("Por favor, configura la URL de tu Google Apps Script en el código (Línea 137).");
+            }
+
             const finalScriptUrl = SCRIPT_URL + "?folderId=" + folderId + "&callback=renderFolderButtons";
             const scriptNode = document.createElement('script');
             scriptNode.src = finalScriptUrl;
             document.body.appendChild(scriptNode);
         } else {
-            // Es un archivo directo: Se abre instantáneamente sin esperas
             window.open(targetUrl, '_blank');
         }
     }
 
-    // Esta función recibe de forma segura los archivos reales de la carpeta y genera los botones
     function renderFolderButtons(filesList) {
         if (!filesList || filesList.error || filesList.length === 0) {
             return alert("No se encontraron archivos accesibles dentro de esta carpeta de Drive.");
