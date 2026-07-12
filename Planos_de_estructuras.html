@@ -178,6 +178,69 @@
       document.getElementById('infoSection').classList.remove('hidden');
     }
 
+
+    // URL de la aplicación web de Google Apps Script.
+    // Sustituye el texto entre comillas por tu URL terminada en /exec.
+    var VISOR_PDF_URL =
+      'https://script.google.com/macros/s/AKfycbx7OHOqzkSYfzCTOMdiUJKeiKu204K3Ki8keZmWghKdv1sZp0MZMb6Ngehrtn5TpBO5fw/exec';
+
+    function abrirDocumento(url) {
+      if (!url) {
+        alert('No hay ningún enlace disponible para este documento.');
+        return;
+      }
+
+      var esGoogleDrive =
+        url.includes('drive.google.com') ||
+        url.includes('docs.google.com');
+
+      if (esGoogleDrive) {
+        var fileId = extraerIdGoogleDrive(url);
+
+        if (!fileId) {
+          alert('No se pudo identificar el archivo de Google Drive.');
+          return;
+        }
+
+        if (!VISOR_PDF_URL || VISOR_PDF_URL.includes('PEGA_AQUI')) {
+          alert('Debes configurar la URL del visor PDF de Google Apps Script.');
+          return;
+        }
+
+        var separador = VISOR_PDF_URL.includes('?') ? '&' : '?';
+        var visorUrl =
+          VISOR_PDF_URL +
+          separador +
+          'id=' +
+          encodeURIComponent(fileId);
+
+        window.open(visorUrl, '_blank', 'noopener,noreferrer');
+        return;
+      }
+
+      // Los enlaces de Autodesk y cualquier otro enlace continúan
+      // abriéndose como hasta ahora.
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+
+    function extraerIdGoogleDrive(url) {
+      var patrones = [
+        /\/file\/d\/([^\/?#]+)/,
+        /[?&]id=([^&#]+)/,
+        /\/d\/([^\/?#]+)/
+      ];
+
+      for (var i = 0; i < patrones.length; i++) {
+        var coincidencia = url.match(patrones[i]);
+
+        if (coincidencia && coincidencia[1]) {
+          return coincidencia[1];
+        }
+      }
+
+      return null;
+    }
+
     document.getElementById('selectEquipo').addEventListener('change', onEquipoChange);
     document.getElementById('selectId').addEventListener('change', onIdChange);
     
