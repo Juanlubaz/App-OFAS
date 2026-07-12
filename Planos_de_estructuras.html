@@ -166,7 +166,7 @@
           var btn = document.createElement('button');
           btn.className = 'btn ' + link.class;
           btn.innerHTML = `<span>${link.icon}</span> ${link.label}`;
-          btn.onclick = () => window.open(item[link.key], '_blank');
+          btn.onclick = () => abrirDocumento(item[link.key]);
           buttonsContainer.appendChild(btn);
         }
       });
