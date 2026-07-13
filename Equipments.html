@@ -136,6 +136,9 @@
 
     const GITHUB_CSV_URL = 'https://raw.githubusercontent.com/Juanlubaz/App-OFAS/main/Enlaces%20equipos.csv';
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzfVd7zRhvmgRt6L8budTkPmNkzJUb6nukRUjyOfx6Pn8rcm8zS_oHiJyTHu7AOmMRj9w/exec";
+    
+    // VISOR DE PDF PERSONALIZADO (El mismo de tu formulario de estructuras)
+    const VISOR_PDF_URL = 'https://script.google.com/macros/s/AKfycbz7OHOqzkSYfzCTOMdiUJKeiKu204K3Ki8keZmWghKdv1sZp0MZMb6Ngehrtn5TpBO5fw/exec';[cite: 1]
 
     function loadCSVData() {
         fetch(GITHUB_CSV_URL)
@@ -148,7 +151,6 @@
                     header: true,
                     skipEmptyLines: true,
                     complete: function(results) {
-                        // Forzamos la limpieza extrema de espacios en blanco y saltos de línea de los datos y las cabeceras
                         rawCsvData = results.data.map(row => {
                             let cleanRow = {};
                             Object.keys(row).forEach(key => {
@@ -266,6 +268,46 @@
         document.getElementById('multiDocsBox').style.display = 'none';
     }
 
+    // LÓGICA INTEGRADA DE VISOR PDF
+    function abrirDocumento(url) {[cite: 1]
+      if (!url) {[cite: 1]
+        alert('No hay ningún enlace disponible para este documento.');[cite: 1]
+        return;[cite: 1]
+      }[cite: 1]
+
+      var esGoogleDrive = url.includes('drive.google.com') || url.includes('docs.google.com');[cite: 1]
+
+      if (esGoogleDrive) {[cite: 1]
+        var fileId = extraerIdGoogleDrive(url);[cite: 1]
+        if (!fileId) {[cite: 1]
+          alert('No se pudo identificar el archivo de Google Drive.');[cite: 1]
+          return;[cite: 1]
+        }[cite: 1]
+
+        var separador = VISOR_PDF_URL.includes('?') ? '&' : '?';[cite: 1]
+        var visorUrl = VISOR_PDF_URL + separador + 'id=' + encodeURIComponent(fileId);[cite: 1]
+        window.open(visorUrl, '_blank', 'noopener,noreferrer');[cite: 1]
+        return;[cite: 1]
+      }[cite: 1]
+
+      window.open(url, '_blank', 'noopener,noreferrer');[cite: 1]
+    }[cite: 1]
+
+    function extraerIdGoogleDrive(url) {[cite: 1]
+      var patrones = [[cite: 1]
+        /\/file\/d\/([^\/?#]+)/,[cite: 1]
+        /[?&]id=([^&#]+)/,[cite: 1]
+        /\/d\/([^\/?#]+)/[cite: 1]
+      ];[cite: 1]
+      for (var i = 0; i < patrones.length; i++) {[cite: 1]
+        var coincidencia = url.match(patrones[i]);[cite: 1]
+        if (coincidencia && coincidencia[1]) {[cite: 1]
+          return coincidencia[1];[cite: 1]
+        }[cite: 1]
+      }[cite: 1]
+      return null;[cite: 1]
+    }[cite: 1]
+
     function executeEquipmentSearch(columnName) {
         hideMultiDocsBox();
         
@@ -273,7 +315,6 @@
             return alert("Por favor, completa las selecciones de los desplegables.");
         }
 
-        // Accedemos de forma directa y limpia al valor mapeado de la celda exacta
         const targetUrl = currentMatchedRow[columnName];
         if (!targetUrl || !targetUrl.startsWith('http')) {
             return alert("No hay un enlace registrado para " + columnName + " en esta combinación.");
@@ -295,7 +336,8 @@
             scriptNode.src = finalScriptUrl;
             document.body.appendChild(scriptNode);
         } else {
-            window.open(targetUrl, '_blank');
+            // Si es un archivo directo, lo abrimos a través del Visor de Estructuras
+            abrirDocumento(targetUrl);[cite: 1]
         }
     }
 
@@ -314,7 +356,8 @@
             subBtn.className = 'btn-doc-link';
             subBtn.title = file.name;
             subBtn.innerText = "📄 " + file.name;
-            subBtn.onclick = function() { window.open(file.url, '_blank'); };
+            // Los archivos listados en las carpetas también pasan ahora por el Visor de Estructuras
+            subBtn.onclick = function() { abrirDocumento(file.url); };[cite: 1]
             multiGrid.appendChild(subBtn);
         });
 
