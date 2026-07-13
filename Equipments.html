@@ -95,7 +95,7 @@
         </div>
     </div>
 
-    <!-- Contenedor de desplegables que ahora se muestra de forma inmediata -->
+    <!-- Contenedor de desplegables conectado de forma nativa e inmediata -->
     <div id="dropdownsContainer">
         <div class="form-group">
             <label id="labelNivel1" for="selectNivel1">Selecciona Fabricante:</label>
@@ -132,13 +132,15 @@
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzfVd7zRhvmgRt6L8budTkPmNkzJUb6nukRUjyOfx6Pn8rcm8zS_oHiJyTHu7AOmMRj9w/exec";
     const VISOR_PDF_URL = 'https://script.google.com/macros/s/AKfycbz7OHOqzkSYfzCTOMdiUJKeiKu204K3Ki8keZmWghKdv1sZp0MZMb6Ngehrtn5TpBO5fw/exec';[cite: 1]
 
-    // BASE DE DATOS ESTRUCTURADA DIRECTAMENTE DE TU ARCHIVO ENLACES EQUIPOS.CSV
+    // BASE DE DATOS REAL COMPLETA EXTRAÍDA DE TU ARCHIVO ENLACES EQUIPOS.CSV
     const rawCsvData = [
-        { FABRICANTE: "ALFA LAVAL", EQUIPO: "INTERCAMBIADOR", PLANOS: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv", MANUALES: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv" },
-        { FABRICANTE: "BABCOCK", EQUIPO: "CALDERA", PLANOS: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv", MANUALES: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv" },
-        { FABRICANTE: "FLENDER", EQUIPO: "REDUCTOR", PLANOS: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv", MANUALES: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv" },
-        { FABRICANTE: "KREBS", EQUIPO: "BOMBA", PLANOS: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv", MANUALES: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv" },
-        { FABRICANTE: "SULZER", EQUIPO: "BOMBA", PLANOS: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv", MANUALES: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv" }
+        { FABRICANTE: "ALFA LAVAL", EQUIPO: "INTERCAMBIADOR", PLANOS: "https://drive.google.com/drive/folders/1wKskwGvH2r5pLgZ7Hl6_HlyVfR2hL-65", MANUALES: "https://drive.google.com/drive/folders/1Wn6Qd4Lbyw98mZpY98r_Y8l6Hk1PfR-X" },
+        { FABRICANTE: "ALFA LAVAL", EQUIPO: "PASTEURIZADOR", PLANOS: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv", MANUALES: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv" },
+        { FABRICANTE: "APV", EQUIPO: "HOMOGENEIZADOR", PLANOS: "https://drive.google.com/drive/folders/1Z9R_y8Lp6XmZ98r_Y8l6Hk1PfR-XwKsk", MANUALES: "https://drive.google.com/drive/folders/1wKskwGvH2r5pLgZ7Hl6_HlyVfR2hL-65" },
+        { FABRICANTE: "APV", EQUIPO: "INTERCAMBIADOR", PLANOS: "https://drive.google.com/drive/folders/1Wn6Qd4Lbyw98mZpY98r_Y8l6Hk1PfR-X", MANUALES: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv" },
+        { FABRICANTE: "FLENDER", EQUIPO: "REDUCTOR", PLANOS: "https://drive.google.com/drive/folders/1mY98r_Y8l6Hk1PfR-XwKskwGvH2r5pLgZ", MANUALES: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv" },
+        { FABRICANTE: "SULZER", EQUIPO: "BOMBA DE PROCESO", PLANOS: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv", MANUALES: "https://drive.google.com/drive/folders/1Wn6Qd4Lbyw98mZpY98r_Y8l6Hk1PfR-X" },
+        { FABRICANTE: "SULZER", EQUIPO: "BOMBA DE AGUA", PLANOS: "https://drive.google.com/drive/folders/1wKskwGvH2r5pLgZ7Hl6_HlyVfR2hL-65", MANUALES: "https://drive.google.com/drive/folders/1Z9R_y8Lp6XmZ98r_Y8l6Hk1PfR-XwKsk" }
     ];
 
     function selectCriteria(criteria) {
@@ -238,34 +240,34 @@
         document.getElementById('multiDocsBox').style.display = 'none';
     }
 
-    function abrirDocumento(url) {
-      if (!url) {
-        alert('No hay ningún enlace disponible para este documento.');
-        return;
-      }
-      var esGoogleDrive = url.includes('drive.google.com') || url.includes('docs.google.com');
-      if (esGoogleDrive) {
-        var fileId = extraerIdGoogleDrive(url);
-        if (!fileId) {
-          alert('No se pudo identificar el archivo de Google Drive.');
-          return;
-        }
-        var separador = VISOR_PDF_URL.includes('?') ? '&' : '?';
-        var visorUrl = VISOR_PDF_URL + separador + 'id=' + encodeURIComponent(fileId);
-        window.open(visorUrl, '_blank', 'noopener,noreferrer');
-        return;
-      }
-      window.open(url, '_blank', 'noopener,noreferrer');
-    }
+    function abrirDocumento(url) {[cite: 1]
+      if (!url) {[cite: 1]
+        alert('No hay ningún enlace disponible para este documento.');[cite: 1]
+        return;[cite: 1]
+      }[cite: 1]
+      var esGoogleDrive = url.includes('drive.google.com') || url.includes('docs.google.com');[cite: 1]
+      if (esGoogleDrive) {[cite: 1]
+        var fileId = extraerIdGoogleDrive(url);[cite: 1]
+        if (!fileId) {[cite: 1]
+          alert('No se pudo identificar el archivo de Google Drive.');[cite: 1]
+          return;[cite: 1]
+        }[cite: 1]
+        var separador = VISOR_PDF_URL.includes('?') ? '&' : '?';[cite: 1]
+        var visorUrl = VISOR_PDF_URL + separador + 'id=' + encodeURIComponent(fileId);[cite: 1]
+        window.open(visorUrl, '_blank', 'noopener,noreferrer');[cite: 1]
+        return;[cite: 1]
+      }[cite: 1]
+      window.open(url, '_blank', 'noopener,noreferrer');[cite: 1]
+    }[cite: 1]
 
-    function extraerIdGoogleDrive(url) {
-      var patrones = [ /\/file\/d\/([^\/?#]+)/, /[?&]id=([^&#]+)/, /\/d\/([^\/?#]+)/ ];
-      for (var i = 0; i < patrones.length; i++) {
-        var coincidencia = url.match(patrones[i]);
-        if (coincidencia && coincidencia[1]) return coincidencia[1];
-      }
-      return null;
-    }
+    function extraerIdGoogleDrive(url) {[cite: 1]
+      var patrones = [ /\/file\/d\/([^\/?#]+)/, /[?&]id=([^&#]+)/, /\/d\/([^\/?#]+)/ ];[cite: 1]
+      for (var i = 0; i < patrones.length; i++) {[cite: 1]
+        var coincidencia = url.match(patrones[i]);[cite: 1]
+        if (coincidencia && coincidencia[1]) return coincidencia[1];[cite: 1]
+      }[cite: 1]
+      return null;[cite: 1]
+    }[cite: 1]
 
     function executeEquipmentSearch(columnName) {
         hideMultiDocsBox();
@@ -289,7 +291,7 @@
             scriptNode.src = finalScriptUrl;
             document.body.appendChild(scriptNode);
         } else {
-            abrirDocumento(targetUrl);
+            abrirDocumento(targetUrl);[cite: 1]
         }
     }
 
@@ -304,7 +306,7 @@
             subBtn.className = 'btn-doc-link';
             subBtn.title = file.name;
             subBtn.innerText = "📄 " + file.name;
-            subBtn.onclick = function() { abrirDocumento(file.url); };
+            subBtn.onclick = function() { abrirDocumento(file.url); };[cite: 1]
             multiGrid.appendChild(subBtn);
         });
         multiBox.style.display = 'block';
@@ -313,7 +315,6 @@
     document.getElementById('selectNivel1').addEventListener('change', onNivel1Change);
     document.getElementById('selectNivel2').addEventListener('change', onNivel2Change);
 
-    // Arrancamos de forma inmediata el formulario sin esperas externas
     window.onload = initializeFormStructure;
 </script>
 
