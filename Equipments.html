@@ -14,7 +14,7 @@
     .logos img { max-height: 120px; max-width: 100%; height: auto; width: auto; object-fit: contain; }
     h1 { color: #4e7e28; margin-bottom: 30px; font-size: 28px; }
 
-    /* RECUADRO DE BOTONES OPCIONALES (FABRICANTE / EQUIPO) */
+    /* RECUADRO DE BOTONES OPCIONALES */
     .options-box {
         border: 2px dashed #79c255;
         border-radius: 15px;
@@ -100,7 +100,6 @@
 
     <div id="loadingStatus" class="loading">Cargando base de datos de equipos...</div>
 
-    <!-- Contenedor simplificado a solo 2 Desplegables -->
     <div id="dropdownsContainer" style="display:none;">
         <div class="form-group">
             <label id="labelNivel1" for="selectNivel1">Selecciona Fabricante:</label>
@@ -117,16 +116,14 @@
         </div>
     </div>
 
-    <!-- Panel de archivos generados desde la carpeta -->
     <div id="multiDocsBox" class="multi-docs-box">
         <div id="multiDocsTitle" class="multi-docs-title">Archivos disponibles:</div>
         <div id="multiDocsGrid" class="multi-docs-grid"></div>
     </div>
 
-    <!-- Simplificado a 2 botones de acción: PLANOS y MANUAL -->
     <div class="action-grid">
         <button type="button" onclick="executeEquipmentSearch('PLANOS')">PLANOS</button>
-        <button type="button" onclick="executeEquipmentSearch('MANUAL')">MANUAL</button>
+        <button type="button" onclick="executeEquipmentSearch('MANUALES')">MANUALES</button>
     </div>
 
     <a href="principal.html" class="back-link">← Back to Principal</a>
@@ -151,7 +148,16 @@
                     header: true,
                     skipEmptyLines: true,
                     complete: function(results) {
-                        rawCsvData = results.data;
+                        // Forzamos la limpieza extrema de espacios en blanco y saltos de línea de los datos y las cabeceras
+                        rawCsvData = results.data.map(row => {
+                            let cleanRow = {};
+                            Object.keys(row).forEach(key => {
+                                let cleanKey = key.trim().toUpperCase();
+                                cleanRow[cleanKey] = row[key] ? row[key].trim() : '';
+                            });
+                            return cleanRow;
+                        });
+
                         document.getElementById('loadingStatus').style.display = 'none';
                         document.getElementById('dropdownsContainer').style.display = 'block';
                         initializeFormStructure();
@@ -239,7 +245,6 @@
         });
     }
 
-    // Al seleccionar el Nivel 2, localizamos la fila del CSV de inmediato ya que no hay TAG
     function onNivel2Change() {
         const val1 = document.getElementById('selectNivel1').value;
         const val2 = document.getElementById('selectNivel2').value;
@@ -261,28 +266,28 @@
         document.getElementById('multiDocsBox').style.display = 'none';
     }
 
-    function executeEquipmentSearch(columnType) {
+    function executeEquipmentSearch(columnName) {
         hideMultiDocsBox();
         
         if (!currentMatchedRow) {
             return alert("Por favor, completa las selecciones de los desplegables.");
         }
 
-        const targetUrl = currentMatchedRow[columnType];
-        if (!targetUrl || !targetUrl.trim().startsWith('http')) {
-            return alert("No hay un enlace registrado para " + columnType + " en esta combinación.");
+        // Accedemos de forma directa y limpia al valor mapeado de la celda exacta
+        const targetUrl = currentMatchedRow[columnName];
+        if (!targetUrl || !targetUrl.startsWith('http')) {
+            return alert("No hay un enlace registrado para " + columnName + " en esta combinación.");
         }
 
-        const cleanUrl = targetUrl.trim();
-        const isFolder = cleanUrl.includes('/folders/') || cleanUrl.includes('id=');
-        const isDirectFile = cleanUrl.includes('/file/d/');
+        const isFolder = targetUrl.includes('/folders/') || targetUrl.includes('id=');
+        const isDirectFile = targetUrl.includes('/file/d/');
 
         if (isFolder && !isDirectFile) {
             let folderId = '';
-            if (cleanUrl.includes('/folders/')) {
-                folderId = cleanUrl.split('/folders/')[1].split('?')[0];
-            } else if (cleanUrl.includes('id=')) {
-                folderId = cleanUrl.split('id=')[1].split('&')[0];
+            if (targetUrl.includes('/folders/')) {
+                folderId = targetUrl.split('/folders/')[1].split('?')[0];
+            } else if (targetUrl.includes('id=')) {
+                folderId = targetUrl.split('id=')[1].split('&')[0];
             }
 
             const finalScriptUrl = SCRIPT_URL + "?folderId=" + folderId + "&callback=renderFolderButtons";
@@ -290,7 +295,7 @@
             scriptNode.src = finalScriptUrl;
             document.body.appendChild(scriptNode);
         } else {
-            window.open(cleanUrl, '_blank');
+            window.open(targetUrl, '_blank');
         }
     }
 
