@@ -4,6 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Equipments - Search Menu</title>
+<!-- Añadimos PapaParse para la lectura eficiente del CSV de GitHub -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 <style>
     /* ESTILOS BASE */
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -13,7 +15,7 @@
     .logos img { max-height: 120px; max-width: 100%; height: auto; width: auto; object-fit: contain; }
     h1 { color: #4e7e28; margin-bottom: 30px; font-size: 28px; }
 
-    /* RECUADRO DE BOTONES OPCIONALES (FABRICANTE / EQUIPO) */
+    /* RECUADRO DE BOTONES OPCIONALES */
     .options-box {
         border: 2px dashed #79c255;
         border-radius: 15px;
@@ -76,8 +78,6 @@
     .back-link:hover { text-decoration: underline; }
 
     .loading { text-align: center; padding: 20px; color: #4e7e28; font-weight: bold; }
-
-    @media (max-width: 768px) { .action-grid { grid-template-columns: 1fr; gap: 15px; padding: 0; } .options-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -98,14 +98,14 @@
     </div>
 
     <!-- Indicador de carga -->
-    <div id="loadingStatus" class="loading">Sincronizando base de datos en tiempo real...</div>
+    <div id="loadingStatus" class="loading">Cargando base de datos de equipos desde GitHub...</div>
 
     <!-- Desplegables en cascada -->
     <div id="dropdownsContainer" style="display:none;">
         <div class="form-group">
             <label id="labelNivel1" for="selectNivel1">Selecciona Fabricante:</label>
             <select id="selectNivel1">
-                <option value="">-- Selecciona una opción --</option>
+                <option value="">-- Esperando selección --</option>
             </select>
         </div>
 
@@ -117,7 +117,7 @@
         </div>
     </div>
 
-    <!-- Panel de archivos generados desde carpetas -->
+    <!-- Panel de archivos procedentes de carpetas de Drive -->
     <div id="multiDocsBox" class="multi-docs-box">
         <div id="multiDocsTitle" class="multi-docs-title">Archivos disponibles:</div>
         <div id="multiDocsGrid" class="multi-docs-grid"></div>
@@ -137,70 +137,58 @@
     let rawCsvData = []; 
     let currentMatchedRow = null; 
 
-    // ID de tu documento de Google Drive y Endpoint API seguro libre de CORS
-    const SHEET_ID = '1xOQPbBJcmm12enAF6ln6s0bC2vAMWAQg';
-    const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tq=SELECT%20*&tqx=responseHandler:processData';
-
+    // URL optimizada mediante CDN para evitar de raíz cualquier problema de bloqueo CORS con GitHub
+    const GITHUB_CSV_URL = 'https://cdn.jsdelivr.net/gh/Juanlubaz/App-OFAS@main/Enlaces%20equipos.csv';[cite: 2]
+    
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzfVd7zRhvmgRt6L8budTkPmNkzJUb6nukRUjyOfx6Pn8rcm8zS_oHiJyTHu7AOmMRj9w/exec";
     const VISOR_PDF_URL = 'https://script.google.com/macros/s/AKfycbz7OHOqzkSYfzCTOMdiUJKeiKu204K3Ki8keZmWghKdv1sZp0MZMb6Ngehrtn5TpBO5fw/exec';[cite: 1]
 
-    // Inyección asíncrona por script (Inmune a bloqueos CORS de navegadores)
-    function loadDataDynamically() {
-        const script = document.createElement('script');
-        script.src = GOOGLE_SHEET_URL;
-        document.body.appendChild(script);
-    }
+    function loadCSVData() {
+        fetch(GITHUB_CSV_URL)[cite: 2]
+            .then(response => {
+                if (!response.ok) throw new Error('No se pudo descargar el archivo CSV desde GitHub.');
+                return response.text();
+            })
+            .then(csvText => {
+                Papa.parse(csvText, {[cite: 2]
+                    header: true,[cite: 2]
+                    skipEmptyLines: true,[cite: 2]
+                    complete: function(results) {
+                        rawCsvData = [];
+                        
+                        if (results.data && results.data.length > 0) {[cite: 2]
+                            results.data.forEach(row => {[cite: 2]
+                                if (row) {
+                                    let cleanRow = {};
+                                    Object.keys(row).forEach(key => {[cite: 2]
+                                        if (key) {
+                                            let cleanKey = key.trim().toUpperCase();[cite: 2]
+                                            cleanRow[cleanKey] = row[key] ? row[key].trim() : '';[cite: 2]
+                                        }
+                                    });
+                                    // Guardamos la fila sólo si contiene información válida
+                                    if (cleanRow.FABRICANTE || cleanRow.EQUIPO) {[cite: 2]
+                                        rawCsvData.push(cleanRow);[cite: 2]
+                                    }
+                                }
+                            });
+                        }
 
-    // Procesa la respuesta JSON de tu hoja de cálculo real de Drive en milisegundos
-    function processData(response) {
-        if (!response || !response.table || !response.table.cols || !response.table.rows) {
-            document.getElementById('loadingStatus').innerText = "⚠️ Error al conectar con Google Sheets.";
-            return;
-        }
-        
-        rawCsvData = [];
-        const cols = response.table.cols;
-        const rows = response.table.rows;
-
-        // Buscamos dinámicamente en qué posición se encuentran tus cabeceras
-        let fabricanteIdx = cols.findIndex(c => c.label && c.label.trim().toUpperCase() === 'FABRICANTE');
-        let equipoIdx = cols.findIndex(c => c.label && c.label.trim().toUpperCase() === 'EQUIPO');
-        let planosIdx = cols.findIndex(c => c.label && c.label.trim().toUpperCase() === 'PLANOS');
-        let manualesIdx = cols.findIndex(c => c.label && c.label.trim().toUpperCase() === 'MANUALES');
-
-        // Asignaciones de rescate por defecto por si las cabeceras están en minúscula o crudas
-        if (fabricanteIdx === -1) fabricanteIdx = 0;
-        if (equipoIdx === -1) equipoIdx = 1;
-        if (planosIdx === -1) planosIdx = 2;
-        if (manualesIdx === -1) manualesIdx = 3;
-
-        for (let i = 0; i < rows.length; i++) {
-            const row = rows[i];
-            if (row.c && row.c[fabricanteIdx] && row.c[fabricanteIdx].v) {
-                const fabVal = row.c[fabricanteIdx].v.toString().trim();
-                
-                // Filtramos la cabecera repetida
-                if (fabVal && fabVal.toUpperCase() !== 'FABRICANTE') {
-                    rawCsvData.push({
-                        FABRICANTE: fabVal,
-                        EQUIPO: (row.c[equipoIdx] && row.c[equipoIdx].v) ? row.c[equipoIdx].v.toString().trim() : '',
-                        PLANOS: (row.c[planosIdx] && row.c[planosIdx].v) ? row.c[planosIdx].v.toString().trim() : '',
-                        MANUALES: (row.c[manualesIdx] && row.c[manualesIdx].v) ? row.c[manualesIdx].v.toString().trim() : ''
-                    });
-                }
-            }
-        }
-
-        // Activamos la vista del formulario
-        document.getElementById('loadingStatus').style.display = 'none';
-        document.getElementById('dropdownsContainer').style.display = 'block';
-        initializeFormStructure();
+                        // Ocultamos el letrero de carga y mostramos los selectores de inmediato
+                        document.getElementById('loadingStatus').style.display = 'none';
+                        document.getElementById('dropdownsContainer').style.display = 'block';
+                        initializeFormStructure();
+                    }
+                });
+            })
+            .catch(err => {
+                document.getElementById('loadingStatus').innerText = "⚠️ Error de conexión: " + err.message;
+            });
     }
 
     function selectCriteria(criteria) {
         currentCriteria = criteria;
         hideMultiDocsBox();
-        
         const btnFab = document.getElementById('btnFabricante');
         const btnEq = document.getElementById('btnEquipo');
         
@@ -227,8 +215,7 @@
         if (currentCriteria === 'fabricante') {
             lbl1.innerText = "Selecciona Fabricante:";
             lbl2.innerText = "Selecciona Equipo:";
-            
-            let fabricantes = [...new Set(rawCsvData.map(item => item.FABRICANTE))].filter(Boolean).sort();
+            let fabricantes = [...new Set(rawCsvData.map(item => item.FABRICANTE))].filter(Boolean).sort();[cite: 2]
             sel1.innerHTML = '<option value="">-- Selecciona un FABRICANTE --</option>';
             fabricantes.forEach(fab => {
                 let opt = document.createElement('option');
@@ -237,8 +224,7 @@
         } else {
             lbl1.innerText = "Selecciona Equipo:";
             lbl2.innerText = "Selecciona Fabricante:";
-
-            let equipos = [...new Set(rawCsvData.map(item => item.EQUIPO))].filter(Boolean).sort();
+            let equipos = [...new Set(rawCsvData.map(item => item.EQUIPO))].filter(Boolean).sort();[cite: 2]
             sel1.innerHTML = '<option value="">-- Selecciona un EQUIPO --</option>';
             equipos.forEach(eq => {
                 let opt = document.createElement('option');
@@ -260,10 +246,10 @@
 
         let uniqueSubOptions = [];
         if (currentCriteria === 'fabricante') {
-            uniqueSubOptions = [...new Set(rawCsvData.filter(item => item.FABRICANTE === val1).map(item => item.EQUIPO))].filter(Boolean).sort();
+            uniqueSubOptions = [...new Set(rawCsvData.filter(item => item.FABRICANTE === val1).map(item => item.EQUIPO))].filter(Boolean).sort();[cite: 2]
             sel2.innerHTML = '<option value="">-- Selecciona un EQUIPO --</option>';
         } else {
-            uniqueSubOptions = [...new Set(rawCsvData.filter(item => item.EQUIPO === val1).map(item => item.FABRICANTE))].filter(Boolean).sort();
+            uniqueSubOptions = [...new Set(rawCsvData.filter(item => item.EQUIPO === val1).map(item => item.FABRICANTE))].filter(Boolean).sort();[cite: 2]
             sel2.innerHTML = '<option value="">-- Selecciona un FABRICANTE --</option>';
         }
 
@@ -284,9 +270,9 @@
         }
 
         if (currentCriteria === 'fabricante') {
-            currentMatchedRow = rawCsvData.find(item => item.FABRICANTE === val1 && item.EQUIPO === val2);
+            currentMatchedRow = rawCsvData.find(item => item.FABRICANTE === val1 && item.EQUIPO === val2);[cite: 2]
         } else {
-            currentMatchedRow = rawCsvData.find(item => item.EQUIPO === val1 && item.FABRICANTE === val2);
+            currentMatchedRow = rawCsvData.find(item => item.EQUIPO === val1 && item.FABRICANTE === val2);[cite: 2]
         }
     }
 
@@ -294,44 +280,38 @@
         document.getElementById('multiDocsBox').style.display = 'none';
     }
 
-    function abrirDocumento(url) {
-      if (!url) {
-        alert('No hay ningún enlace disponible para este documento.');
-        return;
-      }
-      var esGoogleDrive = url.includes('drive.google.com') || url.includes('docs.google.com');
-      if (esGoogleDrive) {
-        var fileId = extraerIdGoogleDrive(url);
-        if (!fileId) {
-          alert('No se pudo identificar el archivo de Google Drive.');
-          return;
-        }
-        var separador = VISOR_PDF_URL.includes('?') ? '&' : '?';
-        var visorUrl = VISOR_PDF_URL + separador + 'id=' + encodeURIComponent(fileId);
-        window.open(visorUrl, '_blank', 'noopener,noreferrer');
-        return;
-      }
-      window.open(url, '_blank', 'noopener,noreferrer');
-    }
+    function abrirDocumento(url) {[cite: 1]
+      if (!url) return alert('No hay ningún enlace disponible.');[cite: 1]
+      var esGoogleDrive = url.includes('drive.google.com') || url.includes('docs.google.com');[cite: 1]
+      if (esGoogleDrive) {[cite: 1]
+        var fileId = extraerIdGoogleDrive(url);[cite: 1]
+        if (!fileId) return alert('No se pudo identificar el archivo de Drive.');[cite: 1]
+        var separador = VISOR_PDF_URL.includes('?') ? '&' : '?';[cite: 1]
+        var visorUrl = VISOR_PDF_URL + separador + 'id=' + encodeURIComponent(fileId);[cite: 1]
+        window.open(visorUrl, '_blank', 'noopener,noreferrer');[cite: 1]
+        return;[cite: 1]
+      }[cite: 1]
+      window.open(url, '_blank', 'noopener,noreferrer');[cite: 1]
+    }[cite: 1]
 
-    function extraerIdGoogleDrive(url) {
-      var patrones = [ /\/file\/d\/([^\/?#]+)/, /[?&]id=([^&#]+)/, /\/d\/([^\/?#]+)/ ];
-      for (var i = 0; i < patrones.length; i++) {
-        var coincidencia = url.match(patrones[i]);
-        if (coincidencia && coincidencia[1]) return coincidencia[1];
-      }
-      return null;
-    }
+    function extraerIdGoogleDrive(url) {[cite: 1]
+      var patrones = [ /\/file\/d\/([^\/?#]+)/, /[?&]id=([^&#]+)/, /\/d\/([^\/?#]+)/ ];[cite: 1]
+      for (var i = 0; i < patrones.length; i++) {[cite: 1]
+        var coincidencia = url.match(patrones[i]);[cite: 1]
+        if (coincidencia && coincidencia[1]) return coincidencia[1];[cite: 1]
+      }[cite: 1]
+      return null;[cite: 1]
+    }[cite: 1]
 
     function executeEquipmentSearch(columnName) {
         hideMultiDocsBox();
-        if (!currentMatchedRow) return alert("Por favor, completa las selecciones de los desplegables.");
+        if (!currentMatchedRow) return alert("Por favor, completa las selecciones de los desplegables.");[cite: 2]
 
-        const targetUrl = currentMatchedRow[columnName];
-        if (!targetUrl || !targetUrl.startsWith('http')) return alert("No hay un enlace registrado para " + columnName);
+        const targetUrl = currentMatchedRow[columnName];[cite: 2]
+        if (!targetUrl || !targetUrl.startsWith('http')) return alert("No hay un enlace registrado para " + columnName);[cite: 2]
 
-        const isFolder = targetUrl.includes('/folders/') || targetUrl.includes('id=');
-        const isDirectFile = targetUrl.includes('/file/d/');
+        const isFolder = targetUrl.includes('/folders/') || targetUrl.includes('id=');[cite: 2]
+        const isDirectFile = targetUrl.includes('/file/d/');[cite: 2]
 
         if (isFolder && !isDirectFile) {
             let folderId = '';
@@ -345,12 +325,12 @@
             scriptNode.src = finalScriptUrl;
             document.body.appendChild(scriptNode);
         } else {
-            abrirDocumento(targetUrl);
+            abrirDocumento(targetUrl);[cite: 1, 2]
         }
     }
 
     function renderFolderButtons(filesList) {
-        if (!filesList || filesList.error || filesList.length === 0) return alert("No se encontraron archivos accesibles en la carpeta.");
+        if (!filesList || filesList.error || filesList.length === 0) return alert("No se encontraron archivos en la carpeta.");
         const multiBox = document.getElementById('multiDocsBox');
         const multiGrid = document.getElementById('multiDocsGrid');
         multiGrid.innerHTML = ''; 
@@ -360,7 +340,7 @@
             subBtn.className = 'btn-doc-link';
             subBtn.title = file.name;
             subBtn.innerText = "📄 " + file.name;
-            subBtn.onclick = function() { abrirDocumento(file.url); };
+            subBtn.onclick = function() { abrirDocumento(file.url); };[cite: 1]
             multiGrid.appendChild(subBtn);
         });
         multiBox.style.display = 'block';
@@ -369,7 +349,7 @@
     document.getElementById('selectNivel1').addEventListener('change', onNivel1Change);
     document.getElementById('selectNivel2').addEventListener('change', onNivel2Change);
 
-    window.onload = loadDataDynamically;
+    window.onload = loadCSVData;
 </script>
 
 </body>
