@@ -4,7 +4,6 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Equipments - Search Menu</title>
-<!-- Añadimos PapaParse para la lectura eficiente del CSV de GitHub -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 <style>
     /* ESTILOS BASE */
@@ -63,8 +62,8 @@
     }
     .btn-doc-link:hover { background: #609e42 !important; transform: translateY(-2px) !important; }
 
-    /* CUADRÍCULA PARA LOS TRES BOTONES DE ACCIÓN */
-    .action-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 0 20px; margin-top: 25px; }
+    /* CUADRÍCULA PARA LOS DOS BOTONES DE ACCIÓN */
+    .action-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; padding: 0 40px; margin-top: 25px; }
 
     /* ESTILO GENERAL DE LOS BOTONES */
     button { padding: 18px; border-radius: 12px; font-size: 18px; border: none; cursor: pointer; background: #f3f3f3; box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: all 0.2s ease; font-weight: 600; color: #333; }
@@ -91,7 +90,6 @@
     
     <h1>Equipment Search</h1>
 
-    <!-- Selector de Criterio Base (Fabricante o Equipo) -->
     <div class="options-box">
         <div class="options-title">Search Criteria</div>
         <div class="options-grid">
@@ -102,7 +100,7 @@
 
     <div id="loadingStatus" class="loading">Cargando base de datos de equipos...</div>
 
-    <!-- Bloque de Desplegables Conectados Jerárquicamente -->
+    <!-- Contenedor simplificado a solo 2 Desplegables -->
     <div id="dropdownsContainer" style="display:none;">
         <div class="form-group">
             <label id="labelNivel1" for="selectNivel1">Selecciona Fabricante:</label>
@@ -117,24 +115,16 @@
                 <option value="">-- Selecciona el paso anterior --</option>
             </select>
         </div>
-
-        <div class="form-group">
-            <label for="selectTag">Selecciona TAG / Modelo:</label>
-            <select id="selectTag" disabled>
-                <option value="">-- Selecciona el paso anterior --</option>
-            </select>
-        </div>
     </div>
 
-    <!-- Panel de Multi-Documentos si detecta carpetas de Drive -->
+    <!-- Panel de archivos generados desde la carpeta -->
     <div id="multiDocsBox" class="multi-docs-box">
-        <div id="multiDocsTitle" class="multi-docs-title">Archivos dentro de la carpeta:</div>
+        <div id="multiDocsTitle" class="multi-docs-title">Archivos disponibles:</div>
         <div id="multiDocsGrid" class="multi-docs-grid"></div>
     </div>
 
-    <!-- Botones de Acción Final -->
+    <!-- Simplificado a 2 botones de acción: PLANOS y MANUAL -->
     <div class="action-grid">
-        <button type="button" onclick="executeEquipmentSearch('DATA SHEET')">DATA SHEET</button>
         <button type="button" onclick="executeEquipmentSearch('PLANOS')">PLANOS</button>
         <button type="button" onclick="executeEquipmentSearch('MANUAL')">MANUAL</button>
     </div>
@@ -143,17 +133,13 @@
 </div>
 
 <script>
-    let currentCriteria = 'fabricante'; // Puede ser 'fabricante' o 'equipo'
-    let rawCsvData = []; // Guardará el array plano parseado del CSV
-    let currentMatchedRow = null; // Guardará la fila final seleccionada en el árbol
+    let currentCriteria = 'fabricante'; 
+    let rawCsvData = []; 
+    let currentMatchedRow = null; 
 
-    // URL del nuevo archivo CSV indicado en tu repositorio
     const GITHUB_CSV_URL = 'https://raw.githubusercontent.com/Juanlubaz/App-OFAS/main/Enlaces%20equipos.csv';
-    
-    // Tu URL estable del Script puente de Google Drive para leer carpetas
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzfVd7zRhvmgRt6L8budTkPmNkzJUb6nukRUjyOfx6Pn8rcm8zS_oHiJyTHu7AOmMRj9w/exec";
 
-    // Carga inicial usando fetch y PapaParse
     function loadCSVData() {
         fetch(GITHUB_CSV_URL)
             .then(response => {
@@ -177,7 +163,6 @@
             });
     }
 
-    // Cambia la lógica visual y de etiquetas según el botón principal presionado
     function selectCriteria(criteria) {
         currentCriteria = criteria;
         hideMultiDocsBox();
@@ -195,26 +180,20 @@
         initializeFormStructure();
     }
 
-    // Inicializa o resetea el árbol de desplegables según el criterio activo
     function initializeFormStructure() {
         const lbl1 = document.getElementById('labelNivel1');
         const lbl2 = document.getElementById('labelNivel2');
         const sel1 = document.getElementById('selectNivel1');
         const sel2 = document.getElementById('selectNivel2');
-        const selTag = document.getElementById('selectTag');
 
-        // Limpiamos referencias
         currentMatchedRow = null;
         sel2.innerHTML = '<option value="">-- Selecciona el paso anterior --</option>';
         sel2.disabled = true;
-        selTag.innerHTML = '<option value="">-- Selecciona el paso anterior --</option>';
-        selTag.disabled = true;
 
         if (currentCriteria === 'fabricante') {
             lbl1.innerText = "Selecciona Fabricante:";
             lbl2.innerText = "Selecciona Equipo:";
             
-            // Llenar Nivel 1 con Fabricantes únicos
             let fabricantes = [...new Set(rawCsvData.map(item => item.FABRICANTE))].filter(Boolean).sort();
             sel1.innerHTML = '<option value="">-- Selecciona un FABRICANTE --</option>';
             fabricantes.forEach(fab => {
@@ -225,7 +204,6 @@
             lbl1.innerText = "Selecciona Equipo:";
             lbl2.innerText = "Selecciona Fabricante:";
 
-            // Llenar Nivel 1 con Equipos únicos
             let equipos = [...new Set(rawCsvData.map(item => item.EQUIPO))].filter(Boolean).sort();
             sel1.innerHTML = '<option value="">-- Selecciona un EQUIPO --</option>';
             equipos.forEach(eq => {
@@ -235,16 +213,12 @@
         }
     }
 
-    // Manejador del cambio en el primer desplegable (Nivel 1)
     function onNivel1Change() {
         const val1 = document.getElementById('selectNivel1').value;
         const sel2 = document.getElementById('selectNivel2');
-        const selTag = document.getElementById('selectTag');
         
         sel2.innerHTML = '<option value="">-- Selecciona el paso anterior --</option>';
         sel2.disabled = !val1;
-        selTag.innerHTML = '<option value="">-- Selecciona el paso anterior --</option>';
-        selTag.disabled = true;
         currentMatchedRow = null;
         hideMultiDocsBox();
 
@@ -252,11 +226,9 @@
 
         let uniqueSubOptions = [];
         if (currentCriteria === 'fabricante') {
-            // Filtrar Equipos que pertenezcan al Fabricante elegido
             uniqueSubOptions = [...new Set(rawCsvData.filter(item => item.FABRICANTE === val1).map(item => item.EQUIPO))].filter(Boolean).sort();
             sel2.innerHTML = '<option value="">-- Selecciona un EQUIPO --</option>';
         } else {
-            // Filtrar Fabricantes que tengan el Equipo elegido
             uniqueSubOptions = [...new Set(rawCsvData.filter(item => item.EQUIPO === val1).map(item => item.FABRICANTE))].filter(Boolean).sort();
             sel2.innerHTML = '<option value="">-- Selecciona un FABRICANTE --</option>';
         }
@@ -267,53 +239,21 @@
         });
     }
 
-    // Manejador del cambio en el segundo desplegable (Nivel 2)
+    // Al seleccionar el Nivel 2, localizamos la fila del CSV de inmediato ya que no hay TAG
     function onNivel2Change() {
         const val1 = document.getElementById('selectNivel1').value;
         const val2 = document.getElementById('selectNivel2').value;
-        const selTag = document.getElementById('selectTag');
-
-        selTag.innerHTML = '<option value="">-- Selecciona el paso anterior --</option>';
-        selTag.disabled = !val2;
-        currentMatchedRow = null;
         hideMultiDocsBox();
 
-        if (!val2) return;
-
-        // Filtrar los TAGs que cumplen ambos criterios del cruce
-        let filteredRows = [];
-        if (currentCriteria === 'fabricante') {
-            filteredRows = rawCsvData.filter(item => item.FABRICANTE === val1 && item.EQUIPO === val2);
-        } else {
-            filteredRows = rawCsvData.filter(item => item.EQUIPO === val1 && item.FABRICANTE === val2);
-        }
-
-        let uniqueTags = [...new Set(filteredRows.map(item => item.TAG))].filter(Boolean).sort();
-        selTag.innerHTML = '<option value="">-- Selecciona un TAG / Modelo --</option>';
-        
-        uniqueTags.forEach(tag => {
-            let opt = document.createElement('option');
-            opt.value = tag; opt.innerText = tag; selTag.appendChild(opt);
-        });
-    }
-
-    // Manejador del cambio final (TAG) -> localiza la fila exacta del CSV
-    function onTagChange() {
-        const val1 = document.getElementById('selectNivel1').value;
-        const val2 = document.getElementById('selectNivel2').value;
-        const valTag = document.getElementById('selectTag').value;
-        hideMultiDocsBox();
-
-        if (!valTag) {
+        if (!val2) {
             currentMatchedRow = null;
             return;
         }
 
-        // Buscamos la fila única correspondiente de la base de datos
         if (currentCriteria === 'fabricante') {
-            currentMatchedRow = rawCsvData.find(item => item.FABRICANTE === val1 && item.EQUIPO === val2 && item.TAG === valTag);
+            currentMatchedRow = rawCsvData.find(item => item.FABRICANTE === val1 && item.EQUIPO === val2);
         } else {
-            currentMatchedRow = rawCsvData.find(item => item.EQUIPO === val1 && item.FABRICANTE === val2 && item.TAG === valTag);
+            currentMatchedRow = rawCsvData.find(item => item.EQUIPO === val1 && item.FABRICANTE === val2);
         }
     }
 
@@ -321,17 +261,16 @@
         document.getElementById('multiDocsBox').style.display = 'none';
     }
 
-    // Ejecuta la búsqueda al pulsar DATA SHEET, PLANOS o MANUAL
     function executeEquipmentSearch(columnType) {
         hideMultiDocsBox();
         
         if (!currentMatchedRow) {
-            return alert("Por favor, completa todas las selecciones de los desplegables.");
+            return alert("Por favor, completa las selecciones de los desplegables.");
         }
 
         const targetUrl = currentMatchedRow[columnType];
         if (!targetUrl || !targetUrl.trim().startsWith('http')) {
-            return alert("No hay un enlace registrado para " + columnType + " en este equipo.");
+            return alert("No hay un enlace registrado para " + columnType + " en esta combinación.");
         }
 
         const cleanUrl = targetUrl.trim();
@@ -339,7 +278,6 @@
         const isDirectFile = cleanUrl.includes('/file/d/');
 
         if (isFolder && !isDirectFile) {
-            // Es una carpeta de Google Drive: extraemos el ID para llamar al Apps Script puente
             let folderId = '';
             if (cleanUrl.includes('/folders/')) {
                 folderId = cleanUrl.split('/folders/')[1].split('?')[0];
@@ -352,12 +290,10 @@
             scriptNode.src = finalScriptUrl;
             document.body.appendChild(scriptNode);
         } else {
-            // Es un archivo directo: Se abre de inmediato en pestaña limpia
             window.open(cleanUrl, '_blank');
         }
     }
 
-    // Pinta los botones independientes si el destino era una carpeta con múltiples archivos
     function renderFolderButtons(filesList) {
         if (!filesList || filesList.error || filesList.length === 0) {
             return alert("No se encontraron archivos accesibles o legibles en esta carpeta.");
@@ -380,12 +316,9 @@
         multiBox.style.display = 'block';
     }
 
-    // Listeners para los eventos de cambio en cascada
     document.getElementById('selectNivel1').addEventListener('change', onNivel1Change);
     document.getElementById('selectNivel2').addEventListener('change', onNivel2Change);
-    document.getElementById('selectTag').addEventListener('change', onTagChange);
 
-    // Arrancar la carga del CSV al iniciar la ventana
     window.onload = loadCSVData;
 </script>
 
