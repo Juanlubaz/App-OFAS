@@ -136,8 +136,6 @@
 
     const GITHUB_CSV_URL = 'https://raw.githubusercontent.com/Juanlubaz/App-OFAS/main/Enlaces%20equipos.csv';
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzfVd7zRhvmgRt6L8budTkPmNkzJUb6nukRUjyOfx6Pn8rcm8zS_oHiJyTHu7AOmMRj9w/exec";
-    
-    // VISOR DE PDF PERSONALIZADO (El mismo de tu formulario de estructuras)
     const VISOR_PDF_URL = 'https://script.google.com/macros/s/AKfycbz7OHOqzkSYfzCTOMdiUJKeiKu204K3Ki8keZmWghKdv1sZp0MZMb6Ngehrtn5TpBO5fw/exec';[cite: 1]
 
     function loadCSVData() {
@@ -151,14 +149,26 @@
                     header: true,
                     skipEmptyLines: true,
                     complete: function(results) {
-                        rawCsvData = results.data.map(row => {
-                            let cleanRow = {};
-                            Object.keys(row).forEach(key => {
-                                let cleanKey = key.trim().toUpperCase();
-                                cleanRow[cleanKey] = row[key] ? row[key].trim() : '';
+                        rawCsvData = [];
+                        
+                        // Control estricto de seguridad anti-filas vacías
+                        if (results.data && results.data.length > 0) {
+                            results.data.forEach(row => {
+                                if (row && Object.keys(row).length > 0) {
+                                    let cleanRow = {};
+                                    Object.keys(row).forEach(key => {
+                                        if (key) {
+                                            let cleanKey = key.trim().toUpperCase();
+                                            cleanRow[cleanKey] = row[key] ? row[key].trim() : '';
+                                        }
+                                    });
+                                    // Guardamos la fila solo si tiene datos de equipo o fabricante
+                                    if (cleanRow.FABRICANTE || cleanRow.EQUIPO) {
+                                        rawCsvData.push(cleanRow);
+                                    }
+                                }
                             });
-                            return cleanRow;
-                        });
+                        }
 
                         document.getElementById('loadingStatus').style.display = 'none';
                         document.getElementById('dropdownsContainer').style.display = 'block';
@@ -268,7 +278,6 @@
         document.getElementById('multiDocsBox').style.display = 'none';
     }
 
-    // LÓGICA INTEGRADA DE VISOR PDF
     function abrirDocumento(url) {[cite: 1]
       if (!url) {[cite: 1]
         alert('No hay ningún enlace disponible para este documento.');[cite: 1]
@@ -336,7 +345,6 @@
             scriptNode.src = finalScriptUrl;
             document.body.appendChild(scriptNode);
         } else {
-            // Si es un archivo directo, lo abrimos a través del Visor de Estructuras
             abrirDocumento(targetUrl);[cite: 1]
         }
     }
@@ -356,7 +364,6 @@
             subBtn.className = 'btn-doc-link';
             subBtn.title = file.name;
             subBtn.innerText = "📄 " + file.name;
-            // Los archivos listados en las carpetas también pasan ahora por el Visor de Estructuras
             subBtn.onclick = function() { abrirDocumento(file.url); };[cite: 1]
             multiGrid.appendChild(subBtn);
         });
