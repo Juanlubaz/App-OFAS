@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Equipments - Search Menu</title>
-<!-- Añadimos PapaParse para la lectura eficiente del CSV de GitHub -->
+<!-- PapaParse localizable de forma segura -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 <style>
     /* ESTILOS BASE */
@@ -15,7 +15,7 @@
     .logos img { max-height: 120px; max-width: 100%; height: auto; width: auto; object-fit: contain; }
     h1 { color: #4e7e28; margin-bottom: 30px; font-size: 28px; }
 
-    /* RECUADRO DE BOTONES OPCIONALES */
+    /* RECUADRO DE BOTONES OPCIONALES (FABRICANTE / EQUIPO) */
     .options-box {
         border: 2px dashed #79c255;
         border-radius: 15px;
@@ -97,10 +97,8 @@
         </div>
     </div>
 
-    <!-- Indicador de carga -->
-    <div id="loadingStatus" class="loading">Cargando base de datos de equipos desde GitHub...</div>
+    <div id="loadingStatus" class="loading">Cargando base de datos local...</div>
 
-    <!-- Desplegables en cascada -->
     <div id="dropdownsContainer" style="display:none;">
         <div class="form-group">
             <label id="labelNivel1" for="selectNivel1">Selecciona Fabricante:</label>
@@ -117,13 +115,12 @@
         </div>
     </div>
 
-    <!-- Panel de archivos procedentes de carpetas de Drive -->
+    <!-- Panel de archivos generados desde la carpeta -->
     <div id="multiDocsBox" class="multi-docs-box">
         <div id="multiDocsTitle" class="multi-docs-title">Archivos disponibles:</div>
         <div id="multiDocsGrid" class="multi-docs-grid"></div>
     </div>
 
-    <!-- Botones de acción finales -->
     <div class="action-grid">
         <button type="button" onclick="executeEquipmentSearch('PLANOS')">PLANOS</button>
         <button type="button" onclick="executeEquipmentSearch('MANUALES')">MANUALES</button>
@@ -137,44 +134,42 @@
     let rawCsvData = []; 
     let currentMatchedRow = null; 
 
-    // URL optimizada mediante CDN para evitar de raíz cualquier problema de bloqueo CORS con GitHub
-    const GITHUB_CSV_URL = 'https://cdn.jsdelivr.net/gh/Juanlubaz/App-OFAS@main/Enlaces%20equipos.csv';[cite: 2]
+    // LLAMADA LOCAL DIRECTA: Al estar en la misma carpeta de GitHub se lee de forma directa
+    const LOCAL_CSV_FILE = 'Enlaces equipos.csv';
     
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzfVd7zRhvmgRt6L8budTkPmNkzJUb6nukRUjyOfx6Pn8rcm8zS_oHiJyTHu7AOmMRj9w/exec";
     const VISOR_PDF_URL = 'https://script.google.com/macros/s/AKfycbz7OHOqzkSYfzCTOMdiUJKeiKu204K3Ki8keZmWghKdv1sZp0MZMb6Ngehrtn5TpBO5fw/exec';[cite: 1]
 
     function loadCSVData() {
-        fetch(GITHUB_CSV_URL)[cite: 2]
+        fetch(LOCAL_CSV_FILE)
             .then(response => {
-                if (!response.ok) throw new Error('No se pudo descargar el archivo CSV desde GitHub.');
+                if (!response.ok) throw new Error('No se pudo encontrar el archivo "Enlaces equipos.csv" en la carpeta.');
                 return response.text();
             })
             .then(csvText => {
-                Papa.parse(csvText, {[cite: 2]
-                    header: true,[cite: 2]
-                    skipEmptyLines: true,[cite: 2]
+                Papa.parse(csvText, {
+                    header: true,
+                    skipEmptyLines: true,
                     complete: function(results) {
                         rawCsvData = [];
                         
-                        if (results.data && results.data.length > 0) {[cite: 2]
-                            results.data.forEach(row => {[cite: 2]
+                        if (results.data && results.data.length > 0) {
+                            results.data.forEach(row => {
                                 if (row) {
                                     let cleanRow = {};
-                                    Object.keys(row).forEach(key => {[cite: 2]
+                                    Object.keys(row).forEach(key => {
                                         if (key) {
-                                            let cleanKey = key.trim().toUpperCase();[cite: 2]
-                                            cleanRow[cleanKey] = row[key] ? row[key].trim() : '';[cite: 2]
+                                            let cleanKey = key.trim().toUpperCase();
+                                            cleanRow[cleanKey] = row[key] ? row[key].trim() : '';
                                         }
                                     });
-                                    // Guardamos la fila sólo si contiene información válida
-                                    if (cleanRow.FABRICANTE || cleanRow.EQUIPO) {[cite: 2]
-                                        rawCsvData.push(cleanRow);[cite: 2]
+                                    if (cleanRow.FABRICANTE || cleanRow.EQUIPO) {
+                                        rawCsvData.push(cleanRow);
                                     }
                                 }
                             });
                         }
 
-                        // Ocultamos el letrero de carga y mostramos los selectores de inmediato
                         document.getElementById('loadingStatus').style.display = 'none';
                         document.getElementById('dropdownsContainer').style.display = 'block';
                         initializeFormStructure();
@@ -182,7 +177,7 @@
                 });
             })
             .catch(err => {
-                document.getElementById('loadingStatus').innerText = "⚠️ Error de conexión: " + err.message;
+                document.getElementById('loadingStatus').innerText = "⚠️ Error: " + err.message;
             });
     }
 
@@ -215,7 +210,7 @@
         if (currentCriteria === 'fabricante') {
             lbl1.innerText = "Selecciona Fabricante:";
             lbl2.innerText = "Selecciona Equipo:";
-            let fabricantes = [...new Set(rawCsvData.map(item => item.FABRICANTE))].filter(Boolean).sort();[cite: 2]
+            let fabricantes = [...new Set(rawCsvData.map(item => item.FABRICANTE))].filter(Boolean).sort();
             sel1.innerHTML = '<option value="">-- Selecciona un FABRICANTE --</option>';
             fabricantes.forEach(fab => {
                 let opt = document.createElement('option');
@@ -224,7 +219,7 @@
         } else {
             lbl1.innerText = "Selecciona Equipo:";
             lbl2.innerText = "Selecciona Fabricante:";
-            let equipos = [...new Set(rawCsvData.map(item => item.EQUIPO))].filter(Boolean).sort();[cite: 2]
+            let equipos = [...new Set(rawCsvData.map(item => item.EQUIPO))].filter(Boolean).sort();
             sel1.innerHTML = '<option value="">-- Selecciona un EQUIPO --</option>';
             equipos.forEach(eq => {
                 let opt = document.createElement('option');
@@ -246,10 +241,10 @@
 
         let uniqueSubOptions = [];
         if (currentCriteria === 'fabricante') {
-            uniqueSubOptions = [...new Set(rawCsvData.filter(item => item.FABRICANTE === val1).map(item => item.EQUIPO))].filter(Boolean).sort();[cite: 2]
+            uniqueSubOptions = [...new Set(rawCsvData.filter(item => item.FABRICANTE === val1).map(item => item.EQUIPO))].filter(Boolean).sort();
             sel2.innerHTML = '<option value="">-- Selecciona un EQUIPO --</option>';
         } else {
-            uniqueSubOptions = [...new Set(rawCsvData.filter(item => item.EQUIPO === val1).map(item => item.FABRICANTE))].filter(Boolean).sort();[cite: 2]
+            uniqueSubOptions = [...new Set(rawCsvData.filter(item => item.EQUIPO === val1).map(item => item.FABRICANTE))].filter(Boolean).sort();
             sel2.innerHTML = '<option value="">-- Selecciona un FABRICANTE --</option>';
         }
 
@@ -270,9 +265,9 @@
         }
 
         if (currentCriteria === 'fabricante') {
-            currentMatchedRow = rawCsvData.find(item => item.FABRICANTE === val1 && item.EQUIPO === val2);[cite: 2]
+            currentMatchedRow = rawCsvData.find(item => item.FABRICANTE === val1 && item.EQUIPO === val2);
         } else {
-            currentMatchedRow = rawCsvData.find(item => item.EQUIPO === val1 && item.FABRICANTE === val2);[cite: 2]
+            currentMatchedRow = rawCsvData.find(item => item.EQUIPO === val1 && item.FABRICANTE === val2);
         }
     }
 
@@ -285,7 +280,7 @@
       var esGoogleDrive = url.includes('drive.google.com') || url.includes('docs.google.com');[cite: 1]
       if (esGoogleDrive) {[cite: 1]
         var fileId = extraerIdGoogleDrive(url);[cite: 1]
-        if (!fileId) return alert('No se pudo identificar el archivo de Drive.');[cite: 1]
+        if (!fileId) return alert('No se pudo identificar el archivo de Google Drive.');[cite: 1]
         var separador = VISOR_PDF_URL.includes('?') ? '&' : '?';[cite: 1]
         var visorUrl = VISOR_PDF_URL + separador + 'id=' + encodeURIComponent(fileId);[cite: 1]
         window.open(visorUrl, '_blank', 'noopener,noreferrer');[cite: 1]
@@ -305,13 +300,13 @@
 
     function executeEquipmentSearch(columnName) {
         hideMultiDocsBox();
-        if (!currentMatchedRow) return alert("Por favor, completa las selecciones de los desplegables.");[cite: 2]
+        if (!currentMatchedRow) return alert("Por favor, completa las selecciones de los desplegables.");
 
-        const targetUrl = currentMatchedRow[columnName];[cite: 2]
-        if (!targetUrl || !targetUrl.startsWith('http')) return alert("No hay un enlace registrado para " + columnName);[cite: 2]
+        const targetUrl = currentMatchedRow[columnName];
+        if (!targetUrl || !targetUrl.startsWith('http')) return alert("No hay un enlace registrado para " + columnName);
 
-        const isFolder = targetUrl.includes('/folders/') || targetUrl.includes('id=');[cite: 2]
-        const isDirectFile = targetUrl.includes('/file/d/');[cite: 2]
+        const isFolder = targetUrl.includes('/folders/') || targetUrl.includes('id=');
+        const isDirectFile = targetUrl.includes('/file/d/');
 
         if (isFolder && !isDirectFile) {
             let folderId = '';
@@ -325,7 +320,7 @@
             scriptNode.src = finalScriptUrl;
             document.body.appendChild(scriptNode);
         } else {
-            abrirDocumento(targetUrl);[cite: 1, 2]
+            abrirDocumento(targetUrl);[cite: 1]
         }
     }
 
