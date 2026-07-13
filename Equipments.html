@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Equipments - Search Menu</title>
-<!-- PapaParse para la lectura eficiente de tu CSV -->
+<!-- PapaParse estándar para leer tu CSV local -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 <style>
     /* ESTILOS BASE */
@@ -32,36 +32,6 @@
     select { width: 100%; padding: 14px 15px; border: 2px solid #ddd; border-radius: 12px; font-size: 16px; background: white; cursor: pointer; transition: border-color 0.3s; outline: none; }
     select:focus { border-color: #79c255; }
     select:disabled { background: #f5f5f5; cursor: not-allowed; border-color: #eee; }
-
-    /* CONTENEDOR DINÁMICO PARA LOS BOTONES DE LA CARPETA */
-    .multi-docs-box {
-        display: none;
-        background: #f4fbf1;
-        border: 1px solid #ccebc4;
-        border-radius: 12px;
-        padding: 20px;
-        margin: 10px auto 25px auto;
-        max-width: 740px;
-        text-align: left;
-    }
-    .multi-docs-title { font-size: 15px; color: #4e7e28; font-weight: bold; margin-bottom: 12px; }
-    .multi-docs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
-    
-    .btn-doc-link {
-        background: #79c255 !important;
-        color: white !important;
-        font-size: 14px !important;
-        padding: 12px !important;
-        border-radius: 8px !important;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
-        text-align: left !important;
-        white-space: nowrap !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        display: block !important;
-        width: 100% !important;
-    }
-    .btn-doc-link:hover { background: #609e42 !important; transform: translateY(-2px) !important; }
 
     /* CUADRÍCULA PARA LOS DOS BOTONES DE ACCIÓN */
     .action-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; padding: 0 40px; margin-top: 25px; }
@@ -97,7 +67,7 @@
         </div>
     </div>
 
-    <div id="loadingStatus" class="loading">Cargando base de datos real de equipos...</div>
+    <div id="loadingStatus" class="loading">Cargando base de datos de equipos...</div>
 
     <div id="dropdownsContainer" style="display:none;">
         <div class="form-group">
@@ -115,11 +85,6 @@
         </div>
     </div>
 
-    <div id="multiDocsBox" class="multi-docs-box">
-        <div id="multiDocsTitle" class="multi-docs-title">Archivos disponibles:</div>
-        <div id="multiDocsGrid" class="multi-docs-grid"></div>
-    </div>
-
     <div class="action-grid">
         <button type="button" onclick="executeEquipmentSearch('PLANOS')">PLANOS</button>
         <button type="button" onclick="executeEquipmentSearch('MANUALES')">MANUALES</button>
@@ -133,36 +98,33 @@
     let rawCsvData = []; 
     let currentMatchedRow = null; 
 
-    // URL CDN directa e inmune a CORS para descargar tu archivo CSV real de GitHub
-    const CSV_URL = 'https://cdn.jsdelivr.net/gh/Juanlubaz/App-OFAS@main/Enlaces%20equipos.csv';[cite: 2]
-    
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzfVd7zRhvmgRt6L8budTkPmNkzJUb6nukRUjyOfx6Pn8rcm8zS_oHiJyTHu7AOmMRj9w/exec";
-    const VISOR_PDF_URL = 'https://script.google.com/macros/s/AKfycbz7OHOqzkSYfzCTOMdiUJKeiKu204K3Ki8keZmWghKdv1sZp0MZMb6Ngehrtn5TpBO5fw/exec';[cite: 1]
+    // Nombre relativo directo del archivo en tu misma carpeta de GitHub
+    const CSV_FILE_NAME = 'Enlaces equipos.csv';
 
     function loadCSVData() {
-        fetch(CSV_URL)[cite: 2]
+        fetch(CSV_FILE_NAME)
             .then(response => {
-                if (!response.ok) throw new Error('No se pudo leer el archivo CSV.');
+                if (!response.ok) throw new Error('No se pudo encontrar el archivo "Enlaces equipos.csv" en la carpeta.');
                 return response.text();
             })
             .then(csvText => {
-                Papa.parse(csvText, {[cite: 2]
-                    header: true,[cite: 2]
-                    skipEmptyLines: true,[cite: 2]
+                Papa.parse(csvText, {
+                    header: true,
+                    skipEmptyLines: true,
                     complete: function(results) {
                         rawCsvData = [];
-                        if (results.data && results.data.length > 0) {[cite: 2]
-                            results.data.forEach(row => {[cite: 2]
+                        if (results.data && results.data.length > 0) {
+                            results.data.forEach(row => {
                                 if (row) {
                                     let cleanRow = {};
-                                    Object.keys(row).forEach(key => {[cite: 2]
+                                    Object.keys(row).forEach(key => {
                                         if (key) {
-                                            let cleanKey = key.trim().toUpperCase();[cite: 2]
-                                            cleanRow[cleanKey] = row[key] ? row[key].trim() : '';[cite: 2]
+                                            let cleanKey = key.trim().toUpperCase();
+                                            cleanRow[cleanKey] = row[key] ? row[key].trim() : '';
                                         }
                                     });
-                                    if (cleanRow.FABRICANTE || cleanRow.EQUIPO) {[cite: 2]
-                                        rawCsvData.push(cleanRow);[cite: 2]
+                                    if (cleanRow.FABRICANTE || cleanRow.EQUIPO) {
+                                        rawCsvData.push(cleanRow);
                                     }
                                 }
                             });
@@ -174,13 +136,12 @@
                 });
             })
             .catch(err => {
-                document.getElementById('loadingStatus').innerText = "⚠️ Error de carga: " + err.message;
+                document.getElementById('loadingStatus').innerText = "⚠️ Error al cargar el CSV: " + err.message;
             });
     }
 
     function selectCriteria(criteria) {
         currentCriteria = criteria;
-        hideMultiDocsBox();
         const btnFab = document.getElementById('btnFabricante');
         const btnEq = document.getElementById('btnEquipo');
         
@@ -207,7 +168,7 @@
         if (currentCriteria === 'fabricante') {
             lbl1.innerText = "Selecciona Fabricante:";
             lbl2.innerText = "Selecciona Equipo:";
-            let fabricantes = [...new Set(rawCsvData.map(item => item.FABRICANTE))].filter(Boolean).sort();[cite: 2]
+            let fabricantes = [...new Set(rawCsvData.map(item => item.FABRICANTE))].filter(Boolean).sort();
             sel1.innerHTML = '<option value="">-- Selecciona un FABRICANTE --</option>';
             fabricantes.forEach(fab => {
                 let opt = document.createElement('option');
@@ -216,7 +177,7 @@
         } else {
             lbl1.innerText = "Selecciona Equipo:";
             lbl2.innerText = "Selecciona Fabricante:";
-            let equipos = [...new Set(rawCsvData.map(item => item.EQUIPO))].filter(Boolean).sort();[cite: 2]
+            let equipos = [...new Set(rawCsvData.map(item => item.EQUIPO))].filter(Boolean).sort();
             sel1.innerHTML = '<option value="">-- Selecciona un EQUIPO --</option>';
             equipos.forEach(eq => {
                 let opt = document.createElement('option');
@@ -232,16 +193,15 @@
         sel2.innerHTML = '<option value="">-- Selecciona el paso anterior --</option>';
         sel2.disabled = !val1;
         currentMatchedRow = null;
-        hideMultiDocsBox();
 
         if (!val1) return;
 
         let uniqueSubOptions = [];
         if (currentCriteria === 'fabricante') {
-            uniqueSubOptions = [...new Set(rawCsvData.filter(item => item.FABRICANTE === val1).map(item => item.EQUIPO))].filter(Boolean).sort();[cite: 2]
+            uniqueSubOptions = [...new Set(rawCsvData.filter(item => item.FABRICANTE === val1).map(item => item.EQUIPO))].filter(Boolean).sort();
             sel2.innerHTML = '<option value="">-- Selecciona un EQUIPO --</option>';
         } else {
-            uniqueSubOptions = [...new Set(rawCsvData.filter(item => item.EQUIPO === val1).map(item => item.FABRICANTE))].filter(Boolean).sort();[cite: 2]
+            uniqueSubOptions = [...new Set(rawCsvData.filter(item => item.EQUIPO === val1).map(item => item.FABRICANTE))].filter(Boolean).sort();
             sel2.innerHTML = '<option value="">-- Selecciona un FABRICANTE --</option>';
         }
 
@@ -254,7 +214,6 @@
     function onNivel2Change() {
         const val1 = document.getElementById('selectNivel1').value;
         const val2 = document.getElementById('selectNivel2').value;
-        hideMultiDocsBox();
 
         if (!val2) {
             currentMatchedRow = null;
@@ -262,91 +221,25 @@
         }
 
         if (currentCriteria === 'fabricante') {
-            currentMatchedRow = rawCsvData.find(item => item.FABRICANTE === val1 && item.EQUIPO === val2);[cite: 2]
+            currentMatchedRow = rawCsvData.find(item => item.FABRICANTE === val1 && item.EQUIPO === val2);
         } else {
-            currentMatchedRow = rawCsvData.find(item => item.EQUIPO === val1 && item.FABRICANTE === val2);[cite: 2]
+            currentMatchedRow = rawCsvData.find(item => item.EQUIPO === val1 && item.FABRICANTE === val2);
         }
     }
 
-    function hideMultiDocsBox() {
-        document.getElementById('multiDocsBox').style.display = 'none';
-    }
-
-    function abrirDocumento(url) {
-      if (!url) return alert('No hay ningún enlace disponible.');
-      
-      var esGoogleDrive = url.includes('drive.google.com') || url.includes('docs.google.com');[cite: 1]
-      if (esGoogleDrive) {
-        var fileId = extraerIdGoogleDrive(url);
-        if (!fileId) {
-          // Si no pudimos extraer una ID válida, abrimos el enlace crudo para que no rompa la navegación
-          window.open(url, '_blank', 'noopener,noreferrer');
-          return;
-        }
-        var separador = VISOR_PDF_URL.includes('?') ? '&' : '?';[cite: 1]
-        var visorUrl = VISOR_PDF_URL + separador + 'id=' + encodeURIComponent(fileId);[cite: 1]
-        window.open(visorUrl, '_blank', 'noopener,noreferrer');[cite: 1]
-        return;
-      }
-      window.open(url, '_blank', 'noopener,noreferrer');[cite: 1]
-    }
-
-    // NUEVO EXTRACTOR MEJORADO: Captura IDs de carpetas, archivos y enlaces de apertura antiguos sin excepción
-    function extraerIdGoogleDrive(url) {
-      var patrones = [
-        /\/folders\/([^\/?#]+)/,       // Carpetas modernas
-        /\/file\/d\/([^\/?#]+)/,      // Archivos directos d/[cite: 1]
-        /[?&]id=([^&#]+)/,            // IDs por parámetro ?id=[cite: 1]
-        /\/d\/([^\/?#]+)/             // Enlaces abreviados /d/[cite: 1]
-      ];
-      for (var i = 0; i < patrones.length; i++) {
-        var coincidencia = url.match(patrones[i]);
-        if (coincidencia && coincidencia[1]) return coincidencia[1];
-      }
-      return null;
-    }
-
+    // ABRE EL ENLACE DIRECTO TAL CUAL ESTÁ EN TU FILA DEL CSV
     function executeEquipmentSearch(columnName) {
-        hideMultiDocsBox();
-        if (!currentMatchedRow) return alert("Por favor, completa las selecciones de los desplegables.");[cite: 2]
-
-        const targetUrl = currentMatchedRow[columnName];[cite: 2]
-        if (!targetUrl || !targetUrl.startsWith('http')) return alert("No hay un enlace registrado para " + columnName);[cite: 2]
-
-        // Analizamos si la celda contiene una carpeta
-        const isFolder = targetUrl.includes('/folders/') || targetUrl.includes('id=');[cite: 2]
-        const isDirectFile = targetUrl.includes('/file/d/');[cite: 2]
-
-        if (isFolder && !isDirectFile) {
-            // Es carpeta: Extraemos su ID con el nuevo extractor y llamamos al script puente
-            let folderId = extraerIdGoogleDrive(targetUrl);
-            if (!folderId) return alert("No se pudo extraer la ID de la carpeta de Drive.");
-
-            const finalScriptUrl = SCRIPT_URL + "?folderId=" + folderId + "&callback=renderFolderButtons";
-            const scriptNode = document.createElement('script');
-            scriptNode.src = finalScriptUrl;
-            document.body.appendChild(scriptNode);
-        } else {
-            // Es archivo individual: Se procesa a través del visor
-            abrirDocumento(targetUrl);
+        if (!currentMatchedRow) {
+            return alert("Por favor, completa las selecciones de los desplegables.");
         }
-    }
 
-    function renderFolderButtons(filesList) {
-        if (!filesList || filesList.error || filesList.length === 0) return alert("No se encontraron archivos en la carpeta.");
-        const multiBox = document.getElementById('multiDocsBox');
-        const multiGrid = document.getElementById('multiDocsGrid');
-        multiGrid.innerHTML = ''; 
-        filesList.forEach(function(file) {
-            const subBtn = document.createElement('button');
-            subBtn.type = 'button';
-            subBtn.className = 'btn-doc-link';
-            subBtn.title = file.name;
-            subBtn.innerText = "📄 " + file.name;
-            subBtn.onclick = function() { abrirDocumento(file.url); };
-            multiGrid.appendChild(subBtn);
-        });
-        multiBox.style.display = 'block';
+        const targetUrl = currentMatchedRow[columnName];
+        if (!targetUrl || !targetUrl.startsWith('http')) {
+            return alert("No hay un enlace válido registrado para " + columnName + " en esta combinación.");
+        }
+
+        // Abre de forma instantánea el enlace exacto en una pestaña limpia
+        window.open(targetUrl, '_blank', 'noopener,noreferrer');
     }
 
     document.getElementById('selectNivel1').addEventListener('change', onNivel1Change);
