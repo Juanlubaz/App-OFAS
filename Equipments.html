@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Equipments - Search Menu</title>
-<!-- PapaParse localizable de forma segura -->
+<!-- PapaParse para la lectura eficiente de tu CSV -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 <style>
     /* ESTILOS BASE */
@@ -97,7 +97,7 @@
         </div>
     </div>
 
-    <div id="loadingStatus" class="loading">Cargando base de datos...</div>
+    <div id="loadingStatus" class="loading">Cargando base de datos real de equipos...</div>
 
     <div id="dropdownsContainer" style="display:none;">
         <div class="form-group">
@@ -133,74 +133,51 @@
     let rawCsvData = []; 
     let currentMatchedRow = null; 
 
-    const LOCAL_CSV_FILE = 'Enlaces equipos.csv';
+    // URL inteligente: Si estás en local o en servidor, usará esta dirección CDN de tu GitHub para que lea TU CSV REAL sin bloqueos
+    const CSV_URL = 'https://cdn.jsdelivr.net/gh/Juanlubaz/App-OFAS@main/Enlaces%20equipos.csv';[cite: 2]
+    
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzfVd7zRhvmgRt6L8budTkPmNkzJUb6nukRUjyOfx6Pn8rcm8zS_oHiJyTHu7AOmMRj9w/exec";
-    const VISOR_PDF_URL = 'https://script.google.com/macros/s/AKfycbz7OHOqzkSYfzCTOMdiUJKeiKu204K3Ki8keZmWghKdv1sZp0MZMb6Ngehrtn5TpBO5fw/exec';
-
-    // DATOS DE RESPALDO INTEGRADOS: Si el navegador bloquea la lectura local (CORS), usará estos instantáneamente
-    const backupData = [
-        { FABRICANTE: "ALFA LAVAL", EQUIPO: "INTERCAMBIADOR DE CALOR", PLANOS: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv", MANUALES: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv" },
-        { FABRICANTE: "APV", EQUIPO: "HOMOGENEIZADOR", PLANOS: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv", MANUALES: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv" },
-        { FABRICANTE: "SULZER", EQUIPO: "BOMBA CENTRIFUGA", PLANOS: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv", MANUALES: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv" },
-        { FABRICANTE: "FLENDER", EQUIPO: "REDUCTOR", PLANOS: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv", MANUALES: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv" }
-    ];
+    const VISOR_PDF_URL = 'https://script.google.com/macros/s/AKfycbz7OHOqzkSYfzCTOMdiUJKeiKu204K3Ki8keZmWghKdv1sZp0MZMb6Ngehrtn5TpBO5fw/exec';[cite: 1]
 
     function loadCSVData() {
-        // Si estamos ejecutando el archivo localmente desde el disco duro (file://)
-        if (window.location.protocol === 'file:') {
-            console.log("Detectado entorno local (file://). Activando base de datos de respaldo.");
-            rawCsvData = backupData;
-            displayInterface();
-            return;
-        }
-
-        // Si estamos en un servidor (GitHub Pages), lee el CSV de forma directa
-        fetch(LOCAL_CSV_FILE)
+        fetch(CSV_URL)[cite: 2]
             .then(response => {
-                if (!response.ok) throw new Error('Archivo no encontrado de forma asíncrona.');
+                if (!response.ok) throw new Error('No se pudo leer el archivo CSV desde el servidor.');
                 return response.text();
             })
             .then(csvText => {
-                Papa.parse(csvText, {
-                    header: true,
-                    skipEmptyLines: true,
+                Papa.parse(csvText, {[cite: 2]
+                    header: true,[cite: 2]
+                    skipEmptyLines: true,[cite: 2]
                     complete: function(results) {
-                        parseResults(results.data);
+                        rawCsvData = [];
+                        
+                        if (results.data && results.data.length > 0) {[cite: 2]
+                            results.data.forEach(row => {[cite: 2]
+                                if (row) {
+                                    let cleanRow = {};
+                                    Object.keys(row).forEach(key => {[cite: 2]
+                                        if (key) {
+                                            let cleanKey = key.trim().toUpperCase();[cite: 2]
+                                            cleanRow[cleanKey] = row[key] ? row[key].trim() : '';[cite: 2]
+                                        }
+                                    });
+                                    if (cleanRow.FABRICANTE || cleanRow.EQUIPO) {[cite: 2]
+                                        rawCsvData.push(cleanRow);[cite: 2]
+                                    }
+                                }
+                            });
+                        }
+
+                        document.getElementById('loadingStatus').style.display = 'none';
+                        document.getElementById('dropdownsContainer').style.display = 'block';
+                        initializeFormStructure();
                     }
                 });
             })
             .catch(err => {
-                console.log("Fallo en fetch. Activando respaldo seguro.");
-                rawCsvData = backupData;
-                displayInterface();
+                document.getElementById('loadingStatus').innerText = "⚠️ Error de carga: " + err.message;
             });
-    }
-
-    function parseResults(dataList) {
-        rawCsvData = [];
-        if (dataList && dataList.length > 0) {
-            dataList.forEach(row => {
-                if (row) {
-                    let cleanRow = {};
-                    Object.keys(row).forEach(key => {
-                        if (key) {
-                            let cleanKey = key.trim().toUpperCase();
-                            cleanRow[cleanKey] = row[key] ? row[key].trim() : '';
-                        }
-                    });
-                    if (cleanRow.FABRICANTE || cleanRow.EQUIPO) {
-                        rawCsvData.push(cleanRow);
-                    }
-                }
-            });
-        }
-        displayInterface();
-    }
-
-    function displayInterface() {
-        document.getElementById('loadingStatus').style.display = 'none';
-        document.getElementById('dropdownsContainer').style.display = 'block';
-        initializeFormStructure();
     }
 
     function selectCriteria(criteria) {
@@ -232,7 +209,7 @@
         if (currentCriteria === 'fabricante') {
             lbl1.innerText = "Selecciona Fabricante:";
             lbl2.innerText = "Selecciona Equipo:";
-            let fabricantes = [...new Set(rawCsvData.map(item => item.FABRICANTE))].filter(Boolean).sort();
+            let fabricantes = [...new Set(rawCsvData.map(item => item.FABRICANTE))].filter(Boolean).sort();[cite: 2]
             sel1.innerHTML = '<option value="">-- Selecciona un FABRICANTE --</option>';
             fabricantes.forEach(fab => {
                 let opt = document.createElement('option');
@@ -241,7 +218,7 @@
         } else {
             lbl1.innerText = "Selecciona Equipo:";
             lbl2.innerText = "Selecciona Fabricante:";
-            let equipos = [...new Set(rawCsvData.map(item => item.EQUIPO))].filter(Boolean).sort();
+            let equipos = [...new Set(rawCsvData.map(item => item.EQUIPO))].filter(Boolean).sort();[cite: 2]
             sel1.innerHTML = '<option value="">-- Selecciona un EQUIPO --</option>';
             equipos.forEach(eq => {
                 let opt = document.createElement('option');
@@ -263,10 +240,10 @@
 
         let uniqueSubOptions = [];
         if (currentCriteria === 'fabricante') {
-            uniqueSubOptions = [...new Set(rawCsvData.filter(item => item.FABRICANTE === val1).map(item => item.EQUIPO))].filter(Boolean).sort();
+            uniqueSubOptions = [...new Set(rawCsvData.filter(item => item.FABRICANTE === val1).map(item => item.EQUIPO))].filter(Boolean).sort();[cite: 2]
             sel2.innerHTML = '<option value="">-- Selecciona un EQUIPO --</option>';
         } else {
-            uniqueSubOptions = [...new Set(rawCsvData.filter(item => item.EQUIPO === val1).map(item => item.FABRICANTE))].filter(Boolean).sort();
+            uniqueSubOptions = [...new Set(rawCsvData.filter(item => item.EQUIPO === val1).map(item => item.FABRICANTE))].filter(Boolean).sort();[cite: 2]
             sel2.innerHTML = '<option value="">-- Selecciona un FABRICANTE --</option>';
         }
 
@@ -287,9 +264,9 @@
         }
 
         if (currentCriteria === 'fabricante') {
-            currentMatchedRow = rawCsvData.find(item => item.FABRICANTE === val1 && item.EQUIPO === val2);
+            currentMatchedRow = rawCsvData.find(item => item.FABRICANTE === val1 && item.EQUIPO === val2);[cite: 2]
         } else {
-            currentMatchedRow = rawCsvData.find(item => item.EQUIPO === val1 && item.FABRICANTE === val2);
+            currentMatchedRow = rawCsvData.find(item => item.EQUIPO === val1 && item.FABRICANTE === val2);[cite: 2]
         }
     }
 
@@ -302,7 +279,7 @@
       var esGoogleDrive = url.includes('drive.google.com') || url.includes('docs.google.com');
       if (esGoogleDrive) {
         var fileId = extraerIdGoogleDrive(url);
-        if (!fileId) return alert('No se pudo identificar el archivo.');
+        if (!fileId) return alert('No se pudo identificar el archivo de Google Drive.');
         var separador = VISOR_PDF_URL.includes('?') ? '&' : '?';
         var visorUrl = VISOR_PDF_URL + separador + 'id=' + encodeURIComponent(fileId);
         window.open(visorUrl, '_blank', 'noopener,noreferrer');
@@ -322,13 +299,13 @@
 
     function executeEquipmentSearch(columnName) {
         hideMultiDocsBox();
-        if (!currentMatchedRow) return alert("Por favor, completa las selecciones de los desplegables.");
+        if (!currentMatchedRow) return alert("Por favor, completa las selecciones de los desplegables.");[cite: 2]
 
-        const targetUrl = currentMatchedRow[columnName];
-        if (!targetUrl || !targetUrl.startsWith('http')) return alert("No hay un enlace registrado para " + columnName);
+        const targetUrl = currentMatchedRow[columnName];[cite: 2]
+        if (!targetUrl || !targetUrl.startsWith('http')) return alert("No hay un enlace registrado para " + columnName);[cite: 2]
 
-        const isFolder = targetUrl.includes('/folders/') || targetUrl.includes('id=');
-        const isDirectFile = targetUrl.includes('/file/d/');
+        const isFolder = targetUrl.includes('/folders/') || targetUrl.includes('id=');[cite: 2]
+        const isDirectFile = targetUrl.includes('/file/d/');[cite: 2]
 
         if (isFolder && !isDirectFile) {
             let folderId = '';
