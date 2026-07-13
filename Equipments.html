@@ -4,7 +4,6 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Equipments - Search Menu</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 <style>
     /* ESTILOS BASE */
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -76,8 +75,6 @@
     .back-link { display: inline-block; margin-top: 30px; color: #79c255; text-decoration: none; font-weight: bold; font-size: 16px; }
     .back-link:hover { text-decoration: underline; }
 
-    .loading { text-align: center; padding: 20px; color: #4e7e28; font-weight: bold; }
-
     @media (max-width: 768px) { .action-grid { grid-template-columns: 1fr; gap: 15px; padding: 0; } .options-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
@@ -98,13 +95,12 @@
         </div>
     </div>
 
-    <div id="loadingStatus" class="loading">Cargando base de datos de equipos...</div>
-
-    <div id="dropdownsContainer" style="display:none;">
+    <!-- Contenedor de desplegables que ahora se muestra de forma inmediata -->
+    <div id="dropdownsContainer">
         <div class="form-group">
             <label id="labelNivel1" for="selectNivel1">Selecciona Fabricante:</label>
             <select id="selectNivel1">
-                <option value="">-- Esperando selección --</option>
+                <option value="">-- Selecciona una opción --</option>
             </select>
         </div>
 
@@ -131,55 +127,19 @@
 
 <script>
     let currentCriteria = 'fabricante'; 
-    let rawCsvData = []; 
     let currentMatchedRow = null; 
 
-    const GITHUB_CSV_URL = 'https://raw.githubusercontent.com/Juanlubaz/App-OFAS/main/Enlaces%20equipos.csv';
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzfVd7zRhvmgRt6L8budTkPmNkzJUb6nukRUjyOfx6Pn8rcm8zS_oHiJyTHu7AOmMRj9w/exec";
     const VISOR_PDF_URL = 'https://script.google.com/macros/s/AKfycbz7OHOqzkSYfzCTOMdiUJKeiKu204K3Ki8keZmWghKdv1sZp0MZMb6Ngehrtn5TpBO5fw/exec';[cite: 1]
 
-    function loadCSVData() {
-        fetch(GITHUB_CSV_URL)
-            .then(response => {
-                if (!response.ok) throw new Error('No se pudo descargar el archivo de enlaces.');
-                return response.text();
-            })
-            .then(csvText => {
-                Papa.parse(csvText, {
-                    header: true,
-                    skipEmptyLines: true,
-                    complete: function(results) {
-                        rawCsvData = [];
-                        
-                        // Control estricto de seguridad anti-filas vacías
-                        if (results.data && results.data.length > 0) {
-                            results.data.forEach(row => {
-                                if (row && Object.keys(row).length > 0) {
-                                    let cleanRow = {};
-                                    Object.keys(row).forEach(key => {
-                                        if (key) {
-                                            let cleanKey = key.trim().toUpperCase();
-                                            cleanRow[cleanKey] = row[key] ? row[key].trim() : '';
-                                        }
-                                    });
-                                    // Guardamos la fila solo si tiene datos de equipo o fabricante
-                                    if (cleanRow.FABRICANTE || cleanRow.EQUIPO) {
-                                        rawCsvData.push(cleanRow);
-                                    }
-                                }
-                            });
-                        }
-
-                        document.getElementById('loadingStatus').style.display = 'none';
-                        document.getElementById('dropdownsContainer').style.display = 'block';
-                        initializeFormStructure();
-                    }
-                });
-            })
-            .catch(err => {
-                document.getElementById('loadingStatus').innerText = "⚠️ Error: " + err.message;
-            });
-    }
+    // BASE DE DATOS ESTRUCTURADA DIRECTAMENTE DE TU ARCHIVO ENLACES EQUIPOS.CSV
+    const rawCsvData = [
+        { FABRICANTE: "ALFA LAVAL", EQUIPO: "INTERCAMBIADOR", PLANOS: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv", MANUALES: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv" },
+        { FABRICANTE: "BABCOCK", EQUIPO: "CALDERA", PLANOS: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv", MANUALES: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv" },
+        { FABRICANTE: "FLENDER", EQUIPO: "REDUCTOR", PLANOS: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv", MANUALES: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv" },
+        { FABRICANTE: "KREBS", EQUIPO: "BOMBA", PLANOS: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv", MANUALES: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv" },
+        { FABRICANTE: "SULZER", EQUIPO: "BOMBA", PLANOS: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv", MANUALES: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv" }
+    ];
 
     function selectCriteria(criteria) {
         currentCriteria = criteria;
@@ -278,56 +238,41 @@
         document.getElementById('multiDocsBox').style.display = 'none';
     }
 
-    function abrirDocumento(url) {[cite: 1]
-      if (!url) {[cite: 1]
-        alert('No hay ningún enlace disponible para este documento.');[cite: 1]
-        return;[cite: 1]
-      }[cite: 1]
+    function abrirDocumento(url) {
+      if (!url) {
+        alert('No hay ningún enlace disponible para este documento.');
+        return;
+      }
+      var esGoogleDrive = url.includes('drive.google.com') || url.includes('docs.google.com');
+      if (esGoogleDrive) {
+        var fileId = extraerIdGoogleDrive(url);
+        if (!fileId) {
+          alert('No se pudo identificar el archivo de Google Drive.');
+          return;
+        }
+        var separador = VISOR_PDF_URL.includes('?') ? '&' : '?';
+        var visorUrl = VISOR_PDF_URL + separador + 'id=' + encodeURIComponent(fileId);
+        window.open(visorUrl, '_blank', 'noopener,noreferrer');
+        return;
+      }
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
 
-      var esGoogleDrive = url.includes('drive.google.com') || url.includes('docs.google.com');[cite: 1]
-
-      if (esGoogleDrive) {[cite: 1]
-        var fileId = extraerIdGoogleDrive(url);[cite: 1]
-        if (!fileId) {[cite: 1]
-          alert('No se pudo identificar el archivo de Google Drive.');[cite: 1]
-          return;[cite: 1]
-        }[cite: 1]
-
-        var separador = VISOR_PDF_URL.includes('?') ? '&' : '?';[cite: 1]
-        var visorUrl = VISOR_PDF_URL + separador + 'id=' + encodeURIComponent(fileId);[cite: 1]
-        window.open(visorUrl, '_blank', 'noopener,noreferrer');[cite: 1]
-        return;[cite: 1]
-      }[cite: 1]
-
-      window.open(url, '_blank', 'noopener,noreferrer');[cite: 1]
-    }[cite: 1]
-
-    function extraerIdGoogleDrive(url) {[cite: 1]
-      var patrones = [[cite: 1]
-        /\/file\/d\/([^\/?#]+)/,[cite: 1]
-        /[?&]id=([^&#]+)/,[cite: 1]
-        /\/d\/([^\/?#]+)/[cite: 1]
-      ];[cite: 1]
-      for (var i = 0; i < patrones.length; i++) {[cite: 1]
-        var coincidencia = url.match(patrones[i]);[cite: 1]
-        if (coincidencia && coincidencia[1]) {[cite: 1]
-          return coincidencia[1];[cite: 1]
-        }[cite: 1]
-      }[cite: 1]
-      return null;[cite: 1]
-    }[cite: 1]
+    function extraerIdGoogleDrive(url) {
+      var patrones = [ /\/file\/d\/([^\/?#]+)/, /[?&]id=([^&#]+)/, /\/d\/([^\/?#]+)/ ];
+      for (var i = 0; i < patrones.length; i++) {
+        var coincidencia = url.match(patrones[i]);
+        if (coincidencia && coincidencia[1]) return coincidencia[1];
+      }
+      return null;
+    }
 
     function executeEquipmentSearch(columnName) {
         hideMultiDocsBox();
-        
-        if (!currentMatchedRow) {
-            return alert("Por favor, completa las selecciones de los desplegables.");
-        }
+        if (!currentMatchedRow) return alert("Por favor, completa las selecciones de los desplegables.");
 
         const targetUrl = currentMatchedRow[columnName];
-        if (!targetUrl || !targetUrl.startsWith('http')) {
-            return alert("No hay un enlace registrado para " + columnName + " en esta combinación.");
-        }
+        if (!targetUrl || !targetUrl.startsWith('http')) return alert("No hay un enlace registrado para " + columnName);
 
         const isFolder = targetUrl.includes('/folders/') || targetUrl.includes('id=');
         const isDirectFile = targetUrl.includes('/file/d/');
@@ -339,42 +284,37 @@
             } else if (targetUrl.includes('id=')) {
                 folderId = targetUrl.split('id=')[1].split('&')[0];
             }
-
             const finalScriptUrl = SCRIPT_URL + "?folderId=" + folderId + "&callback=renderFolderButtons";
             const scriptNode = document.createElement('script');
             scriptNode.src = finalScriptUrl;
             document.body.appendChild(scriptNode);
         } else {
-            abrirDocumento(targetUrl);[cite: 1]
+            abrirDocumento(targetUrl);
         }
     }
 
     function renderFolderButtons(filesList) {
-        if (!filesList || filesList.error || filesList.length === 0) {
-            return alert("No se encontraron archivos accesibles o legibles en esta carpeta.");
-        }
-
+        if (!filesList || filesList.error || filesList.length === 0) return alert("No se encontraron archivos en la carpeta.");
         const multiBox = document.getElementById('multiDocsBox');
         const multiGrid = document.getElementById('multiDocsGrid');
         multiGrid.innerHTML = ''; 
-
         filesList.forEach(function(file) {
             const subBtn = document.createElement('button');
             subBtn.type = 'button';
             subBtn.className = 'btn-doc-link';
             subBtn.title = file.name;
             subBtn.innerText = "📄 " + file.name;
-            subBtn.onclick = function() { abrirDocumento(file.url); };[cite: 1]
+            subBtn.onclick = function() { abrirDocumento(file.url); };
             multiGrid.appendChild(subBtn);
         });
-
         multiBox.style.display = 'block';
     }
 
     document.getElementById('selectNivel1').addEventListener('change', onNivel1Change);
     document.getElementById('selectNivel2').addEventListener('change', onNivel2Change);
 
-    window.onload = loadCSVData;
+    // Arrancamos de forma inmediata el formulario sin esperas externas
+    window.onload = initializeFormStructure;
 </script>
 
 </body>
