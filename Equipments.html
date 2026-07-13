@@ -133,7 +133,7 @@
     let rawCsvData = []; 
     let currentMatchedRow = null; 
 
-    // URL inteligente: Si estás en local o en servidor, usará esta dirección CDN de tu GitHub para que lea TU CSV REAL sin bloqueos
+    // URL CDN directa e inmune a CORS para descargar tu archivo CSV real de GitHub
     const CSV_URL = 'https://cdn.jsdelivr.net/gh/Juanlubaz/App-OFAS@main/Enlaces%20equipos.csv';[cite: 2]
     
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzfVd7zRhvmgRt6L8budTkPmNkzJUb6nukRUjyOfx6Pn8rcm8zS_oHiJyTHu7AOmMRj9w/exec";
@@ -142,7 +142,7 @@
     function loadCSVData() {
         fetch(CSV_URL)[cite: 2]
             .then(response => {
-                if (!response.ok) throw new Error('No se pudo leer el archivo CSV desde el servidor.');
+                if (!response.ok) throw new Error('No se pudo leer el archivo CSV.');
                 return response.text();
             })
             .then(csvText => {
@@ -151,7 +151,6 @@
                     skipEmptyLines: true,[cite: 2]
                     complete: function(results) {
                         rawCsvData = [];
-                        
                         if (results.data && results.data.length > 0) {[cite: 2]
                             results.data.forEach(row => {[cite: 2]
                                 if (row) {
@@ -168,7 +167,6 @@
                                 }
                             });
                         }
-
                         document.getElementById('loadingStatus').style.display = 'none';
                         document.getElementById('dropdownsContainer').style.display = 'block';
                         initializeFormStructure();
@@ -276,20 +274,31 @@
 
     function abrirDocumento(url) {
       if (!url) return alert('No hay ningún enlace disponible.');
-      var esGoogleDrive = url.includes('drive.google.com') || url.includes('docs.google.com');
+      
+      var esGoogleDrive = url.includes('drive.google.com') || url.includes('docs.google.com');[cite: 1]
       if (esGoogleDrive) {
         var fileId = extraerIdGoogleDrive(url);
-        if (!fileId) return alert('No se pudo identificar el archivo de Google Drive.');
-        var separador = VISOR_PDF_URL.includes('?') ? '&' : '?';
-        var visorUrl = VISOR_PDF_URL + separador + 'id=' + encodeURIComponent(fileId);
-        window.open(visorUrl, '_blank', 'noopener,noreferrer');
+        if (!fileId) {
+          // Si no pudimos extraer una ID válida, abrimos el enlace crudo para que no rompa la navegación
+          window.open(url, '_blank', 'noopener,noreferrer');
+          return;
+        }
+        var separador = VISOR_PDF_URL.includes('?') ? '&' : '?';[cite: 1]
+        var visorUrl = VISOR_PDF_URL + separador + 'id=' + encodeURIComponent(fileId);[cite: 1]
+        window.open(visorUrl, '_blank', 'noopener,noreferrer');[cite: 1]
         return;
       }
-      window.open(url, '_blank', 'noopener,noreferrer');
+      window.open(url, '_blank', 'noopener,noreferrer');[cite: 1]
     }
 
+    // NUEVO EXTRACTOR MEJORADO: Captura IDs de carpetas, archivos y enlaces de apertura antiguos sin excepción
     function extraerIdGoogleDrive(url) {
-      var patrones = [ /\/file\/d\/([^\/?#]+)/, /[?&]id=([^&#]+)/, /\/d\/([^\/?#]+)/ ];
+      var patrones = [
+        /\/folders\/([^\/?#]+)/,       // Carpetas modernas
+        /\/file\/d\/([^\/?#]+)/,      // Archivos directos d/[cite: 1]
+        /[?&]id=([^&#]+)/,            // IDs por parámetro ?id=[cite: 1]
+        /\/d\/([^\/?#]+)/             // Enlaces abreviados /d/[cite: 1]
+      ];
       for (var i = 0; i < patrones.length; i++) {
         var coincidencia = url.match(patrones[i]);
         if (coincidencia && coincidencia[1]) return coincidencia[1];
@@ -304,21 +313,21 @@
         const targetUrl = currentMatchedRow[columnName];[cite: 2]
         if (!targetUrl || !targetUrl.startsWith('http')) return alert("No hay un enlace registrado para " + columnName);[cite: 2]
 
+        // Analizamos si la celda contiene una carpeta
         const isFolder = targetUrl.includes('/folders/') || targetUrl.includes('id=');[cite: 2]
         const isDirectFile = targetUrl.includes('/file/d/');[cite: 2]
 
         if (isFolder && !isDirectFile) {
-            let folderId = '';
-            if (targetUrl.includes('/folders/')) {
-                folderId = targetUrl.split('/folders/')[1].split('?')[0];
-            } else if (targetUrl.includes('id=')) {
-                folderId = targetUrl.split('id=')[1].split('&')[0];
-            }
+            // Es carpeta: Extraemos su ID con el nuevo extractor y llamamos al script puente
+            let folderId = extraerIdGoogleDrive(targetUrl);
+            if (!folderId) return alert("No se pudo extraer la ID de la carpeta de Drive.");
+
             const finalScriptUrl = SCRIPT_URL + "?folderId=" + folderId + "&callback=renderFolderButtons";
             const scriptNode = document.createElement('script');
             scriptNode.src = finalScriptUrl;
             document.body.appendChild(scriptNode);
         } else {
+            // Es archivo individual: Se procesa a través del visor
             abrirDocumento(targetUrl);
         }
     }
