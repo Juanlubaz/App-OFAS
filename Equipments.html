@@ -13,7 +13,7 @@
     .logos img { max-height: 120px; max-width: 100%; height: auto; width: auto; object-fit: contain; }
     h1 { color: #4e7e28; margin-bottom: 30px; font-size: 28px; }
 
-    /* RECUADRO DE BOTONES OPCIONALES */
+    /* RECUADRO DE BOTONES OPCIONALES (FABRICANTE / EQUIPO) */
     .options-box {
         border: 2px dashed #79c255;
         border-radius: 15px;
@@ -75,6 +75,8 @@
     .back-link { display: inline-block; margin-top: 30px; color: #79c255; text-decoration: none; font-weight: bold; font-size: 16px; }
     .back-link:hover { text-decoration: underline; }
 
+    .loading { text-align: center; padding: 20px; color: #4e7e28; font-weight: bold; }
+
     @media (max-width: 768px) { .action-grid { grid-template-columns: 1fr; gap: 15px; padding: 0; } .options-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
@@ -95,8 +97,11 @@
         </div>
     </div>
 
-    <!-- Contenedor de desplegables conectado de forma nativa e inmediata -->
-    <div id="dropdownsContainer">
+    <!-- Indicador de carga -->
+    <div id="loadingStatus" class="loading">Sincronizando base de datos en tiempo real...</div>
+
+    <!-- Desplegables en cascada -->
+    <div id="dropdownsContainer" style="display:none;">
         <div class="form-group">
             <label id="labelNivel1" for="selectNivel1">Selecciona Fabricante:</label>
             <select id="selectNivel1">
@@ -112,11 +117,13 @@
         </div>
     </div>
 
+    <!-- Panel de archivos generados desde carpetas -->
     <div id="multiDocsBox" class="multi-docs-box">
         <div id="multiDocsTitle" class="multi-docs-title">Archivos disponibles:</div>
         <div id="multiDocsGrid" class="multi-docs-grid"></div>
     </div>
 
+    <!-- Botones de acción finales -->
     <div class="action-grid">
         <button type="button" onclick="executeEquipmentSearch('PLANOS')">PLANOS</button>
         <button type="button" onclick="executeEquipmentSearch('MANUALES')">MANUALES</button>
@@ -127,21 +134,68 @@
 
 <script>
     let currentCriteria = 'fabricante'; 
+    let rawCsvData = []; 
     let currentMatchedRow = null; 
+
+    // ID de tu documento de Google Drive y Endpoint API seguro libre de CORS
+    const SHEET_ID = '1xOQPbBJcmm12enAF6ln6s0bC2vAMWAQg';
+    const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tq=SELECT%20*&tqx=responseHandler:processData';
 
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzfVd7zRhvmgRt6L8budTkPmNkzJUb6nukRUjyOfx6Pn8rcm8zS_oHiJyTHu7AOmMRj9w/exec";
     const VISOR_PDF_URL = 'https://script.google.com/macros/s/AKfycbz7OHOqzkSYfzCTOMdiUJKeiKu204K3Ki8keZmWghKdv1sZp0MZMb6Ngehrtn5TpBO5fw/exec';[cite: 1]
 
-    // BASE DE DATOS REAL COMPLETA EXTRAÍDA DE TU ARCHIVO ENLACES EQUIPOS.CSV
-    const rawCsvData = [
-        { FABRICANTE: "ALFA LAVAL", EQUIPO: "INTERCAMBIADOR", PLANOS: "https://drive.google.com/drive/folders/1wKskwGvH2r5pLgZ7Hl6_HlyVfR2hL-65", MANUALES: "https://drive.google.com/drive/folders/1Wn6Qd4Lbyw98mZpY98r_Y8l6Hk1PfR-X" },
-        { FABRICANTE: "ALFA LAVAL", EQUIPO: "PASTEURIZADOR", PLANOS: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv", MANUALES: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv" },
-        { FABRICANTE: "APV", EQUIPO: "HOMOGENEIZADOR", PLANOS: "https://drive.google.com/drive/folders/1Z9R_y8Lp6XmZ98r_Y8l6Hk1PfR-XwKsk", MANUALES: "https://drive.google.com/drive/folders/1wKskwGvH2r5pLgZ7Hl6_HlyVfR2hL-65" },
-        { FABRICANTE: "APV", EQUIPO: "INTERCAMBIADOR", PLANOS: "https://drive.google.com/drive/folders/1Wn6Qd4Lbyw98mZpY98r_Y8l6Hk1PfR-X", MANUALES: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv" },
-        { FABRICANTE: "FLENDER", EQUIPO: "REDUCTOR", PLANOS: "https://drive.google.com/drive/folders/1mY98r_Y8l6Hk1PfR-XwKskwGvH2r5pLgZ", MANUALES: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv" },
-        { FABRICANTE: "SULZER", EQUIPO: "BOMBA DE PROCESO", PLANOS: "https://drive.google.com/drive/folders/176iBIdY2M5O76YpGvT7vUu2M5O76YpGv", MANUALES: "https://drive.google.com/drive/folders/1Wn6Qd4Lbyw98mZpY98r_Y8l6Hk1PfR-X" },
-        { FABRICANTE: "SULZER", EQUIPO: "BOMBA DE AGUA", PLANOS: "https://drive.google.com/drive/folders/1wKskwGvH2r5pLgZ7Hl6_HlyVfR2hL-65", MANUALES: "https://drive.google.com/drive/folders/1Z9R_y8Lp6XmZ98r_Y8l6Hk1PfR-XwKsk" }
-    ];
+    // Inyección asíncrona por script (Inmune a bloqueos CORS de navegadores)
+    function loadDataDynamically() {
+        const script = document.createElement('script');
+        script.src = GOOGLE_SHEET_URL;
+        document.body.appendChild(script);
+    }
+
+    // Procesa la respuesta JSON de tu hoja de cálculo real de Drive en milisegundos
+    function processData(response) {
+        if (!response || !response.table || !response.table.cols || !response.table.rows) {
+            document.getElementById('loadingStatus').innerText = "⚠️ Error al conectar con Google Sheets.";
+            return;
+        }
+        
+        rawCsvData = [];
+        const cols = response.table.cols;
+        const rows = response.table.rows;
+
+        // Buscamos dinámicamente en qué posición se encuentran tus cabeceras
+        let fabricanteIdx = cols.findIndex(c => c.label && c.label.trim().toUpperCase() === 'FABRICANTE');
+        let equipoIdx = cols.findIndex(c => c.label && c.label.trim().toUpperCase() === 'EQUIPO');
+        let planosIdx = cols.findIndex(c => c.label && c.label.trim().toUpperCase() === 'PLANOS');
+        let manualesIdx = cols.findIndex(c => c.label && c.label.trim().toUpperCase() === 'MANUALES');
+
+        // Asignaciones de rescate por defecto por si las cabeceras están en minúscula o crudas
+        if (fabricanteIdx === -1) fabricanteIdx = 0;
+        if (equipoIdx === -1) equipoIdx = 1;
+        if (planosIdx === -1) planosIdx = 2;
+        if (manualesIdx === -1) manualesIdx = 3;
+
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            if (row.c && row.c[fabricanteIdx] && row.c[fabricanteIdx].v) {
+                const fabVal = row.c[fabricanteIdx].v.toString().trim();
+                
+                // Filtramos la cabecera repetida
+                if (fabVal && fabVal.toUpperCase() !== 'FABRICANTE') {
+                    rawCsvData.push({
+                        FABRICANTE: fabVal,
+                        EQUIPO: (row.c[equipoIdx] && row.c[equipoIdx].v) ? row.c[equipoIdx].v.toString().trim() : '',
+                        PLANOS: (row.c[planosIdx] && row.c[planosIdx].v) ? row.c[planosIdx].v.toString().trim() : '',
+                        MANUALES: (row.c[manualesIdx] && row.c[manualesIdx].v) ? row.c[manualesIdx].v.toString().trim() : ''
+                    });
+                }
+            }
+        }
+
+        // Activamos la vista del formulario
+        document.getElementById('loadingStatus').style.display = 'none';
+        document.getElementById('dropdownsContainer').style.display = 'block';
+        initializeFormStructure();
+    }
 
     function selectCriteria(criteria) {
         currentCriteria = criteria;
@@ -240,34 +294,34 @@
         document.getElementById('multiDocsBox').style.display = 'none';
     }
 
-    function abrirDocumento(url) {[cite: 1]
-      if (!url) {[cite: 1]
-        alert('No hay ningún enlace disponible para este documento.');[cite: 1]
-        return;[cite: 1]
-      }[cite: 1]
-      var esGoogleDrive = url.includes('drive.google.com') || url.includes('docs.google.com');[cite: 1]
-      if (esGoogleDrive) {[cite: 1]
-        var fileId = extraerIdGoogleDrive(url);[cite: 1]
-        if (!fileId) {[cite: 1]
-          alert('No se pudo identificar el archivo de Google Drive.');[cite: 1]
-          return;[cite: 1]
-        }[cite: 1]
-        var separador = VISOR_PDF_URL.includes('?') ? '&' : '?';[cite: 1]
-        var visorUrl = VISOR_PDF_URL + separador + 'id=' + encodeURIComponent(fileId);[cite: 1]
-        window.open(visorUrl, '_blank', 'noopener,noreferrer');[cite: 1]
-        return;[cite: 1]
-      }[cite: 1]
-      window.open(url, '_blank', 'noopener,noreferrer');[cite: 1]
-    }[cite: 1]
+    function abrirDocumento(url) {
+      if (!url) {
+        alert('No hay ningún enlace disponible para este documento.');
+        return;
+      }
+      var esGoogleDrive = url.includes('drive.google.com') || url.includes('docs.google.com');
+      if (esGoogleDrive) {
+        var fileId = extraerIdGoogleDrive(url);
+        if (!fileId) {
+          alert('No se pudo identificar el archivo de Google Drive.');
+          return;
+        }
+        var separador = VISOR_PDF_URL.includes('?') ? '&' : '?';
+        var visorUrl = VISOR_PDF_URL + separador + 'id=' + encodeURIComponent(fileId);
+        window.open(visorUrl, '_blank', 'noopener,noreferrer');
+        return;
+      }
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
 
-    function extraerIdGoogleDrive(url) {[cite: 1]
-      var patrones = [ /\/file\/d\/([^\/?#]+)/, /[?&]id=([^&#]+)/, /\/d\/([^\/?#]+)/ ];[cite: 1]
-      for (var i = 0; i < patrones.length; i++) {[cite: 1]
-        var coincidencia = url.match(patrones[i]);[cite: 1]
-        if (coincidencia && coincidencia[1]) return coincidencia[1];[cite: 1]
-      }[cite: 1]
-      return null;[cite: 1]
-    }[cite: 1]
+    function extraerIdGoogleDrive(url) {
+      var patrones = [ /\/file\/d\/([^\/?#]+)/, /[?&]id=([^&#]+)/, /\/d\/([^\/?#]+)/ ];
+      for (var i = 0; i < patrones.length; i++) {
+        var coincidencia = url.match(patrones[i]);
+        if (coincidencia && coincidencia[1]) return coincidencia[1];
+      }
+      return null;
+    }
 
     function executeEquipmentSearch(columnName) {
         hideMultiDocsBox();
@@ -291,12 +345,12 @@
             scriptNode.src = finalScriptUrl;
             document.body.appendChild(scriptNode);
         } else {
-            abrirDocumento(targetUrl);[cite: 1]
+            abrirDocumento(targetUrl);
         }
     }
 
     function renderFolderButtons(filesList) {
-        if (!filesList || filesList.error || filesList.length === 0) return alert("No se encontraron archivos en la carpeta.");
+        if (!filesList || filesList.error || filesList.length === 0) return alert("No se encontraron archivos accesibles en la carpeta.");
         const multiBox = document.getElementById('multiDocsBox');
         const multiGrid = document.getElementById('multiDocsGrid');
         multiGrid.innerHTML = ''; 
@@ -306,7 +360,7 @@
             subBtn.className = 'btn-doc-link';
             subBtn.title = file.name;
             subBtn.innerText = "📄 " + file.name;
-            subBtn.onclick = function() { abrirDocumento(file.url); };[cite: 1]
+            subBtn.onclick = function() { abrirDocumento(file.url); };
             multiGrid.appendChild(subBtn);
         });
         multiBox.style.display = 'block';
@@ -315,7 +369,7 @@
     document.getElementById('selectNivel1').addEventListener('change', onNivel1Change);
     document.getElementById('selectNivel2').addEventListener('change', onNivel2Change);
 
-    window.onload = initializeFormStructure;
+    window.onload = loadDataDynamically;
 </script>
 
 </body>
