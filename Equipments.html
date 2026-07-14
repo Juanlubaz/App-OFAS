@@ -1,296 +1,1281 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Equipments - Search Menu</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
-<style>
-    /* ESTILOS BASE */
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #6fb543, #79c255); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
-    .container { background: white; width: 100%; max-width: 900px; border-radius: 20px; padding: 40px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); text-align: center; }
-    .logos { display: flex; justify-content: center; align-items: center; margin-bottom: 30px; flex-wrap: wrap; }
-    .logos img { max-height: 120px; max-width: 100%; height: auto; width: auto; object-fit: contain; }
-    h1 { color: #4e7e28; margin-bottom: 30px; font-size: 28px; }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    /* RECUADRO DE BOTONES OPCIONALES (FABRICANTE / EQUIPO) */
-    .options-box {
-        border: 2px dashed #79c255;
-        border-radius: 15px;
-        padding: 20px;
-        margin-bottom: 25px;
-        background-color: #f9fdf6;
-    }
-    .options-title { font-size: 14px; color: #4e7e28; font-weight: bold; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
-    .options-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; max-width: 500px; margin: 0 auto; }
+    <title>Equipments - Search Menu</title>
 
-    /* CONTENEDOR DE FORMULARIOS DESPLEGABLES */
-    .form-group { max-width: 740px; margin: 0 auto 20px auto; text-align: left; }
-    label { display: block; color: #555; font-weight: 600; margin-bottom: 8px; font-size: 1.1em; }
-    select { width: 100%; padding: 14px 15px; border: 2px solid #ddd; border-radius: 12px; font-size: 16px; background: white; cursor: pointer; transition: border-color 0.3s; outline: none; }
-    select:focus { border-color: #79c255; }
-    select:disabled { background: #f5f5f5; cursor: not-allowed; border-color: #eee; }
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 
-    /* CUADRÍCULA PARA LOS DOS BOTONES DE ACCIÓN */
-    .action-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; padding: 0 40px; margin-top: 25px; }
+    <style>
+        /* =====================================================
+           ESTILOS BASE
+        ===================================================== */
 
-    /* ESTILO GENERAL DE LOS BOTONES */
-    button { padding: 18px; border-radius: 12px; font-size: 18px; border: none; cursor: pointer; background: #f3f3f3; box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: all 0.2s ease; font-weight: 600; color: #333; }
-    button:hover { background: #e8e8e8; transform: translateY(-3px); }
-    button:active { background: #e0e0e0; transform: translateY(1px); }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    .btn-option { background: #fff; border: 2px solid #ccc; }
-    .btn-option.active { background: #79c255; color: white; border-color: #4e7e28; }
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #6fb543, #79c255);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
 
-    .back-link { display: inline-block; margin-top: 30px; color: #79c255; text-decoration: none; font-weight: bold; font-size: 16px; }
-    .back-link:hover { text-decoration: underline; }
+        .container {
+            background: white;
+            width: 100%;
+            max-width: 900px;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            text-align: center;
+        }
 
-    .loading { text-align: center; padding: 20px; color: #4e7e28; font-weight: bold; }
-</style>
+        .logos {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .logos img {
+            max-height: 120px;
+            max-width: 100%;
+            height: auto;
+            width: auto;
+            object-fit: contain;
+        }
+
+        h1 {
+            color: #4e7e28;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        /* =====================================================
+           RECUADRO DE CRITERIOS
+        ===================================================== */
+
+        .options-box {
+            border: 2px dashed #79c255;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            background-color: #f9fdf6;
+        }
+
+        .options-title {
+            font-size: 14px;
+            color: #4e7e28;
+            font-weight: bold;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* =====================================================
+           FORMULARIOS
+        ===================================================== */
+
+        .form-group {
+            max-width: 740px;
+            margin: 0 auto 20px auto;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            color: #555;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+
+        select {
+            width: 100%;
+            padding: 14px 15px;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            font-size: 16px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s;
+            outline: none;
+        }
+
+        select:focus {
+            border-color: #79c255;
+        }
+
+        select:disabled {
+            background: #f5f5f5;
+            cursor: not-allowed;
+            border-color: #eee;
+        }
+
+        /* =====================================================
+           BOTONES
+        ===================================================== */
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            padding: 0 40px;
+            margin-top: 25px;
+        }
+
+        button {
+            padding: 18px;
+            border-radius: 12px;
+            font-size: 18px;
+            border: none;
+            cursor: pointer;
+            background: #f3f3f3;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+            font-weight: 600;
+            color: #333;
+        }
+
+        button:hover {
+            background: #e8e8e8;
+            transform: translateY(-3px);
+        }
+
+        button:active {
+            background: #e0e0e0;
+            transform: translateY(1px);
+        }
+
+        .btn-option {
+            background: #fff;
+            border: 2px solid #ccc;
+        }
+
+        .btn-option.active {
+            background: #79c255;
+            color: white;
+            border-color: #4e7e28;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 30px;
+            color: #79c255;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #4e7e28;
+            font-weight: bold;
+        }
+
+        /* =====================================================
+           VENTANA DE DOCUMENTOS
+        ===================================================== */
+
+        .document-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(0, 0, 0, 0.65);
+            padding: 20px;
+            overflow-y: auto;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .document-modal.visible {
+            display: flex;
+        }
+
+        .document-modal-content {
+            position: relative;
+            width: 100%;
+            max-width: 680px;
+            max-height: 85vh;
+            overflow-y: auto;
+            background: white;
+            border-radius: 18px;
+            padding: 30px;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.3);
+            text-align: left;
+        }
+
+        .document-modal-content h2 {
+            color: #4e7e28;
+            margin: 0 50px 10px 0;
+            font-size: 24px;
+        }
+
+        .document-modal-description {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .document-modal-close {
+            position: absolute;
+            top: 12px;
+            right: 15px;
+            width: 42px;
+            height: 42px;
+            padding: 0;
+            border-radius: 50%;
+            background: #f1f1f1;
+            font-size: 28px;
+            line-height: 42px;
+            box-shadow: none;
+        }
+
+        .document-modal-close:hover {
+            background: #ddd;
+            transform: none;
+        }
+
+        .document-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            margin-bottom: 12px;
+            padding: 16px;
+            border: 2px solid #79c255;
+            border-radius: 12px;
+            background: #f9fdf6;
+            color: #333;
+            text-align: left;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: none;
+        }
+
+        .document-link:last-child {
+            margin-bottom: 0;
+        }
+
+        .document-link:hover {
+            background: #79c255;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .document-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 36px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #79c255;
+            color: white;
+            font-weight: bold;
+        }
+
+        .document-link:hover .document-number {
+            background: white;
+            color: #4e7e28;
+        }
+
+        .document-text {
+            flex: 1;
+            word-break: break-word;
+        }
+
+        /* =====================================================
+           DISEÑO RESPONSIVE
+        ===================================================== */
+
+        @media (max-width: 650px) {
+            .container {
+                padding: 25px 18px;
+            }
+
+            .options-grid,
+            .action-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .action-grid {
+                padding: 0;
+            }
+
+            .document-modal-content {
+                padding: 25px 18px;
+            }
+
+            .document-link {
+                font-size: 15px;
+                padding: 14px;
+            }
+        }
+    </style>
 </head>
+
 <body>
 
-<div class="container">
-    <div class="logos">
-        <img src="https://raw.githubusercontent.com/Juanlubaz/Enlaces-estructuras-TSP3/main/GESTI.png" alt="Gestiproject Logo" />
-    </div>
-    
-    <h1>Equipment Search</h1>
+    <div class="container">
 
-    <div class="options-box">
-        <div class="options-title">Search Criteria</div>
-        <div class="options-grid">
-            <button type="button" id="btnFabricante" class="btn-option active" onclick="selectCriteria('fabricante')">MANUFACTURER</button>
-            <button type="button" id="btnEquipo" class="btn-option" onclick="selectCriteria('equipo')">EQUIPMENT TYPE</button>
-        </div>
-    </div>
-
-    <div id="loadingStatus" class="loading">Cargando base de datos de equipos...</div>
-
-    <div id="dropdownsContainer" style="display:none;">
-        <div class="form-group">
-            <label id="labelNivel1" for="selectNivel1">Selecciona Fabricante:</label>
-            <select id="selectNivel1">
-                <option value="">-- Esperando selección --</option>
-            </select>
+        <div class="logos">
+            <img
+                src="https://raw.githubusercontent.com/Juanlubaz/Enlaces-estructuras-TSP3/main/GESTI.png"
+                alt="Gestiproject Logo"
+            />
         </div>
 
-        <div class="form-group">
-            <label id="labelNivel2" for="selectNivel2">Selecciona Equipo:</label>
-            <select id="selectNivel2" disabled>
-                <option value="">-- Selecciona el paso anterior --</option>
-            </select>
+        <h1>Equipment Search</h1>
+
+        <div class="options-box">
+
+            <div class="options-title">
+                Search Criteria
+            </div>
+
+            <div class="options-grid">
+
+                <button
+                    type="button"
+                    id="btnFabricante"
+                    class="btn-option active"
+                    onclick="selectCriteria('fabricante')"
+                >
+                    MANUFACTURER
+                </button>
+
+                <button
+                    type="button"
+                    id="btnEquipo"
+                    class="btn-option"
+                    onclick="selectCriteria('equipo')"
+                >
+                    EQUIPMENT TYPE
+                </button>
+
+            </div>
         </div>
+
+        <div id="loadingStatus" class="loading">
+            Cargando base de datos de equipos...
+        </div>
+
+        <div id="dropdownsContainer" style="display: none;">
+
+            <div class="form-group">
+
+                <label id="labelNivel1" for="selectNivel1">
+                    Selecciona Fabricante:
+                </label>
+
+                <select id="selectNivel1">
+                    <option value="">
+                        -- Esperando selección --
+                    </option>
+                </select>
+
+            </div>
+
+            <div class="form-group">
+
+                <label id="labelNivel2" for="selectNivel2">
+                    Selecciona Equipo:
+                </label>
+
+                <select id="selectNivel2" disabled>
+                    <option value="">
+                        -- Selecciona el paso anterior --
+                    </option>
+                </select>
+
+            </div>
+
+        </div>
+
+        <div class="action-grid">
+
+            <button
+                type="button"
+                onclick="executeEquipmentSearch('PLANOS')"
+            >
+                PLANOS
+            </button>
+
+            <button
+                type="button"
+                onclick="executeEquipmentSearch('MANUALES')"
+            >
+                MANUALES
+            </button>
+
+        </div>
+
+        <a href="principal.html" class="back-link">
+            ← Back to Principal
+        </a>
+
     </div>
 
-    <div class="action-grid">
-        <button type="button" onclick="executeEquipmentSearch('PLANOS')">PLANOS</button>
-        <button type="button" onclick="executeEquipmentSearch('MANUALES')">MANUALES</button>
+    <!-- =====================================================
+         VENTANA MODAL DE DOCUMENTOS
+    ====================================================== -->
+
+    <div id="documentModal" class="document-modal">
+
+        <div class="document-modal-content">
+
+            <button
+                type="button"
+                class="document-modal-close"
+                onclick="cerrarListaDocumentos()"
+                aria-label="Cerrar ventana"
+            >
+                ×
+            </button>
+
+            <h2 id="documentModalTitle">
+                Documentos disponibles
+            </h2>
+
+            <p class="document-modal-description">
+                Selecciona el archivo que deseas abrir:
+            </p>
+
+            <div id="documentLinksContainer"></div>
+
+        </div>
+
     </div>
 
-    <a href="principal.html" class="back-link">← Back to Principal</a>
-</div>
+    <script>
+        /* =====================================================
+           VARIABLES GLOBALES
+        ===================================================== */
 
-<script>
-    let currentCriteria = 'fabricante'; 
-    let rawCsvData = []; 
-    let currentMatchedRow = null; 
+        let currentCriteria = 'fabricante';
 
-    const CSV_FILE_NAME = 'Enlaces equipos.csv';
-    const VISOR_PDF_URL = 'https://script.google.com/macros/s/AKfycbx7OHOqzkSYfzCTOMdiUJKeiKu204K3Ki8keZmWghKdv1sZp0MZMb6Ngehrtn5TpBO5fw/exec';
+        let rawCsvData = [];
 
-    function loadCSVData() {
-        fetch(CSV_FILE_NAME)
-            .then(response => {
-                if (!response.ok) throw new Error('No se pudo localizar el archivo CSV local.');
-                return response.text();
-            })
-            .then(csvText => {
-                Papa.parse(csvText, {
-                    header: true,
-                    skipEmptyLines: true,
-                    complete: function(results) {
-                        rawCsvData = [];
-                        if (results.data && results.data.length > 0) {
-                            results.data.forEach(row => {
-                                if (row) {
-                                    let cleanRow = {};
+        /*
+         * Ahora guardamos todos los registros coincidentes,
+         * no solamente el primero.
+         */
+        let currentMatchedRows = [];
+
+        const CSV_FILE_NAME = 'Enlaces equipos.csv';
+
+        /*
+         * URL corregida del Apps Script.
+         * En la versión anterior aparecía una "z" donde debía
+         * aparecer una "x".
+         */
+        const VISOR_PDF_URL =
+            'https://script.google.com/macros/s/AKfycbx7OHOqzkSYfzCTOMdiUJKeiKu204K3Ki8keZmWghKdv1sZp0MZMb6Ngehrtn5TpBO5fw/exec';
+
+
+        /* =====================================================
+           CARGAR Y PROCESAR EL CSV
+        ===================================================== */
+
+        function loadCSVData() {
+
+            fetch(CSV_FILE_NAME)
+                .then(response => {
+
+                    if (!response.ok) {
+                        throw new Error(
+                            'No se pudo localizar el archivo CSV local.'
+                        );
+                    }
+
+                    return response.text();
+                })
+                .then(csvText => {
+
+                    Papa.parse(csvText, {
+
+                        header: true,
+                        skipEmptyLines: true,
+
+                        complete: function(results) {
+
+                            rawCsvData = [];
+
+                            if (
+                                results.data &&
+                                results.data.length > 0
+                            ) {
+
+                                results.data.forEach(row => {
+
+                                    if (!row) {
+                                        return;
+                                    }
+
+                                    const cleanRow = {};
+
                                     Object.keys(row).forEach(key => {
-                                        if (key) {
-                                            let cleanKey = key.trim().toUpperCase();
-                                            cleanRow[cleanKey] = row[key] ? row[key].trim() : '';
+
+                                        if (!key) {
+                                            return;
                                         }
+
+                                        const cleanKey = key
+                                            .trim()
+                                            .toUpperCase();
+
+                                        const value = row[key];
+
+                                        cleanRow[cleanKey] =
+                                            value !== null &&
+                                            value !== undefined
+                                                ? String(value).trim()
+                                                : '';
                                     });
-                                    if (cleanRow.FABRICANTE || cleanRow.EQUIPO) {
+
+                                    if (
+                                        cleanRow.FABRICANTE ||
+                                        cleanRow.EQUIPO
+                                    ) {
                                         rawCsvData.push(cleanRow);
                                     }
-                                }
-                            });
+
+                                });
+                            }
+
+                            document.getElementById(
+                                'loadingStatus'
+                            ).style.display = 'none';
+
+                            document.getElementById(
+                                'dropdownsContainer'
+                            ).style.display = 'block';
+
+                            initializeFormStructure();
+                        },
+
+                        error: function(error) {
+
+                            document.getElementById(
+                                'loadingStatus'
+                            ).innerText =
+                                '⚠️ Error procesando el CSV: ' +
+                                error.message;
                         }
-                        
-                        document.getElementById('loadingStatus').style.display = 'none';
-                        document.getElementById('dropdownsContainer').style.display = 'block';
-                        initializeFormStructure();
-                    }
+                    });
+                })
+                .catch(error => {
+
+                    document.getElementById(
+                        'loadingStatus'
+                    ).innerText =
+                        '⚠️ Error de sincronización: ' +
+                        error.message;
                 });
-            })
-            .catch(err => {
-                document.getElementById('loadingStatus').innerText = "⚠️ Error de sincronización: " + err.message;
-            });
-    }
-
-    function selectCriteria(criteria) {
-        currentCriteria = criteria;
-        const btnFab = document.getElementById('btnFabricante');
-        const btnEq = document.getElementById('btnEquipo');
-        
-        if (criteria === 'fabricante') {
-            btnFab.classList.add('active');
-            btnEq.classList.remove('active');
-        } else {
-            btnEq.classList.add('active');
-            btnFab.classList.remove('active');
-        }
-        initializeFormStructure();
-    }
-
-    function initializeFormStructure() {
-        const lbl1 = document.getElementById('labelNivel1');
-        const lbl2 = document.getElementById('labelNivel2');
-        const sel1 = document.getElementById('selectNivel1');
-        const sel2 = document.getElementById('selectNivel2');
-
-        currentMatchedRow = null;
-        sel2.innerHTML = '<option value="">-- Selecciona el paso anterior --</option>';
-        sel2.disabled = true;
-
-        if (currentCriteria === 'fabricante') {
-            lbl1.innerText = "Selecciona Fabricante:";
-            lbl2.innerText = "Selecciona Equipo:";
-            let fabricantes = [...new Set(rawCsvData.map(item => item.FABRICANTE))].filter(Boolean).sort();
-            sel1.innerHTML = '<option value="">-- Selecciona un FABRICANTE --</option>';
-            fabricantes.forEach(fab => {
-                let opt = document.createElement('option');
-                opt.value = fab; opt.innerText = fab; sel1.appendChild(opt);
-            });
-        } else {
-            lbl1.innerText = "Selecciona Equipo:";
-            lbl2.innerText = "Selecciona Fabricante:";
-            let equipos = [...new Set(rawCsvData.map(item => item.EQUIPO))].filter(Boolean).sort();
-            sel1.innerHTML = '<option value="">-- Selecciona un EQUIPO --</option>';
-            equipos.forEach(eq => {
-                let opt = document.createElement('option');
-                opt.value = eq; opt.innerText = eq; sel1.appendChild(opt);
-            });
-        }
-    }
-
-    function onNivel1Change() {
-        const val1 = document.getElementById('selectNivel1').value;
-        const sel2 = document.getElementById('selectNivel2');
-        
-        sel2.innerHTML = '<option value="">-- Selecciona el paso anterior --</option>';
-        sel2.disabled = !val1;
-        currentMatchedRow = null;
-
-        if (!val1) return;
-
-        let uniqueSubOptions = [];
-        if (currentCriteria === 'fabricante') {
-            uniqueSubOptions = [...new Set(rawCsvData.filter(item => item.FABRICANTE === val1).map(item => item.EQUIPO))].filter(Boolean).sort();
-            sel2.innerHTML = '<option value="">-- Selecciona un EQUIPO --</option>';
-        } else {
-            uniqueSubOptions = [...new Set(rawCsvData.filter(item => item.EQUIPO === val1).map(item => item.FABRICANTE))].filter(Boolean).sort();
-            sel2.innerHTML = '<option value="">-- Selecciona un FABRICANTE --</option>';
         }
 
-        uniqueSubOptions.forEach(optVal => {
-            let opt = document.createElement('option');
-            opt.value = optVal; opt.innerText = optVal; sel2.appendChild(opt);
-        });
-    }
 
-    function onNivel2Change() {
-        const val1 = document.getElementById('selectNivel1').value;
-        const val2 = document.getElementById('selectNivel2').value;
+        /* =====================================================
+           CAMBIAR CRITERIO DE BÚSQUEDA
+        ===================================================== */
 
-        if (!val2) {
-            currentMatchedRow = null;
-            return;
+        function selectCriteria(criteria) {
+
+            currentCriteria = criteria;
+
+            const btnFabricante =
+                document.getElementById('btnFabricante');
+
+            const btnEquipo =
+                document.getElementById('btnEquipo');
+
+            if (criteria === 'fabricante') {
+
+                btnFabricante.classList.add('active');
+                btnEquipo.classList.remove('active');
+
+            } else {
+
+                btnEquipo.classList.add('active');
+                btnFabricante.classList.remove('active');
+            }
+
+            initializeFormStructure();
         }
 
-        if (currentCriteria === 'fabricante') {
-            currentMatchedRow = rawCsvData.find(item => item.FABRICANTE === val1 && item.EQUIPO === val2);
-        } else {
-            currentMatchedRow = rawCsvData.find(item => item.EQUIPO === val1 && item.FABRICANTE === val2);
+
+        /* =====================================================
+           INICIALIZAR DESPLEGABLES
+        ===================================================== */
+
+        function initializeFormStructure() {
+
+            const labelNivel1 =
+                document.getElementById('labelNivel1');
+
+            const labelNivel2 =
+                document.getElementById('labelNivel2');
+
+            const selectNivel1 =
+                document.getElementById('selectNivel1');
+
+            const selectNivel2 =
+                document.getElementById('selectNivel2');
+
+            currentMatchedRows = [];
+
+            selectNivel2.innerHTML =
+                '<option value="">' +
+                '-- Selecciona el paso anterior --' +
+                '</option>';
+
+            selectNivel2.disabled = true;
+
+            if (currentCriteria === 'fabricante') {
+
+                labelNivel1.innerText =
+                    'Selecciona Fabricante:';
+
+                labelNivel2.innerText =
+                    'Selecciona Equipo:';
+
+                const fabricantes = [
+                    ...new Set(
+                        rawCsvData.map(item => item.FABRICANTE)
+                    )
+                ]
+                    .filter(Boolean)
+                    .sort((a, b) =>
+                        a.localeCompare(b, 'es', {
+                            sensitivity: 'base'
+                        })
+                    );
+
+                selectNivel1.innerHTML =
+                    '<option value="">' +
+                    '-- Selecciona un FABRICANTE --' +
+                    '</option>';
+
+                fabricantes.forEach(fabricante => {
+
+                    const option =
+                        document.createElement('option');
+
+                    option.value = fabricante;
+                    option.innerText = fabricante;
+
+                    selectNivel1.appendChild(option);
+                });
+
+            } else {
+
+                labelNivel1.innerText =
+                    'Selecciona Equipo:';
+
+                labelNivel2.innerText =
+                    'Selecciona Fabricante:';
+
+                const equipos = [
+                    ...new Set(
+                        rawCsvData.map(item => item.EQUIPO)
+                    )
+                ]
+                    .filter(Boolean)
+                    .sort((a, b) =>
+                        a.localeCompare(b, 'es', {
+                            sensitivity: 'base'
+                        })
+                    );
+
+                selectNivel1.innerHTML =
+                    '<option value="">' +
+                    '-- Selecciona un EQUIPO --' +
+                    '</option>';
+
+                equipos.forEach(equipo => {
+
+                    const option =
+                        document.createElement('option');
+
+                    option.value = equipo;
+                    option.innerText = equipo;
+
+                    selectNivel1.appendChild(option);
+                });
+            }
         }
-    }
 
-    function abrirConVisorUniversal(url) {
-        if (!url) {
-            alert('No hay ningún enlace disponible para este documento.');
-            return;
-        }
 
-        var esGoogleDrive = url.includes('drive.google.com') || url.includes('docs.google.com');
+        /* =====================================================
+           CAMBIO DEL PRIMER DESPLEGABLE
+        ===================================================== */
 
-        if (esGoogleDrive) {
-            var fileId = extraerIdGoogleDrive(url);
+        function onNivel1Change() {
 
-            if (!fileId) {
-                window.open(url, '_blank', 'noopener,noreferrer');
+            const valorNivel1 =
+                document.getElementById(
+                    'selectNivel1'
+                ).value;
+
+            const selectNivel2 =
+                document.getElementById(
+                    'selectNivel2'
+                );
+
+            currentMatchedRows = [];
+
+            selectNivel2.innerHTML =
+                '<option value="">' +
+                '-- Selecciona el paso anterior --' +
+                '</option>';
+
+            selectNivel2.disabled = !valorNivel1;
+
+            if (!valorNivel1) {
                 return;
             }
 
-            var separador = VISOR_PDF_URL.includes('?') ? '&' : '?';
-            var visorUrl = VISOR_PDF_URL + separador + 'id=' + encodeURIComponent(fileId);
+            let opcionesSecundarias = [];
 
-            window.open(visorUrl, '_blank', 'noopener,noreferrer');
-            return;
+            if (currentCriteria === 'fabricante') {
+
+                opcionesSecundarias = [
+                    ...new Set(
+                        rawCsvData
+                            .filter(
+                                item =>
+                                    item.FABRICANTE ===
+                                    valorNivel1
+                            )
+                            .map(item => item.EQUIPO)
+                    )
+                ]
+                    .filter(Boolean)
+                    .sort((a, b) =>
+                        a.localeCompare(b, 'es', {
+                            sensitivity: 'base'
+                        })
+                    );
+
+                selectNivel2.innerHTML =
+                    '<option value="">' +
+                    '-- Selecciona un EQUIPO --' +
+                    '</option>';
+
+            } else {
+
+                opcionesSecundarias = [
+                    ...new Set(
+                        rawCsvData
+                            .filter(
+                                item =>
+                                    item.EQUIPO ===
+                                    valorNivel1
+                            )
+                            .map(item => item.FABRICANTE)
+                    )
+                ]
+                    .filter(Boolean)
+                    .sort((a, b) =>
+                        a.localeCompare(b, 'es', {
+                            sensitivity: 'base'
+                        })
+                    );
+
+                selectNivel2.innerHTML =
+                    '<option value="">' +
+                    '-- Selecciona un FABRICANTE --' +
+                    '</option>';
+            }
+
+            opcionesSecundarias.forEach(valorOpcion => {
+
+                const option =
+                    document.createElement('option');
+
+                option.value = valorOpcion;
+                option.innerText = valorOpcion;
+
+                selectNivel2.appendChild(option);
+            });
         }
 
-        window.open(url, '_blank', 'noopener,noreferrer');
-    }
 
-    function extraerIdGoogleDrive(url) {
-        var fileId = null;
-        
-        if (url.includes('/file/d/')) {
-            fileId = url.split('/file/d/')[1].split('/')[0];
-        } else if (url.includes('?id=')) {
-            fileId = url.split('?id=')[1].split('&')[0];
-        } else if (url.includes('&id=')) {
-            fileId = url.split('&id=')[1].split('&')[0];
-        } else if (url.includes('/d/')) {
-            fileId = url.split('/d/')[1].split('/')[0];
+        /* =====================================================
+           CAMBIO DEL SEGUNDO DESPLEGABLE
+        ===================================================== */
+
+        function onNivel2Change() {
+
+            const valorNivel1 =
+                document.getElementById(
+                    'selectNivel1'
+                ).value;
+
+            const valorNivel2 =
+                document.getElementById(
+                    'selectNivel2'
+                ).value;
+
+            currentMatchedRows = [];
+
+            if (!valorNivel1 || !valorNivel2) {
+                return;
+            }
+
+            if (currentCriteria === 'fabricante') {
+
+                currentMatchedRows =
+                    rawCsvData.filter(item =>
+                        item.FABRICANTE === valorNivel1 &&
+                        item.EQUIPO === valorNivel2
+                    );
+
+            } else {
+
+                currentMatchedRows =
+                    rawCsvData.filter(item =>
+                        item.EQUIPO === valorNivel1 &&
+                        item.FABRICANTE === valorNivel2
+                    );
+            }
         }
-        
-        if (fileId) {
-            fileId = fileId.split('?')[0].split('&')[0].split('/')[0];
+
+
+        /* =====================================================
+           EJECUTAR BÚSQUEDA DE PLANOS O MANUALES
+        ===================================================== */
+
+        function executeEquipmentSearch(columnName) {
+
+            if (
+                !currentMatchedRows ||
+                currentMatchedRows.length === 0
+            ) {
+                alert(
+                    'Por favor, completa las selecciones ' +
+                    'de los desplegables.'
+                );
+
+                return;
+            }
+
+            /*
+             * Convertimos los registros encontrados en una lista
+             * de documentos válidos.
+             */
+            const documentos = currentMatchedRows
+                .map((row, index) => {
+
+                    const url = row[columnName];
+
+                    if (
+                        !url ||
+                        !url.toLowerCase().startsWith('http')
+                    ) {
+                        return null;
+                    }
+
+                    return {
+                        url: url,
+                        nombre: obtenerNombreDocumento(
+                            row,
+                            columnName,
+                            index
+                        )
+                    };
+                })
+                .filter(Boolean);
+
+            /*
+             * Eliminamos enlaces duplicados.
+             */
+            const documentosUnicos = [];
+
+            const urlsUtilizadas = new Set();
+
+            documentos.forEach(documento => {
+
+                if (!urlsUtilizadas.has(documento.url)) {
+
+                    urlsUtilizadas.add(documento.url);
+
+                    documentosUnicos.push(documento);
+                }
+            });
+
+            if (documentosUnicos.length === 0) {
+
+                alert(
+                    'No hay enlaces válidos registrados para ' +
+                    columnName +
+                    ' en esta combinación.'
+                );
+
+                return;
+            }
+
+            /*
+             * Si solo existe un documento, se abre directamente.
+             */
+            if (documentosUnicos.length === 1) {
+
+                abrirConVisorUniversal(
+                    documentosUnicos[0].url
+                );
+
+                return;
+            }
+
+            /*
+             * Si hay varios, mostramos la ventana de selección.
+             */
+            mostrarListaDocumentos(
+                documentosUnicos,
+                columnName
+            );
         }
-        
-        return fileId;
-    }
 
-    function executeEquipmentSearch(columnName) {
-        if (!currentMatchedRow) {
-            return alert("Por favor, completa las selecciones de los desplegables.");
+
+        /* =====================================================
+           OBTENER NOMBRE DEL DOCUMENTO
+        ===================================================== */
+
+        function obtenerNombreDocumento(
+            row,
+            columnName,
+            index
+        ) {
+
+            /*
+             * El sistema buscará el nombre en cualquiera de estas
+             * columnas del CSV.
+             */
+            const posiblesColumnas = [
+                'NOMBRE',
+                'NOMBRE DOCUMENTO',
+                'NOMBRE_DOCUMENTO',
+                'DOCUMENTO',
+                'DESCRIPCION',
+                'DESCRIPCIÓN',
+                'TITULO',
+                'TÍTULO',
+                'ARCHIVO',
+                'REFERENCIA',
+                'TAG'
+            ];
+
+            for (const columna of posiblesColumnas) {
+
+                if (
+                    row[columna] &&
+                    String(row[columna]).trim() !== ''
+                ) {
+                    return String(row[columna]).trim();
+                }
+            }
+
+            /*
+             * Si no existe ninguna columna con nombre,
+             * se crea uno automáticamente.
+             */
+            const tipoDocumento =
+                columnName === 'PLANOS'
+                    ? 'Plano'
+                    : 'Manual';
+
+            return tipoDocumento + ' ' + (index + 1);
         }
 
-        const targetUrl = currentMatchedRow[columnName];
-        if (!targetUrl || !targetUrl.startsWith('http')) {
-            return alert("No hay un enlace válido registrado para " + columnName + " en esta combinación.");
+
+        /* =====================================================
+           MOSTRAR LISTA DE DOCUMENTOS
+        ===================================================== */
+
+        function mostrarListaDocumentos(
+            documentos,
+            columnName
+        ) {
+
+            const modal =
+                document.getElementById(
+                    'documentModal'
+                );
+
+            const title =
+                document.getElementById(
+                    'documentModalTitle'
+                );
+
+            const container =
+                document.getElementById(
+                    'documentLinksContainer'
+                );
+
+            title.innerText =
+                columnName === 'PLANOS'
+                    ? 'Planos disponibles'
+                    : 'Manuales disponibles';
+
+            container.innerHTML = '';
+
+            documentos.forEach(
+                (documento, index) => {
+
+                    const button =
+                        document.createElement('button');
+
+                    button.type = 'button';
+                    button.className = 'document-link';
+
+                    const numero =
+                        document.createElement('span');
+
+                    numero.className =
+                        'document-number';
+
+                    numero.innerText =
+                        index + 1;
+
+                    const texto =
+                        document.createElement('span');
+
+                    texto.className =
+                        'document-text';
+
+                    texto.innerText =
+                        documento.nombre;
+
+                    button.appendChild(numero);
+                    button.appendChild(texto);
+
+                    button.addEventListener(
+                        'click',
+                        function() {
+
+                            cerrarListaDocumentos();
+
+                            abrirConVisorUniversal(
+                                documento.url
+                            );
+                        }
+                    );
+
+                    container.appendChild(button);
+                }
+            );
+
+            modal.classList.add('visible');
+
+            document.body.style.overflow = 'hidden';
         }
 
-        abrirConVisorUniversal(targetUrl);
-    }
 
-    document.getElementById('selectNivel1').addEventListener('change', onNivel1Change);
-    document.getElementById('selectNivel2').addEventListener('change', onNivel2Change);
+        /* =====================================================
+           CERRAR LISTA DE DOCUMENTOS
+        ===================================================== */
 
-    window.onload = loadCSVData;
-</script>
+        function cerrarListaDocumentos() {
+
+            const modal =
+                document.getElementById(
+                    'documentModal'
+                );
+
+            modal.classList.remove('visible');
+
+            document.body.style.overflow = '';
+        }
+
+
+        /* =====================================================
+           ABRIR EN VISOR UNIVERSAL
+        ===================================================== */
+
+        function abrirConVisorUniversal(url) {
+
+            if (!url) {
+
+                alert(
+                    'No hay ningún enlace disponible ' +
+                    'para este documento.'
+                );
+
+                return;
+            }
+
+            const urlLimpia = String(url).trim();
+
+            const esGoogleDrive =
+                urlLimpia.includes('drive.google.com') ||
+                urlLimpia.includes('docs.google.com');
+
+            if (esGoogleDrive) {
+
+                const fileId =
+                    extraerIdGoogleDrive(urlLimpia);
+
+                if (!fileId) {
+
+                    /*
+                     * Si no conseguimos extraer el ID,
+                     * abrimos el enlace original.
+                     */
+                    window.open(
+                        urlLimpia,
+                        '_blank',
+                        'noopener,noreferrer'
+                    );
+
+                    return;
+                }
+
+                const separador =
+                    VISOR_PDF_URL.includes('?')
+                        ? '&'
+                        : '?';
+
+                const visorUrl =
+                    VISOR_PDF_URL +
+                    separador +
+                    'id=' +
+                    encodeURIComponent(fileId);
+
+                window.open(
+                    visorUrl,
+                    '_blank',
+                    'noopener,noreferrer'
+                );
+
+                return;
+            }
+
+            /*
+             * Los enlaces que no son de Google Drive
+             * se abren directamente.
+             */
+            window.open(
+                urlLimpia,
+                '_blank',
+                'noopener,noreferrer'
+            );
+        }
+
+
+        /* =====================================================
+           EXTRAER ID DE GOOGLE DRIVE
+        ===================================================== */
+
+        function extraerIdGoogleDrive(url) {
+
+            if (!url) {
+                return null;
+            }
+
+            const patrones = [
+                /\/file\/d\/([a-zA-Z0-9_-]+)/,
+                /\/d\/([a-zA-Z0-9_-]+)/,
+                /[?&]id=([a-zA-Z0-9_-]+)/,
+                /\/uc\?.*?[?&]id=([a-zA-Z0-9_-]+)/
+            ];
+
+            for (const patron of patrones) {
+
+                const coincidencia =
+                    url.match(patron);
+
+                if (
+                    coincidencia &&
+                    coincidencia[1]
+                ) {
+                    return coincidencia[1];
+                }
+            }
+
+            return null;
+        }
+
+
+        /* =====================================================
+           EVENTOS
+        ===================================================== */
+
+        document
+            .getElementById('selectNivel1')
+            .addEventListener(
+                'change',
+                onNivel1Change
+            );
+
+        document
+            .getElementById('selectNivel2')
+            .addEventListener(
+                'change',
+                onNivel2Change
+            );
+
+        /*
+         * Cerrar la ventana al pulsar sobre el fondo oscuro.
+         */
+        document
+            .getElementById('documentModal')
+            .addEventListener(
+                'click',
+                function(event) {
+
+                    if (event.target === this) {
+                        cerrarListaDocumentos();
+                    }
+                }
+            );
+
+        /*
+         * Cerrar la ventana con la tecla Escape.
+         */
+        document.addEventListener(
+            'keydown',
+            function(event) {
+
+                if (event.key === 'Escape') {
+                    cerrarListaDocumentos();
+                }
+            }
+        );
+
+        /*
+         * Cargar el CSV cuando termina de cargar la página.
+         */
+        window.addEventListener(
+            'load',
+            loadCSVData
+        );
+    </script>
 
 </body>
 </html>
