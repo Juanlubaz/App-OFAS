@@ -70,7 +70,7 @@
     <!-- Mensaje de Carga Inicial -->
     <div id="loadingStatus" class="loading">Cargando base de datos de equipos...</div>
 
-    <!-- Bloque de Selectores Desplegables -->
+    <!-- Selectores en Cascada -->
     <div id="dropdownsContainer" style="display:none;">
         <div class="form-group">
             <label id="labelNivel1" for="selectNivel1">Selecciona Fabricante:</label>
@@ -87,7 +87,7 @@
         </div>
     </div>
 
-    <!-- Botones Finales de Acción -->
+    <!-- Botones de Acción Final -->
     <div class="action-grid">
         <button type="button" onclick="executeEquipmentSearch('PLANOS')">PLANOS</button>
         <button type="button" onclick="executeEquipmentSearch('MANUALES')">MANUALES</button>
@@ -101,11 +101,11 @@
     let rawCsvData = []; 
     let currentMatchedRow = null; 
 
-    // LLAMADA LOCAL DIRECTA: Busca estrictamente el archivo de la misma carpeta
+    // Nombre relativo local del archivo CSV en tu repositorio de GitHub
     const CSV_FILE_NAME = 'Enlaces equipos.csv';
 
     // URL DE TU VISOR PDF UNIVERSAL EN GOOGLE APPS SCRIPT
-    const VISOR_PDF_URL = 'https://script.google.com/macros/s/AKfycbz7OHOqzkSYfzCTOMdiUJKeiKu204K3Ki8keZmWghKdv1sZp0MZMb6Ngehrtn5TpBO5fw/exec';
+    const VISOR_PDF_URL = 'https://script.google.com/macros/s/AKfycbz7OHOqzkSYfzCTOMdiUJKeiKu204K3Ki8keZmWghKdv1sZp0MZMb6Ngehrtn5TpBO5fw/exec';[cite: 1]
 
     function loadCSVData() {
         fetch(CSV_FILE_NAME)
@@ -136,7 +136,6 @@
                             });
                         }
                         
-                        // Ocultamos el estado de carga y habilitamos la interfaz limpia al instante
                         document.getElementById('loadingStatus').style.display = 'none';
                         document.getElementById('dropdownsContainer').style.display = 'block';
                         initializeFormStructure();
@@ -235,52 +234,60 @@
         }
     }
 
-    // INTERCEPTOR PARA ENVIAR EL DOCUMENTO AL VISOR PDF UNIFICADO
+    // INTERCEPTOR DE CONTROL DE APERTURA PARA EL VISOR PDF
     function abrirConVisorUniversal(url) {
         if (!url) {
             alert('No hay ningún enlace disponible para este documento.');
             return;
         }
 
-        var esGoogleDrive = url.includes('drive.google.com') || url.includes('docs.google.com');
+        var esGoogleDrive = url.includes('drive.google.com') || url.includes('docs.google.com');[cite: 1]
 
         if (esGoogleDrive) {
-            var fileId = extraerIdGoogleDrive(url);
+            var fileId = extraerIdGoogleDrive(url);[cite: 1]
 
             if (!fileId) {
-                // Si por alguna razón falla el extractor, abrimos la url cruda para no bloquear al operario
+                // Si falla la extracción preventiva, lanzamos el enlace crudo para no interrumpir al usuario
                 window.open(url, '_blank', 'noopener,noreferrer');
                 return;
             }
 
-            // Construimos la URL unificada inyectando la ID extraída en el Apps Script
-            var separador = VISOR_PDF_URL.includes('?') ? '&' : '?';
-            var visorUrl = VISOR_PDF_URL + separador + 'id=' + encodeURIComponent(fileId);
+            // Construcción unificada de la URL del visor inyectando el ID limpio obtenido
+            var separador = VISOR_PDF_URL.includes('?') ? '&' : '?';[cite: 1]
+            var visorUrl = VISOR_PDF_URL + separador + 'id=' + encodeURIComponent(fileId);[cite: 1]
 
-            window.open(visorUrl, '_blank', 'noopener,noreferrer');
+            window.open(visorUrl, '_blank', 'noopener,noreferrer');[cite: 1]
             return;
         }
 
-        // Si es un plano de Autodesk u otro tipo de enlace externo, se abre directo
-        window.open(url, '_blank', 'noopener,noreferrer');
+        // Si es un enlace ajeno a Drive, se abre de modo directo
+        window.open(url, '_blank', 'noopener,noreferrer');[cite: 1]
     }
 
-    // EXTRACTOR DE PATRONES DE IDENTIFICADORES DE DRIVE
+    // SANEADOR QUIRÚRGICO DE ID DE GOOGLE DRIVE (Elimina textos colindantes como /view, /edit, ?usp=...)
     function extraerIdGoogleDrive(url) {
-        var patrones = [
-            /\/file\/d\/([^\/?#]+)/,       // Archivos directos
-            /[?&]id=([^&#]+)/,             // Enlaces tradicionales de Drive
-            /\/d\/([^\/?#]+)/,             // Formato recortado /d/
-            /\/folders\/([^\/?#]+)/        // Enlaces a carpetas completas de Drive
-        ];
-
-        for (var i = 0; i < patrones.length; i++) {
-            var coincidencia = url.match(patrones[i]);
-            if (coincidencia && coincidencia[1]) {
-                return coincidencia[1];
+        var fileId = null;
+        
+        // Patrón 1: Captura la ID estándar contenida entre bloques de diagonales (ej: /file/d/ID_AQUI/view)
+        var patronD = url.match(/\/d\/([^\/?#]+)/);[cite: 1]
+        if (patronD && patronD[1]) {
+            fileId = patronD[1];
+        } else {
+            // Patrón 2: Captura la ID de enlaces por variable directa de asignación (ej: ?id=ID_AQUI)
+            var patronIdParam = url.match(/[?&]id=([^&#]+)/);[cite: 1]
+            if (patronIdParam && patronIdParam[1]) {
+                fileId = patronIdParam[1];
             }
         }
-        return null;
+        
+        // Limpieza final de seguridad contra sub-rutas remanentes del portapapeles
+        if (fileId) {
+            if (fileId.includes('/')) fileId = fileId.split('/')[0];
+            if (fileId.includes('?')) fileId = fileId.split('?')[0];
+            if (fileId.includes('&')) fileId = fileId.split('&')[0];
+        }
+        
+        return fileId;
     }
 
     function executeEquipmentSearch(columnName) {
@@ -293,15 +300,12 @@
             return alert("No hay un enlace válido registrado para " + columnName + " en esta combinación.");
         }
 
-        // Enviamos el enlace capturado de tu CSV al visor unificado de Apps Script
         abrirConVisorUniversal(targetUrl);
     }
 
-    // Escuchadores de eventos de cambio de los selectores en cascada
     document.getElementById('selectNivel1').addEventListener('change', onNivel1Change);
     document.getElementById('selectNivel2').addEventListener('change', onNivel2Change);
 
-    // Arrancar la carga del CSV al iniciar la ventana
     window.onload = loadCSVData;
 </script>
 
