@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Equipments - Search Menu</title>
+<!-- PapaParse estándar para leer tu CSV local -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+<style>
+    /* ESTILOS BASE */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #6fb543, #79c255); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+    .container { background: white; width: 100%; max-width: 900px; border-radius: 20px; padding: 40px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); text-align: center; }
+    .logos { display: flex; justify-content: center; align-items: center; margin-bottom: 30px; flex-wrap: wrap; }
+    .logos img { max-height: 120px; max-width: 100%; height: auto; width: auto; object-fit: contain; }
+    h1 { color: #4e7e28; margin-bottom: 30px; font-size: 28px; }
+
+    /* RECUADRO DE BOTONES OPCIONALES (FABRICANTE / EQUIPO) */
+    .options-box {
+        border: 2px dashed #79c255;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 25px;
+        background-color: #f9fdf6;
+    }
+    .options-title { font-size: 14px; color: #4e7e28; font-weight: bold; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+    .options-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; max-width: 500px; margin: 0 auto; }
+
+    /* CONTENEDOR DE FORMULARIOS DESPLEGABLES */
+    .form-group { max-width: 740px; margin: 0 auto 20px auto; text-align: left; }
+    label { display: block; color: #555; font-weight: 600; margin-bottom: 8px; font-size: 1.1em; }
+    select { width: 100%; padding: 14px 15px; border: 2px solid #ddd; border-radius: 12px; font-size: 16px; background: white; cursor: pointer; transition: border-color 0.3s; outline: none; }
+    select:focus { border-color: #79c255; }
+    select:disabled { background: #f5f5f5; cursor: not-allowed; border-color: #eee; }
+
+    /* CUADRÍCULA PARA LOS DOS BOTONES DE ACCIÓN */
+    .action-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; padding: 0 40px; margin-top: 25px; }
+
+    /* ESTILO GENERAL DE LOS BOTONES */
+    button { padding: 18px; border-radius: 12px; font-size: 18px; border: none; cursor: pointer; background: #f3f3f3; box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: all 0.2s ease; font-weight: 600; color: #333; }
+    button:hover { background: #e8e8e8; transform: translateY(-3px); }
+    button:active { background: #e0e0e0; transform: translateY(1px); }
+
+    .btn-option { background: #fff; border: 2px solid #ccc; }
+    .btn-option.active { background: #79c255; color: white; border-color: #4e7e28; }
+
+    .back-link { display: inline-block; margin-top: 30px; color: #79c255; text-decoration: none; font-weight: bold; font-size: 16px; }
+    .back-link:hover { text-decoration: underline; }
+
+    .loading { text-align: center; padding: 20px; color: #4e7e28; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="logos">
+        <img src="https://raw.githubusercontent.com/Juanlubaz/Enlaces-estructuras-TSP3/main/GESTI.png" alt="Gestiproject Logo" />
+    </div>
+    
+    <h1>Equipment Search</h1>
+
+    <div class="options-box">
+        <div class="options-title">Search Criteria</div>
+        <div class="options-grid">
+            <button type="button" id="btnFabricante" class="btn-option active" onclick="selectCriteria('fabricante')">MANUFACTURER</button>
+            <button type="button" id="btnEquipo" class="btn-option" onclick="selectCriteria('equipo')">EQUIPMENT TYPE</button>
+        </div>
+    </div>
+
+    <div id="loadingStatus" class="loading">Cargando base de datos de equipos...</div>
+
+    <div id="dropdownsContainer" style="display:none;">
+        <div class="form-group">
+            <label id="labelNivel1" for="selectNivel1">Selecciona Fabricante:</label>
+            <select id="selectNivel1">
+                <option value="">-- Esperando selección --</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label id="labelNivel2" for="selectNivel2">Selecciona Equipo:</label>
+            <select id="selectNivel2" disabled>
+                <option value="">-- Selecciona el paso anterior --</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="action-grid">
+        <button type="button" onclick="executeEquipmentSearch('PLANOS')">PLANOS</button>
+        <button type="button" onclick="executeEquipmentSearch('MANUALES')">MANUALES</button>
+    </div>
+
+    <a href="principal.html" class="back-link">← Back to Principal</a>
+</div>
+
+<script>
+    let currentCriteria = 'fabricante'; 
+    let rawCsvData = []; 
+    let currentMatchedRow = null; 
+
+    // Nombre relativo directo del archivo en tu misma carpeta de GitHub
+    const CSV_FILE_NAME = 'Enlaces equipos.csv';
+
+    // TU VISOR PDF UNIVERSAL DE GOOGLE APPS SCRIPT
+    const VISOR_PDF_URL = 'https://script.google.com/macros/s/AKfycbz7OHOqzkSYfzCTOMdiUJKeiKu204K3Ki8keZmWghKdv1sZp0MZMb6Ngehrtn5TpBO5fw/exec';[cite: 1]
+
+    function loadCSVData() {
+        fetch(CSV_FILE_NAME)
+            .then(response => {
+                if (!response.ok) throw new Error('No se pudo encontrar el archivo "Enlaces equipos.csv" en la carpeta.');
+                return response.text();
+            })
+            .then(csvText => {
+                Papa.parse(csvText, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        rawCsvData = [];
+                        if (results.data && results.data.length > 0) {
+                            results.data.forEach(row => {
+                                if (row) {
+                                    let cleanRow = {};
+                                    Object.keys(row).forEach(key => {
+                                        if (key) {
+                                            let cleanKey = key.trim().toUpperCase();
+                                            cleanRow[cleanKey] = row[key] ? row[key].trim() : '';
+                                        }
+                                    });
+                                    if (cleanRow.FABRICANTE || cleanRow.EQUIPO) {
+                                        rawCsvData.push(cleanRow);
+                                    }
+                                }
+                            });
+                        }
+                        document.getElementById('loadingStatus').style.display = 'none';
+                        document.getElementById('dropdownsContainer').style.display = 'block';
+                        initializeFormStructure();
+                    }
+                });
+            })
+            .catch(err => {
+                document.getElementById('loadingStatus').innerText = "⚠️ Error al cargar el CSV: " + err.message;
+            });
+    }
+
+    function selectCriteria(criteria) {
+        currentCriteria = criteria;
+        const btnFab = document.getElementById('btnFabricante');
+        const btnEq = document.getElementById('btnEquipo');
+        
+        if (criteria === 'fabricante') {
+            btnFab.classList.add('active');
+            btnEq.classList.remove('active');
+        } else {
+            btnEq.classList.add('active');
+            btnFab.classList.remove('active');
+        }
+        initializeFormStructure();
+    }
+
+    function initializeFormStructure() {
+        const lbl1 = document.getElementById('labelNivel1');
+        const lbl2 = document.getElementById('labelNivel2');
+        const sel1 = document.getElementById('selectNivel1');
+        const sel2 = document.getElementById('selectNivel2');
+
+        currentMatchedRow = null;
+        sel2.innerHTML = '<option value="">-- Selecciona el paso anterior --</option>';
+        sel2.disabled = true;
+
+        if (currentCriteria === 'fabricante') {
+            lbl1.innerText = "Selecciona Fabricante:";
+            lbl2.innerText = "Selecciona Equipo:";
+            let fabricantes = [...new Set(rawCsvData.map(item => item.FABRICANTE))].filter(Boolean).sort();
+            sel1.innerHTML = '<option value="">-- Selecciona un FABRICANTE --</option>';
+            fabricantes.forEach(fab => {
+                let opt = document.createElement('option');
+                opt.value = fab; opt.innerText = fab; sel1.appendChild(opt);
+            });
+        } else {
+            lbl1.innerText = "Selecciona Equipo:";
+            lbl2.innerText = "Selecciona Fabricante:";
+            let equipos = [...new Set(rawCsvData.map(item => item.EQUIPO))].filter(Boolean).sort();
+            sel1.innerHTML = '<option value="">-- Selecciona un EQUIPO --</option>';
+            equipos.forEach(eq => {
+                let opt = document.createElement('option');
+                opt.value = eq; opt.innerText = eq; sel1.appendChild(opt);
+            });
+        }
+    }
+
+    function onNivel1Change() {
+        const val1 = document.getElementById('selectNivel1').value;
+        const sel2 = document.getElementById('selectNivel2');
+        
+        sel2.innerHTML = '<option value="">-- Selecciona el paso anterior --</option>';
+        sel2.disabled = !val1;
+        currentMatchedRow = null;
+
+        if (!val1) return;
+
+        let uniqueSubOptions = [];
+        if (currentCriteria === 'fabricante') {
+            uniqueSubOptions = [...new Set(rawCsvData.filter(item => item.FABRICANTE === val1).map(item => item.EQUIPO))].filter(Boolean).sort();
+            sel2.innerHTML = '<option value="">-- Selecciona un EQUIPO --</option>';
+        } else {
+            uniqueSubOptions = [...new Set(rawCsvData.filter(item => item.EQUIPO === val1).map(item => item.FABRICANTE))].filter(Boolean).sort();
+            sel2.innerHTML = '<option value="">-- Selecciona un FABRICANTE --</option>';
+        }
+
+        uniqueSubOptions.forEach(optVal => {
+            let opt = document.createElement('option');
+            opt.value = optVal; opt.innerText = optVal; sel2.appendChild(opt);
+        });
+    }
+
+    function onNivel2Change() {
+        const val1 = document.getElementById('selectNivel1').value;
+        const val2 = document.getElementById('selectNivel2').value;
+
+        if (!val2) {
+            currentMatchedRow = null;
+            return;
+        }
+
+        if (currentCriteria === 'fabricante') {
+            currentMatchedRow = rawCsvData.find(item => item.FABRICANTE === val1 && item.EQUIPO === val2);
+        } else {
+            currentMatchedRow = rawCsvData.find(item => item.EQUIPO === val1 && item.FABRICANTE === val2);
+        }
+    }
+
+    // INTERCEPTOR PARA EL VISOR PDF UNIVERSAL
+    function abrirConVisorUniversal(url) {
+        if (!url) {
+            alert('No hay ningún enlace disponible para este documento.');
+            return;
+        }
+
+        // Verificamos si es un enlace de Google Drive
+        var esGoogleDrive = url.includes('drive.google.com') || url.includes('docs.google.com');[cite: 1]
+
+        if (esGoogleDrive) {
+            var fileId = extraerIdGoogleDrive(url);[cite: 1]
+
+            if (!fileId) {
+                // Si es un enlace de Drive raro pero se puede abrir, lo lanzamos normal por si acaso
+                window.open(url, '_blank', 'noopener,noreferrer');
+                return;
+            }
+
+            // Construimos la URL unificada del visor inyectando la ID
+            var separador = VISOR_PDF_URL.includes('?') ? '&' : '?';[cite: 1]
+            var visorUrl = VISOR_PDF_URL + separador + 'id=' + encodeURIComponent(fileId);[cite: 1]
+
+            window.open(visorUrl, '_blank', 'noopener,noreferrer');[cite: 1]
+            return;
+        }
+
+        // Si es un enlace externo (Autodesk, etc.), continúa abriéndose de forma directa[cite: 1]
+        window.open(url, '_blank', 'noopener,noreferrer');[cite: 1]
+    }
+
+    // EXTRACTOR ULTRA-PRECISO DE IDENTIFICADORES DE DRIVE
+    function extraerIdGoogleDrive(url) {
+        var patrones = [
+            /\/file\/d\/([^\/?#]+)/,       // Archivos directos /file/d/[cite: 1]
+            /[?&]id=([^&#]+)/,             // Enlaces con ?id=[cite: 1]
+            /\/d\/([^\/?#]+)/,             // Enlaces recortados /d/[cite: 1]
+            /\/folders\/([^\/?#]+)/        // Enlaces de carpetas completas por si acaso
+        ];
+
+        for (var i = 0; i < patrones.length; i++) {
+            var coincidencia = url.match(patrones[i]);
+            if (coincidencia && coincidencia[1]) {
+                return coincidencia[1];
+            }
+        }
+        return null;
+    }
+
+    function executeEquipmentSearch(columnName) {
+        if (!currentMatchedRow) {
+            return alert("Por favor, completa las selecciones de los desplegables.");
+        }
+
+        const targetUrl = currentMatchedRow[columnName];
+        if (!targetUrl || !targetUrl.startsWith('http')) {
+            return alert("No hay un enlace válido registrado para " + columnName + " en esta combinación.");
+        }
+
+        // Enviamos el enlace de la celda al interceptor del visor universal
+        abrirConVisorUniversal(targetUrl);
+    }
+
+    document.getElementById('selectNivel1').addEventListener('change', onNivel1Change);
+    document.getElementById('selectNivel2').addEventListener('change', onNivel2Change);
+
+    window.onload = loadCSVData;
+</script>
+
+</body>
+</html>
