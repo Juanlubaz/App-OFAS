@@ -56,10 +56,10 @@
     <div class="button-grid">
         <button onclick="openPage('Planos_de_estructuras.html')">ESTRUCTURAS--STRUCTURES</button>
         <button onclick="openPage('Equipments.html')">EQUIPOS--EQUIPMENTS</button>
-        <button onclick="openPage('Instalaciones.html')">INSTALACIONES--INSTALLATIONS</button>
-        <button onclick="openPage('Ingenierias.html')">INGENIERIAS--ENGINEERING</button>
-        <button onclick="openPage('Ingenierias.html')">CERTIFICACIONES--CERTIFICATIONS</button>
-        <button onclick="openPage('Ingenierias.html')">REPUESTOS--SPARE PARTS</button>
+        <button onclick="showUnderConstruction()">INSTALACIONES--INSTALLATIONS</button>
+        <button onclick="showUnderConstruction()">INGENIERIAS--ENGINEERING</button>
+        <button onclick="showUnderConstruction()">CERTIFICACIONES--CERTIFICATIONS</button>
+        <button onclick="showUnderConstruction()">REPUESTOS--SPARE PARTS</button>
     </div>
 </div>
 
@@ -78,6 +78,12 @@
 
 <script>
     function openPage(file) { window.location.href = './' + file; }
+    
+    // Función de aviso temporal para secciones en construcción
+    function showUnderConstruction() {
+        alert("⚠️ UNDER CONSTRUCTION / SECCIÓN EN CONSTRUCCIÓN ⚠️\n\nEste apartado estará disponible próximamente.");
+    }
+
     function openSearchModal() { document.getElementById('searchModal').style.display = 'block'; document.getElementById('searchInput').focus(); }
     function closeSearchModal() { document.getElementById('searchModal').style.display = 'none'; document.getElementById('searchInput').value = ''; }
     
