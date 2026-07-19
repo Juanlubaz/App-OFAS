@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Repuestos - TSP3</title>
+<style>
+    /* MANTENEMOS TU ESTÉTICA BASE PARA DAR CONTINUIDAD Y ORDEN */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #6fb543, #79c255); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+    .container { background: white; width: 100%; max-width: 900px; border-radius: 20px; padding: 40px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); text-align: center; }
+    .logos { display: flex; justify-content: center; align-items: center; margin-bottom: 20px; }
+    .logos img { max-height: 100px; max-width: 100%; height: auto; object-fit: contain; }
+    
+    h1 { color: #4e7e28; margin-bottom: 10px; font-size: 26px; }
+    h2 { color: #666; margin-bottom: 30px; font-size: 18px; font-weight: normal; }
+    
+    .button-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; padding: 0 40px; margin-bottom: 30px; }
+    
+    /* ESTILO UNIFICADO PARA LOS BOTONES DE REPUESTOS */
+    button.rep-btn { 
+        padding: 22px 18px; 
+        border-radius: 12px; 
+        font-size: 18px; 
+        border: none; 
+        cursor: pointer; 
+        background: #f3f3f3; 
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+        transition: all 0.2s ease; 
+        font-weight: 600; 
+        color: #333; 
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    button.rep-btn span { font-size: 13px; color: #666; font-weight: normal; }
+    button.rep-btn:hover { background: #e8e8e8; transform: translateY(-3px); border-bottom: 4px solid #4e7e28; }
+    button.rep-btn:active { background: #e0e0e0; transform: translateY(1px); }
+
+    /* BOTÓN VOLVER */
+    .btn-back { background: #666; color: white; padding: 12px 25px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; font-size: 16px; transition: background 0.2s; }
+    .btn-back:hover { background: #444; }
+
+    @media (max-width: 600px) { .button-grid { grid-template-columns: 1fr; padding: 0; } }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="logos">
+        <img src="https://raw.githubusercontent.com/Juanlubaz/Enlaces-estructuras-TSP3/main/GESTI.png" alt="Gestiproject Logo" />
+    </div>
+    <h1>PROYECTO TSP3 - GESTIÓN DE REPUESTOS</h1>
+    <h2>Listados de Repuestos y Materiales / Spare Parts List</h2>
+    
+    <div class="button-grid">
+        <!-- BOTÓN 1: REP-Solubilizacion -->
+        <button class="rep-btn" onclick="openLink('https://drive.google.com/file/d/120Q-Lm-wzcO-sr29QZMFIlxuM-HI2_50/view?usp=drive_link')">
+            REP-Solubilizacion
+            <span>Ver listado de repuestos en Drive</span>
+        </button>
+        
+        <!-- BOTÓN 2: REP-Solubilización -->
+        <button class="rep-btn" onclick="openLink('https://drive.google.com/file/d/1EXDT3fUxU800bBzrkVYIxJC8xR56T0Ui/view?usp=drive_link')">
+            REP-Solubilización
+            <span>Ver archivo adjunto de repuestos en Drive</span>
+        </button>
+    </div>
+
+    <button class="btn-back" onclick="goBack()">← Volver al Menú</button>
+</div>
+
+<script>
+    function openLink(url) {
+        window.open(url, '_blank');
+    }
+
+    function goBack() {
+        window.location.href = './principal.html';
+    }
+</script>
+
+</body>
+</html>
