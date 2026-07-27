@@ -113,6 +113,7 @@
 </div>
 
 <script>
+
     // ID de la carpeta raíz de Ingenierías en Google Drive
     const ROOT_FOLDER_ID = "1uR3V2zeLP1VtuX7kmfKGedaDKS5s7QsH";
     
@@ -129,7 +130,7 @@
         requestDriveData(ROOT_FOLDER_ID, "cbFirstLevel");
     }
 
-    // Callback 1: Genera los botones del primer nivel (Especialidades)
+    // Callback 1: Genera los botones del primer nivel (Especialidades / Áreas)
     window.cbFirstLevel = function(response) {
         const grid = document.getElementById('firstLevelGrid');
         grid.innerHTML = '';
@@ -157,25 +158,28 @@
         hideDocsBox();
 
         const select = document.getElementById('selectSubcategoria');
-        select.innerHTML = '<option value="">Consultando subcarpetas en Drive...</option>';
+        select.innerHTML = '<option value="">Consultando estructura de Drive...</option>';
         select.disabled = true;
         document.getElementById('dropdownsContainer').style.display = 'block';
 
-        requestDriveData(folderId, "cbSecondLevel");
+        requestDriveData(folderId, "cbFolderContent");
     }
 
-    // Callback 2: Rellena el desplegable del segundo nivel
-    window.cbSecondLevel = function(response) {
+    // Manejador genérico para examinar carpetas en cualquier profundidad
+    window.cbFolderContent = function(response) {
         const select = document.getElementById('selectSubcategoria');
-        select.innerHTML = '';
-
+        
         if (!response || response.status === "error") {
             select.innerHTML = '<option value="">Error al consultar Drive</option>';
             return;
         }
 
-        if (response.folders && response.folders.length > 0) {
-            select.innerHTML = '<option value="">-- Selecciona una subcategoría --</option>';
+        const hasFolders = response.folders && response.folders.length > 0;
+        const hasFiles = response.files && response.files.length > 0;
+
+        // Si hay subcarpetas, actualizamos el selector
+        if (hasFolders) {
+            select.innerHTML = '<option value="">-- Selecciona una carpeta --</option>';
             response.folders.forEach(sf => {
                 let opt = document.createElement('option');
                 opt.value = sf.id;
@@ -184,35 +188,29 @@
             });
             select.disabled = false;
         } else {
-            select.innerHTML = '<option value="">-- Sin subcarpetas adicionales --</option>';
+            select.innerHTML = '<option value="">-- Sin más subcarpetas --</option>';
             select.disabled = true;
         }
 
-        // Si la carpeta elegida tiene archivos directos, también los mostramos
-        if (response.files && response.files.length > 0) {
+        // Si hay archivos en el nivel actual, los mostramos directamente
+        if (hasFiles) {
             renderPdfFiles(response.files);
+        } else if (!hasFolders) {
+            hideDocsBox();
+            alert("Esta carpeta está vacía.");
         }
     };
 
-    // Al cambiar la opción del desplegable de subcategorías
-    function onSecondLevelChange() {
+    // Al seleccionar una opción dentro del desplegable
+    function onSubcategoryChange() {
         const folderId = document.getElementById('selectSubcategoria').value;
-        hideDocsBox();
-
         if (!folderId) return;
 
-        requestDriveData(folderId, "cbFilesList");
+        hideDocsBox();
+
+        // Si la carpeta seleccionada tiene contenido, navegamos dentro de ella
+        requestDriveData(folderId, "cbFolderContent");
     }
-
-    // Callback 3: Recibe los archivos PDF de la subcarpeta seleccionada
-    window.cbFilesList = function(response) {
-        if (!response || response.status === "error" || !response.files || response.files.length === 0) {
-            alert("Esta carpeta de Drive no contiene archivos actualmente.");
-            return;
-        }
-
-        renderPdfFiles(response.files);
-    };
 
     // Muestra la lista de archivos PDF encontrados
     function renderPdfFiles(files) {
@@ -259,7 +257,7 @@
         document.body.appendChild(script);
     }
 
-    document.getElementById('selectSubcategoria').addEventListener('change', onSecondLevelChange);
+    document.getElementById('selectSubcategoria').addEventListener('change', onSubcategoryChange);
 
     window.onload = initLiveDriveSearch;
 </script>
