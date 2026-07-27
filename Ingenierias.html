@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Ingenierías - Document Search</title>
+<title>Ingenierías - Explorador en Tiempo Real</title>
 <style>
     /* ESTILOS BASE */
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -13,7 +13,7 @@
     .logos img { max-height: 120px; max-width: 100%; height: auto; width: auto; object-fit: contain; }
     h1 { color: #4e7e28; margin-bottom: 30px; font-size: 28px; }
 
-    /* RECUADRO DE BOTONES PRIMER NIVEL (DINÁMICOS) */
+    /* RECUADRO DE BOTONES PRIMER NIVEL (ÁREAS DE DRIVE) */
     .options-box {
         border: 2px dashed #79c255;
         border-radius: 15px;
@@ -31,37 +31,39 @@
     select:focus { border-color: #79c255; }
     select:disabled { background: #f5f5f5; cursor: not-allowed; border-color: #eee; }
 
-    /* CONTENEDOR DINÁMICO PARA LOS PDFs */
-    .multi-docs-box {
+    /* CONTENEDOR DINÁMICO DE DOCUMENTOS PDF */
+    .docs-box {
         display: none;
         background: #f4fbf1;
         border: 1px solid #ccebc4;
         border-radius: 12px;
         padding: 20px;
-        margin: 10px auto 25px auto;
+        margin: 20px auto;
         max-width: 740px;
         text-align: left;
     }
-    .multi-docs-title { font-size: 15px; color: #4e7e28; font-weight: bold; margin-bottom: 12px; }
-    .multi-docs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+    .docs-title { font-size: 15px; color: #4e7e28; font-weight: bold; margin-bottom: 12px; }
+    .docs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
     
-    .btn-doc-link {
-        background: #79c255 !important;
-        color: white !important;
-        font-size: 14px !important;
-        padding: 12px !important;
-        border-radius: 8px !important;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
-        text-align: left !important;
-        white-space: nowrap !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        display: block !important;
-        width: 100% !important;
+    .btn-pdf-file {
+        background: #79c255;
+        color: white;
+        font-size: 14px;
+        padding: 12px 15px;
+        border-radius: 10px;
         border: none;
+        box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        text-align: left;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
         cursor: pointer;
+        transition: all 0.2s;
+        font-weight: 600;
+        display: block;
+        width: 100%;
     }
-    .btn-doc-link:hover { background: #609e42 !important; transform: translateY(-2px) !important; }
+    .btn-pdf-file:hover { background: #609e42; transform: translateY(-2px); }
 
     /* ESTILO GENERAL DE LOS BOTONES DE OPCIÓN */
     button.btn-option { padding: 15px; border-radius: 12px; font-size: 15px; border: 2px solid #ccc; cursor: pointer; background: #fff; box-shadow: 0 3px 6px rgba(0,0,0,0.08); transition: all 0.2s ease; font-weight: 600; color: #333; }
@@ -83,55 +85,57 @@
     
     <h1>Engineering Documents</h1>
 
-    <!-- Primer Nivel: Botones Dinámicos creados desde las subcarpetas raíz -->
+    <!-- Nivel 1: Botones cargados directamente desde la carpeta raíz de Drive -->
     <div class="options-box">
         <div class="options-title">Especialidad / Área</div>
         <div id="firstLevelGrid" class="options-grid">
-            <div class="loading">Cargando áreas de ingeniería...</div>
+            <div id="loadingStatus" class="loading">Conectando con Google Drive...</div>
         </div>
     </div>
 
-    <!-- Segundo Nivel: Desplegables de Subcarpetas / Documentos -->
+    <!-- Nivel 2: Desplegable de subcarpetas de Drive -->
     <div id="dropdownsContainer" style="display:none;">
         <div class="form-group">
-            <label id="labelSubcarpeta" for="selectSubcarpeta">Selecciona Subcategoría:</label>
-            <select id="selectSubcarpeta">
-                <option value="">-- Esperando selección --</option>
+            <label id="labelSubcategoria" for="selectSubcategoria">Selecciona Subcategoría / Carpeta:</label>
+            <select id="selectSubcategoria" disabled>
+                <option value="">-- Esperando selección superior --</option>
             </select>
         </div>
     </div>
 
-    <!-- Cuadrícula Dinámica de Archivos PDF -->
-    <div id="multiDocsBox" class="multi-docs-box">
-        <div id="multiDocsTitle" class="multi-docs-title">Planos / Documentos encontrados:</div>
-        <div id="multiDocsGrid" class="multi-docs-grid"></div>
+    <!-- Nivel 3: Lista interactiva de archivos PDF encontrados -->
+    <div id="docsBox" class="docs-box">
+        <div class="docs-title">📄 Documentos disponibles (Pulsa para abrir):</div>
+        <div id="docsGrid" class="docs-grid"></div>
     </div>
 
     <a href="principal.html" class="back-link">← Back to Principal</a>
 </div>
 
 <script>
-    // ID de la carpeta principal de Google Drive que nos proporcionaste
+    // ID de la carpeta raíz de Ingenierías en Google Drive
     const ROOT_FOLDER_ID = "1uR3V2zeLP1VtuX7kmfKGedaDKS5s7QsH";
     
-    // Endpoints de Google Apps Script
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzfVd7zRhvmgRt6L8budTkPmNkzJUb6nukRUjyOfx6Pn8rcm8zS_oHiJyTHu7AOmMRj9w/exec";
+    // Nueva URL de tu Apps Script recién publicado
+    const SCRIPT_PUENTE_URL = "https://script.google.com/macros/s/AKfycbz5JrBRZiMpgeIJRXRTne7oJHX7dYSgG4nhpvq6LgtJG9Y1LVRgFFByb7vzt12wZ2osNg/exec";
+    
+    // URL de tu Visor PDF Unificado
     const VISOR_PDF_URL = 'https://script.google.com/macros/s/AKfycbz7OHOqzkSYfzCTOMdiUJKeiKu204K3Ki8keZmWghKdv1sZp0MZMb6Ngehrtn5TpBO5fw/exec';[cite: 1]
 
-    let currentFirstLevelId = null;
+    let activeCallbackCount = 0;
 
-    // Carga inicial: Consulta la carpeta raíz para dibujar los primeros botones
-    function loadRootCategories() {
-        callAppsScript(ROOT_FOLDER_ID, "renderFirstLevelButtons");
+    // Carga inicial: consulta la carpeta raíz de Drive
+    function initLiveDriveSearch() {
+        requestDriveData(ROOT_FOLDER_ID, "cbFirstLevel");
     }
 
-    // Callback para renderizar los botones del primer nivel
-    function renderFirstLevelButtons(response) {
+    // Callback 1: Genera los botones del primer nivel (Especialidades)
+    window.cbFirstLevel = function(response) {
         const grid = document.getElementById('firstLevelGrid');
         grid.innerHTML = '';
 
-        if (!response || response.error || !response.folders || response.folders.length === 0) {
-            grid.innerHTML = '<div style="color:#d9534f; grid-column: 1/-1;">No se encontraron subcarpetas principales o la carpeta no está compartida.</div>';
+        if (!response || response.status === "error" || !response.folders || response.folders.length === 0) {
+            grid.innerHTML = '<div style="color:#d9534f; grid-column:1/-1;">No se encontraron subcarpetas en la carpeta raíz de Drive o falta compartir acceso.</div>';
             return;
         }
 
@@ -140,125 +144,124 @@
             btn.type = 'button';
             btn.className = 'btn-option';
             btn.innerText = folder.name.toUpperCase();
-            btn.onclick = function() { selectFirstLevel(folder.id, this); };
+            btn.onclick = function() { onFirstLevelClick(folder.id, this); };
             grid.appendChild(btn);
         });
-    }
+    };
 
     // Al hacer clic en un botón del primer nivel
-    function selectFirstLevel(folderId, btnElement) {
-        // Marcamos botón activo
+    function onFirstLevelClick(folderId, btnElement) {
         document.querySelectorAll('.btn-option').forEach(b => b.classList.remove('active'));
         btnElement.classList.add('active');
 
-        currentFirstLevelId = folderId;
-        hideMultiDocsBox();
+        hideDocsBox();
 
-        const select = document.getElementById('selectSubcarpeta');
-        select.innerHTML = '<option value="">Cargando subcategorías...</option>';
+        const select = document.getElementById('selectSubcategoria');
+        select.innerHTML = '<option value="">Consultando subcarpetas en Drive...</option>';
         select.disabled = true;
         document.getElementById('dropdownsContainer').style.display = 'block';
 
-        // Consultamos las subcarpetas del botón seleccionado
-        callAppsScript(folderId, "renderSecondLevelDropdown");
+        requestDriveData(folderId, "cbSecondLevel");
     }
 
-    // Callback para llenar el desplegable del segundo nivel
-    function renderSecondLevelDropdown(response) {
-        const select = document.getElementById('selectSubcarpeta');
+    // Callback 2: Rellena el desplegable del segundo nivel
+    window.cbSecondLevel = function(response) {
+        const select = document.getElementById('selectSubcategoria');
         select.innerHTML = '';
 
-        if (!response || response.error) {
-            select.innerHTML = '<option value="">Error al obtener subcategorías</option>';
+        if (!response || response.status === "error") {
+            select.innerHTML = '<option value="">Error al consultar Drive</option>';
             return;
         }
 
-        // Si la carpeta tiene subcarpetas
         if (response.folders && response.folders.length > 0) {
             select.innerHTML = '<option value="">-- Selecciona una subcategoría --</option>';
-            response.folders.forEach(subfolder => {
-                const opt = document.createElement('option');
-                opt.value = subfolder.id;
-                opt.innerText = subfolder.name;
+            response.folders.forEach(sf => {
+                let opt = document.createElement('option');
+                opt.value = sf.id;
+                opt.innerText = sf.name;
                 select.appendChild(opt);
             });
             select.disabled = false;
         } else {
-            // Si no tiene subcarpetas, pero sí archivos directos
-            select.innerHTML = '<option value="">-- Archivos directos en esta categoría --</option>';
+            select.innerHTML = '<option value="">-- Sin subcarpetas adicionales --</option>';
             select.disabled = true;
-            if (response.files && response.files.length > 0) {
-                renderFilesList(response.files);
-            }
         }
-    }
 
-    // Evento de cambio en el desplegable
+        // Si la carpeta elegida tiene archivos directos, también los mostramos
+        if (response.files && response.files.length > 0) {
+            renderPdfFiles(response.files);
+        }
+    };
+
+    // Al cambiar la opción del desplegable de subcategorías
     function onSecondLevelChange() {
-        const folderId = document.getElementById('selectSubcarpeta').value;
-        hideMultiDocsBox();
+        const folderId = document.getElementById('selectSubcategoria').value;
+        hideDocsBox();
 
         if (!folderId) return;
 
-        // Consultamos los archivos de la subcarpeta elegida
-        callAppsScript(folderId, "renderFilesListCallback");
+        requestDriveData(folderId, "cbFilesList");
     }
 
-    function renderFilesListCallback(response) {
-        if (!response || response.error || !response.files || response.files.length === 0) {
-            alert("No se encontraron archivos disponibles en esta sección.");
+    // Callback 3: Recibe los archivos PDF de la subcarpeta seleccionada
+    window.cbFilesList = function(response) {
+        if (!response || response.status === "error" || !response.files || response.files.length === 0) {
+            alert("Esta carpeta de Drive no contiene archivos actualmente.");
             return;
         }
-        renderFilesList(response.files);
-    }
 
-    // Renderiza los botones para abrir cada PDF con el Visor
-    function renderFilesList(files) {
-        const multiBox = document.getElementById('multiDocsBox');
-        const multiGrid = document.getElementById('multiDocsGrid');
-        multiGrid.innerHTML = '';
+        renderPdfFiles(response.files);
+    };
+
+    // Muestra la lista de archivos PDF encontrados
+    function renderPdfFiles(files) {
+        const box = document.getElementById('docsBox');
+        const grid = document.getElementById('docsGrid');
+        grid.innerHTML = '';
 
         files.forEach(file => {
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.className = 'btn-doc-link';
+            btn.className = 'btn-pdf-file';
             btn.title = file.name;
             btn.innerText = "📄 " + file.name;
-            btn.onclick = function() { abrirDocumentoVisor(file.id || file.url); };
-            multiGrid.appendChild(btn);
+            btn.onclick = function() { abrirVisor(file.id); };
+            grid.appendChild(btn);
         });
 
-        multiBox.style.display = 'block';
+        box.style.display = 'block';
     }
 
-    // Conexión con tu Visor PDF Unificado
-    function abrirDocumentoVisor(idOrUrl) {
-        let fileId = idOrUrl;
-        if (idOrUrl.includes('http')) {
-            fileId = idOrUrl.split('/file/d/')[1]?.split('/')[0] || idOrUrl.split('id=')[1]?.split('&')[0];
-        }
-        
-        if (!fileId) return alert("No se pudo identificar el archivo.");
-
+    // Abre el archivo PDF seleccionado usando tu visor de Apps Script
+    function abrirVisor(fileId) {
         var separador = VISOR_PDF_URL.includes('?') ? '&' : '?';[cite: 1]
         var visorUrl = VISOR_PDF_URL + separador + 'id=' + encodeURIComponent(fileId);[cite: 1]
         window.open(visorUrl, '_blank', 'noopener,noreferrer');[cite: 1]
     }
 
-    function hideMultiDocsBox() {
-        document.getElementById('multiDocsBox').style.display = 'none';
+    function hideDocsBox() {
+        document.getElementById('docsBox').style.display = 'none';
     }
 
-    // Función auxiliar para consultar Apps Script por JSONP evitando bloqueos CORS
-    function callAppsScript(folderId, callbackName) {
-        const scriptNode = document.createElement('script');
-        scriptNode.src = SCRIPT_URL + "?folderId=" + folderId + "&callback=" + callbackName;
-        document.body.appendChild(scriptNode);
+    // Petición dinámica JSONP a Google Apps Script
+    function requestDriveData(folderId, callbackName) {
+        activeCallbackCount++;
+        const uniqueCallback = callbackName + "_" + activeCallbackCount;
+        
+        window[uniqueCallback] = function(data) {
+            window[callbackName](data);
+            delete window[uniqueCallback];
+        };
+
+        const script = document.createElement('script');
+        script.src = SCRIPT_PUENTE_URL + "?folderId=" + encodeURIComponent(folderId) + "&callback=" + encodeURIComponent(uniqueCallback);
+        document.body.appendChild(script);
     }
 
-    document.getElementById('selectSubcarpeta').addEventListener('change', onSecondLevelChange);
+    document.getElementById('selectSubcategoria').addEventListener('change', onSecondLevelChange);
 
-    window.onload = loadRootCategories;
+    window.onload = initLiveDriveSearch;
 </script>
 
 </body>
