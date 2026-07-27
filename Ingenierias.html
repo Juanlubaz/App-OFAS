@@ -170,7 +170,18 @@
         }
 
         const hasFolders = response.folders && response.folders.length > 0;
-        const hasFiles = response.files && response.files.length > 0;
+        
+        // FILTRO ESTRICTO: Solo nos quedamos con los archivos que sean verdaderamente PDFs
+        let pdfFilesOnly = [];
+        if (response.files && response.files.length > 0) {
+            pdfFilesOnly = response.files.filter(file => {
+                const esMimePdf = file.mimeType === 'application/pdf';
+                const esExtPdf = file.name && file.name.toLowerCase().endsWith('.pdf');
+                return esMimePdf || esExtPdf;
+            });
+        }
+
+        const hasFiles = pdfFilesOnly.length > 0;
 
         if (hasFolders) {
             select.innerHTML = '<option value="">-- Selecciona una carpeta --</option>';
@@ -186,11 +197,14 @@
             select.disabled = true;
         }
 
+        // Solo renderizamos los archivos si realmente hay PDFs en la lista filtrada
         if (hasFiles) {
-            renderPdfFiles(response.files);
-        } else if (!hasFolders) {
+            renderPdfFiles(pdfFilesOnly);
+        } else {
             hideDocsBox();
-            alert("Esta carpeta está vacía.");
+            if (!hasFolders) {
+                alert("Esta carpeta no contiene ningún archivo PDF.");
+            }
         }
     };
 
