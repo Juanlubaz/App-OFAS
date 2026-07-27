@@ -85,7 +85,7 @@
     
     <h1>Engineering Documents</h1>
 
-    <!-- Nivel 1: Botones cargados directamente desde la carpeta raíz de Drive -->
+    <!-- Nivel 1: Áreas primarias -->
     <div class="options-box">
         <div class="options-title">Especialidad / Área</div>
         <div id="firstLevelGrid" class="options-grid">
@@ -93,7 +93,7 @@
         </div>
     </div>
 
-    <!-- Nivel 2: Desplegable de subcarpetas de Drive -->
+    <!-- Nivel N: Navegación multinivel -->
     <div id="dropdownsContainer" style="display:none;">
         <div class="form-group">
             <label id="labelSubcategoria" for="selectSubcategoria">Selecciona Subcategoría / Carpeta:</label>
@@ -103,7 +103,7 @@
         </div>
     </div>
 
-    <!-- Nivel 3: Lista interactiva de archivos PDF encontrados -->
+    <!-- Lista de archivos del nivel activo -->
     <div id="docsBox" class="docs-box">
         <div class="docs-title">📄 Documentos disponibles (Pulsa para abrir):</div>
         <div id="docsGrid" class="docs-grid"></div>
@@ -113,24 +113,21 @@
 </div>
 
 <script>
-
-    // ID de la carpeta raíz de Ingenierías en Google Drive
+    // ID de la carpeta raíz de Ingenierías
     const ROOT_FOLDER_ID = "1uR3V2zeLP1VtuX7kmfKGedaDKS5s7QsH";
     
-    // URL actualizada de tu Apps Script
+    // Backend explorador de carpetas
     const SCRIPT_PUENTE_URL = "https://script.google.com/macros/s/AKfycby5kptA52YPD4noy_GwoLIYNkHpATmvDtmGASnlo5GB6m-ozHRqU4F4t_jR5-uhbrhJRA/exec";
     
-    // URL de tu Visor PDF Unificado
-    const VISOR_PDF_URL = 'https://script.google.com/macros/s/AKfycbz7OHOqzkSYfzCTOMdiUJKeiKu204K3Ki8keZmWghKdv1sZp0MZMb6Ngehrtn5TpBO5fw/exec';
+    // Nueva versión del Visor Gestiproject
+    const VISOR_PDF_URL = 'https://script.google.com/macros/s/AKfycbyAA7JN9jnHYTtQKLUZeNEvBTQm-kl9HMlVxyp_ddFB7ME7RUJzTBylxx6FyyW8RMQl8Q/exec';
 
     let activeCallbackCount = 0;
 
-    // Carga inicial: consulta la carpeta raíz de Drive
     function initLiveDriveSearch() {
         requestDriveData(ROOT_FOLDER_ID, "cbFirstLevel");
     }
 
-    // Callback 1: Genera los botones del primer nivel (Especialidades / Áreas)
     window.cbFirstLevel = function(response) {
         const grid = document.getElementById('firstLevelGrid');
         grid.innerHTML = '';
@@ -150,7 +147,6 @@
         });
     };
 
-    // Al hacer clic en un botón del primer nivel
     function onFirstLevelClick(folderId, btnElement) {
         document.querySelectorAll('.btn-option').forEach(b => b.classList.remove('active'));
         btnElement.classList.add('active');
@@ -165,7 +161,6 @@
         requestDriveData(folderId, "cbFolderContent");
     }
 
-    // Manejador genérico para examinar carpetas en cualquier profundidad
     window.cbFolderContent = function(response) {
         const select = document.getElementById('selectSubcategoria');
         
@@ -177,7 +172,6 @@
         const hasFolders = response.folders && response.folders.length > 0;
         const hasFiles = response.files && response.files.length > 0;
 
-        // Si hay subcarpetas, actualizamos el selector
         if (hasFolders) {
             select.innerHTML = '<option value="">-- Selecciona una carpeta --</option>';
             response.folders.forEach(sf => {
@@ -192,7 +186,6 @@
             select.disabled = true;
         }
 
-        // Si hay archivos en el nivel actual, los mostramos directamente
         if (hasFiles) {
             renderPdfFiles(response.files);
         } else if (!hasFolders) {
@@ -201,18 +194,14 @@
         }
     };
 
-    // Al seleccionar una opción dentro del desplegable
     function onSubcategoryChange() {
         const folderId = document.getElementById('selectSubcategoria').value;
         if (!folderId) return;
 
         hideDocsBox();
-
-        // Si la carpeta seleccionada tiene contenido, navegamos dentro de ella
         requestDriveData(folderId, "cbFolderContent");
     }
 
-    // Muestra la lista de archivos PDF encontrados
     function renderPdfFiles(files) {
         const box = document.getElementById('docsBox');
         const grid = document.getElementById('docsGrid');
@@ -231,7 +220,7 @@
         box.style.display = 'block';
     }
 
-    // Abre el archivo PDF seleccionado usando tu visor de Apps Script
+    // Abre el PDF en una pestaña independiente usando el Visor Gestiproject aislado
     function abrirVisor(fileId) {
         var separador = VISOR_PDF_URL.includes('?') ? '&' : '?';
         var visorUrl = VISOR_PDF_URL + separador + 'id=' + encodeURIComponent(fileId);
@@ -242,7 +231,6 @@
         document.getElementById('docsBox').style.display = 'none';
     }
 
-    // Petición dinámica JSONP a Google Apps Script
     function requestDriveData(folderId, callbackName) {
         activeCallbackCount++;
         const uniqueCallback = callbackName + "_" + activeCallbackCount;
