@@ -116,11 +116,11 @@
     // ID de la carpeta raíz de Ingenierías en Google Drive
     const ROOT_FOLDER_ID = "1uR3V2zeLP1VtuX7kmfKGedaDKS5s7QsH";
     
-    // Nueva URL de tu Apps Script recién publicado
+    // URL actualizada de tu Apps Script
     const SCRIPT_PUENTE_URL = "https://script.google.com/macros/s/AKfycby5kptA52YPD4noy_GwoLIYNkHpATmvDtmGASnlo5GB6m-ozHRqU4F4t_jR5-uhbrhJRA/exec";
     
     // URL de tu Visor PDF Unificado
-    const VISOR_PDF_URL = 'https://script.google.com/macros/s/AKfycbz7OHOqzkSYfzCTOMdiUJKeiKu204K3Ki8keZmWghKdv1sZp0MZMb6Ngehrtn5TpBO5fw/exec';[cite: 1]
+    const VISOR_PDF_URL = 'https://script.google.com/macros/s/AKfycbz7OHOqzkSYfzCTOMdiUJKeiKu204K3Ki8keZmWghKdv1sZp0MZMb6Ngehrtn5TpBO5fw/exec';
 
     let activeCallbackCount = 0;
 
@@ -135,7 +135,7 @@
         grid.innerHTML = '';
 
         if (!response || response.status === "error" || !response.folders || response.folders.length === 0) {
-            grid.innerHTML = '<div style="color:#d9534f; grid-column:1/-1;">No se encontraron subcarpetas en la carpeta raíz de Drive o falta compartir acceso.</div>';
+            grid.innerHTML = '<div style="color:#d9534f; grid-column:1/-1;">No se encontraron subcarpetas en la carpeta de Drive.</div>';
             return;
         }
 
@@ -235,9 +235,9 @@
 
     // Abre el archivo PDF seleccionado usando tu visor de Apps Script
     function abrirVisor(fileId) {
-        var separador = VISOR_PDF_URL.includes('?') ? '&' : '?';[cite: 1]
-        var visorUrl = VISOR_PDF_URL + separador + 'id=' + encodeURIComponent(fileId);[cite: 1]
-        window.open(visorUrl, '_blank', 'noopener,noreferrer');[cite: 1]
+        var separador = VISOR_PDF_URL.includes('?') ? '&' : '?';
+        var visorUrl = VISOR_PDF_URL + separador + 'id=' + encodeURIComponent(fileId);
+        window.open(visorUrl, '_blank', 'noopener,noreferrer');
     }
 
     function hideDocsBox() {
