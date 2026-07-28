@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Repuestos - TSP3</title>
 <style>
-    /* MANTENEMOS TU ESTÉTICA BASE PARA DAR CONTINUIDAD Y ORDEN */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #6fb543, #79c255); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
     .container { background: white; width: 100%; max-width: 900px; border-radius: 20px; padding: 40px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); text-align: center; }
@@ -17,7 +16,6 @@
     
     .button-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; padding: 0 40px; margin-bottom: 30px; }
     
-    /* ESTILO UNIFICADO PARA LOS BOTONES DE REPUESTOS */
     button.rep-btn { 
         padding: 22px 18px; 
         border-radius: 12px; 
@@ -40,7 +38,6 @@
     button.rep-btn:hover { background: #e8e8e8; transform: translateY(-3px); border-bottom: 4px solid #4e7e28; }
     button.rep-btn:active { background: #e0e0e0; transform: translateY(1px); }
 
-    /* ENLACE DE RETORNO AL ESTILO DE EQUIPOS */
     .back-link { display: inline-block; margin-top: 30px; color: #79c255; text-decoration: none; font-weight: bold; font-size: 16px; }
     .back-link:hover { text-decoration: underline; }
 
@@ -57,13 +54,11 @@
     <h2>Listados de Repuestos y Materiales / Spare Parts List</h2>
     
     <div class="button-grid">
-        <!-- BOTÓN 1: REP-Solubilizacion llamando al Visor Universal -->
         <button class="rep-btn" onclick="abrirConVisorUniversal('https://drive.google.com/file/d/120Q-Lm-wzcO-sr29QZMFIlxuM-HI2_50/view?usp=drive_link')">
             REP-Solubilizacion
             <span>Ver listado en el visor integrado</span>
         </button>
         
-        <!-- BOTÓN 2: REP-Granulación llamando al Visor Universal -->
         <button class="rep-btn" onclick="abrirConVisorUniversal('https://drive.google.com/file/d/1EXDT3fUxU800bBzrkVYIxJC8xR56T0Ui/view?usp=drive_link')">
             REP-Granulación
             <span>Ver archivo adjunto en el visor integrado</span>
@@ -76,12 +71,39 @@
 </div>
 
 <script>
-    // URL EXACTA DEL APPS SCRIPT EXTRAÍDA DE TU FORMULARIO DE EQUIPOS
-    const VISOR_PDF_URL = 'https://script.google.com/macros/s/AKfycbx7OHOqzkSYfzCTOMdiUJKeiKu204K3Ki8keZmWghKdv1sZp0MZMb6Ngehrtn5TpBO5fw/exec';
+    // VERIFICACIÓN DE SESIÓN
+    if (localStorage.getItem('isLoggedIn') !== 'true') {
+        window.location.href = 'index.html';
+    }
 
-    /* =====================================================
-       ABRIR EN VISOR UNIVERSAL (IDÉNTICO A EQUIPOS)
-    ===================================================== */
+    // CONTROL DE INACTIVIDAD (5 MINUTOS)
+    (function() {
+        const TIEMPO_INACTIVIDAD_MS = 5 * 60 * 1000;
+        let timerInactividad;
+
+        function cerrarSesionPorInactividad() {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('loggedUser');
+            alert("Tu sesión ha expirado por inactividad (5 minutos). Por favor, vuelve a iniciar sesión.");
+            window.location.href = 'index.html';
+        }
+
+        function reiniciarTemporizador() {
+            clearTimeout(timerInactividad);
+            timerInactividad = setTimeout(cerrarSesionPorInactividad, TIEMPO_INACTIVIDAD_MS);
+        }
+
+        const eventosActividad = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
+        eventosActividad.forEach(evento => {
+            window.addEventListener(evento, reiniciarTemporizador, { passive: true });
+        });
+
+        reiniciarTemporizador();
+    })();
+
+    // URL NATIVA ACTUALIZADA DEL VISOR
+    const VISOR_PDF_URL = 'https://script.google.com/macros/s/AKfycbyAA7JN9jnHYTtQKLUZeNEvBTQm-kl9HMlVxyp_ddFB7ME7RUJzTBylxx6FyyW8RMQl8Q/exec';
+
     function abrirConVisorUniversal(url) {
         if (!url) {
             alert('No hay ningún enlace disponible para este documento.');
@@ -95,7 +117,6 @@
             const fileId = extraerIdGoogleDrive(urlLimpia);
 
             if (!fileId) {
-                // Si no conseguimos extraer el ID, abrimos el enlace original por seguridad
                 window.open(urlLimpia, '_blank', 'noopener,noreferrer');
                 return;
             }
@@ -107,17 +128,11 @@
             return;
         }
 
-        // Los enlaces que no son de Google Drive se abren directamente
         window.open(urlLimpia, '_blank', 'noopener,noreferrer');
     }
 
-    /* =====================================================
-       EXTRAER ID DE GOOGLE DRIVE (IDÉNTICO A EQUIPOS)
-    ===================================================== */
     function extraerIdGoogleDrive(url) {
-        if (!url) {
-            return null;
-        }
+        if (!url) return null;
 
         const patrones = [
             /\/file\/d\/([a-zA-Z0-9_-]+)/,
