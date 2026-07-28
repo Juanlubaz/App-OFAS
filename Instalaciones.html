@@ -67,8 +67,17 @@
 
     /* ESTILO GENERAL DE LOS BOTONES DE OPCIÓN */
     button.btn-option { padding: 15px; border-radius: 12px; font-size: 15px; border: 2px solid #ccc; cursor: pointer; background: #fff; box-shadow: 0 3px 6px rgba(0,0,0,0.08); transition: all 0.2s ease; font-weight: 600; color: #333; }
-    button.btn-option:hover { background: #e8e8e8; transform: translateY(-2px); }
+    button.btn-option:hover:not(:disabled) { background: #e8e8e8; transform: translateY(-2px); }
     button.btn-option.active { background: #79c255; color: white; border-color: #4e7e28; }
+    
+    /* ESTILO PARA BOTONES DESACTIVADOS */
+    button.btn-option:disabled {
+        background: #f0f0f0;
+        color: #aaa;
+        border-color: #e0e0e0;
+        cursor: not-allowed;
+        box-shadow: none;
+    }
 
     .back-link { display: inline-block; margin-top: 30px; color: #79c255; text-decoration: none; font-weight: bold; font-size: 16px; }
     .back-link:hover { text-decoration: underline; }
@@ -83,17 +92,17 @@
     
     <h1>Installations Documents</h1>
 
-    <!-- Nivel 1: Los 7 botones de Instalaciones -->
+    <!-- Nivel 1: Los 7 botones de Instalaciones (Solo 2 activos) -->
     <div class="options-box">
         <div class="options-title">Selecciona una Instalación</div>
         <div class="options-grid">
             <button type="button" class="btn-option" onclick="onCategoryClick('aire', this)">AIRE COMPRIMIDO</button>
-            <button type="button" class="btn-option" onclick="onCategoryClick('hvac', this)">HVAC</button>
+            <button type="button" class="btn-option" disabled>HVAC</button>
             <button type="button" class="btn-option" onclick="onCategoryClick('pci', this)">PCI</button>
-            <button type="button" class="btn-option" onclick="onCategoryClick('vapor', this)">VAPOR</button>
-            <button type="button" class="btn-option" onclick="onCategoryClick('amoniaco', this)">AMONIACO</button>
-            <button type="button" class="btn-option" onclick="onCategoryClick('fuel', this)">FUEL Y PARAFINAS</button>
-            <button type="button" class="btn-option" onclick="onCategoryClick('electricidad', this)">ELECTRICIDAD Y CONTROL</button>
+            <button type="button" class="btn-option" disabled>VAPOR</button>
+            <button type="button" class="btn-option" disabled>AMONIACO</button>
+            <button type="button" class="btn-option" disabled>FUEL Y PARAFINAS</button>
+            <button type="button" class="btn-option" disabled>ELECTRICIDAD Y CONTROL</button>
         </div>
     </div>
 
@@ -193,12 +202,6 @@
                 <option value="fichas">Fichas técnicas</option>
                 <option value="planos">Planos</option>
             `;
-        } 
-        else if (category === 'hvac') {
-            alert("La sección HVAC se encuentra vacía por el momento.");
-        } 
-        else {
-            alert("Esta sección estará disponible próximamente.");
         }
     }
 
@@ -211,7 +214,6 @@
         if (!val) return;
 
         if (activeCategory === 'aire') {
-            // Ahora tanto Compresores como Acumuladores buscan subcarpetas primero
             if (val === 'compresores') {
                 requestDriveData(DRIVE_IDS.AIRE_COMPRESORES, "cbRenderSubfolders");
             } else if (val === 'acumuladores') {
@@ -227,7 +229,7 @@
         }
     });
 
-    // LISTENER DEL SEGUNDO DESPLEGABLE (Carga los PDFs de la subcarpeta elegida)
+    // LISTENER DEL SEGUNDO DESPLEGABLE
     document.getElementById('selectSub2').addEventListener('change', function() {
         const folderId = this.value;
         hideDocsBox();
@@ -236,7 +238,7 @@
         requestDriveData(folderId, "cbRenderFilesDirectly");
     });
 
-    // CALLBACK UNIFICADO: Carga subcarpetas para Aire (Compresores/Acumuladores) y PCI (Fichas Técnicas)
+    // CALLBACK UNIFICADO PARA SUBCARPETAS
     window.cbRenderSubfolders = function(response) {
         const containerSub2 = document.getElementById('containerSub2');
         const selectSub2 = document.getElementById('selectSub2');
@@ -257,7 +259,7 @@
         containerSub2.style.display = 'block';
     };
 
-    // CALLBACK: Filtra y muestra directamente los archivos PDF
+    // CALLBACK PARA ARCHIVOS PDF
     window.cbRenderFilesDirectly = function(response) {
         if (!response || response.status === "error") {
             alert("Error al conectar con Google Drive.");
