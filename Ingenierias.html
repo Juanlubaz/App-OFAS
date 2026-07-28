@@ -113,6 +113,36 @@
 </div>
 
 <script>
+    // VERIFICACIÓN DE SESIÓN
+    if (localStorage.getItem('isLoggedIn') !== 'true') {
+        window.location.href = 'index.html';
+    }
+
+    // CONTROL DE INACTIVIDAD (5 MINUTOS)
+    (function() {
+        const TIEMPO_INACTIVIDAD_MS = 5 * 60 * 1000;
+        let timerInactividad;
+
+        function cerrarSesionPorInactividad() {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('loggedUser');
+            alert("Tu sesión ha expirado por inactividad (5 minutos). Por favor, vuelve a iniciar sesión.");
+            window.location.href = 'index.html';
+        }
+
+        function reiniciarTemporizador() {
+            clearTimeout(timerInactividad);
+            timerInactividad = setTimeout(cerrarSesionPorInactividad, TIEMPO_INACTIVIDAD_MS);
+        }
+
+        const eventosActividad = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
+        eventosActividad.forEach(evento => {
+            window.addEventListener(evento, reiniciarTemporizador, { passive: true });
+        });
+
+        reiniciarTemporizador();
+    })();
+
     // ID de la carpeta raíz de Ingenierías
     const ROOT_FOLDER_ID = "1uR3V2zeLP1VtuX7kmfKGedaDKS5s7QsH";
     
@@ -234,7 +264,6 @@
         box.style.display = 'block';
     }
 
-    // Abre el PDF en una pestaña independiente usando el Visor Gestiproject aislado
     function abrirVisor(fileId) {
         var separador = VISOR_PDF_URL.includes('?') ? '&' : '?';
         var visorUrl = VISOR_PDF_URL + separador + 'id=' + encodeURIComponent(fileId);
