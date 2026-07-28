@@ -105,7 +105,7 @@
         </select>
     </div>
 
-    <!-- Nivel 3: Desplegable secundario (para subcarpetas como en PCI -> Fichas Técnicas) -->
+    <!-- Nivel 3: Desplegable secundario para subcarpetas de Drive -->
     <div id="containerSub2" class="form-group" style="display:none;">
         <label id="labelSub2" for="selectSub2">Selecciona subcarpeta:</label>
         <select id="selectSub2">
@@ -211,23 +211,23 @@
         if (!val) return;
 
         if (activeCategory === 'aire') {
+            // Ahora tanto Compresores como Acumuladores buscan subcarpetas primero
             if (val === 'compresores') {
-                requestDriveData(DRIVE_IDS.AIRE_COMPRESORES, "cbRenderFilesDirectly");
+                requestDriveData(DRIVE_IDS.AIRE_COMPRESORES, "cbRenderSubfolders");
             } else if (val === 'acumuladores') {
-                requestDriveData(DRIVE_IDS.AIRE_ACUMULADORES, "cbRenderFilesDirectly");
+                requestDriveData(DRIVE_IDS.AIRE_ACUMULADORES, "cbRenderSubfolders");
             }
         } 
         else if (activeCategory === 'pci') {
             if (val === 'fichas') {
-                // Fichas técnicas contiene subcarpetas
-                requestDriveData(DRIVE_IDS.PCI_FICHAS, "cbRenderSubfoldersPCI");
+                requestDriveData(DRIVE_IDS.PCI_FICHAS, "cbRenderSubfolders");
             } else if (val === 'planos') {
                 requestDriveData(DRIVE_IDS.PCI_PLANOS, "cbRenderFilesDirectly");
             }
         }
     });
 
-    // LISTENER DEL SEGUNDO DESPLEGABLE (PCI -> Fichas Técnicas -> Subcarpeta seleccionada)
+    // LISTENER DEL SEGUNDO DESPLEGABLE (Carga los PDFs de la subcarpeta elegida)
     document.getElementById('selectSub2').addEventListener('change', function() {
         const folderId = this.value;
         hideDocsBox();
@@ -236,13 +236,13 @@
         requestDriveData(folderId, "cbRenderFilesDirectly");
     });
 
-    // CALLBACK: Carga subcarpetas para PCI Fichas Técnicas
-    window.cbRenderSubfoldersPCI = function(response) {
+    // CALLBACK UNIFICADO: Carga subcarpetas para Aire (Compresores/Acumuladores) y PCI (Fichas Técnicas)
+    window.cbRenderSubfolders = function(response) {
         const containerSub2 = document.getElementById('containerSub2');
         const selectSub2 = document.getElementById('selectSub2');
 
         if (!response || response.status === "error" || !response.folders || response.folders.length === 0) {
-            alert("No se encontraron subcarpetas en Fichas Técnicas.");
+            alert("No se encontraron subcarpetas dentro de esta sección.");
             return;
         }
 
