@@ -28,7 +28,7 @@
     h1 { color: #4e7e28; margin-bottom: 30px; font-size: 26px; }
     .form-group { text-align: left; margin-bottom: 20px; }
     label { display: block; color: #4e7e28; font-size: 14px; margin-bottom: 8px; font-weight: bold; }
-    input {
+    input[type="text"], input[type="password"] {
         width: 100%;
         padding: 15px;
         border: 2px solid #f3f3f3;
@@ -38,7 +38,26 @@
         background: #f9f9f9;
         transition: all 0.3s ease;
     }
-    input:focus { border-color: #79c255; background: white; }
+    input[type="text"]:focus, input[type="password"]:focus { border-color: #79c255; background: white; }
+
+    /* ESTILOS PARA LA CASILLA "MOSTRAR CONTRASEÑA" */
+    .show-password-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+        font-size: 13px;
+        color: #555;
+        cursor: pointer;
+        user-select: none;
+    }
+    .show-password-group input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        accent-color: #4e7e28;
+        cursor: pointer;
+    }
+
     .button-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 30px; }
     button {
         padding: 18px;
@@ -72,6 +91,12 @@
     <div class="form-group">
         <label>PASSWORD</label>
         <input type="password" id="passInput" placeholder="Password" autocomplete="current-password">
+        
+        <!-- CHECKBOX PARA MOSTRAR/OCULTAR CONTRASEÑA -->
+        <label class="show-password-group">
+            <input type="checkbox" id="togglePass" onclick="togglePasswordVisibility()">
+            Mostrar contraseña
+        </label>
     </div>
 
     <div id="message"></div>
@@ -84,6 +109,22 @@
 
 <script>
     const API_URL = 'https://script.google.com/macros/s/AKfycbzCYdQHxJQs6VWDOynidXLpr3kK6-UYA4kylZLzH37Vv0l94ZclNwZ66NB6c6wXmlDHCw/exec';
+
+    // Alterna la visibilidad del campo contraseña
+    function togglePasswordVisibility() {
+        const passInput = document.getElementById('passInput');
+        const checkbox = document.getElementById('togglePass');
+        passInput.type = checkbox.checked ? 'text' : 'password';
+    }
+
+    // Escucha la tecla Intro (Enter) en los inputs
+    document.getElementById('userInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') validateLogin();
+    });
+
+    document.getElementById('passInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') validateLogin();
+    });
 
     async function validateLogin() {
         const userValue = document.getElementById('userInput').value.trim().toLowerCase();
