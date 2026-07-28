@@ -9,1195 +9,395 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 
     <style>
-        /* =====================================================
-           ESTILOS BASE
-        ===================================================== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #6fb543, #79c255); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .container { background: white; width: 100%; max-width: 900px; border-radius: 20px; padding: 40px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15); text-align: center; }
+        .logos { display: flex; justify-content: center; align-items: center; margin-bottom: 30px; flex-wrap: wrap; }
+        .logos img { max-height: 120px; max-width: 100%; height: auto; width: auto; object-fit: contain; }
+        h1 { color: #4e7e28; margin-bottom: 30px; font-size: 28px; }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        .options-box { border: 2px dashed #79c255; border-radius: 15px; padding: 20px; margin-bottom: 25px; background-color: #f9fdf6; }
+        .options-title { font-size: 14px; color: #4e7e28; font-weight: bold; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+        .options-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; max-width: 500px; margin: 0 auto; }
 
-        body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #6fb543, #79c255);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
+        .form-group { max-width: 740px; margin: 0 auto 20px auto; text-align: left; }
+        label { display: block; color: #555; font-weight: 600; margin-bottom: 8px; font-size: 1.1em; }
+        select { width: 100%; padding: 14px 15px; border: 2px solid #ddd; border-radius: 12px; font-size: 16px; background: white; cursor: pointer; transition: border-color 0.3s; outline: none; }
+        select:focus { border-color: #79c255; }
+        select:disabled { background: #f5f5f5; cursor: not-allowed; border-color: #eee; }
 
-        .container {
-            background: white;
-            width: 100%;
-            max-width: 900px;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-            text-align: center;
-        }
+        .action-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; padding: 0 40px; margin-top: 25px; }
+        button { padding: 18px; border-radius: 12px; font-size: 18px; border: none; cursor: pointer; background: #f3f3f3; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); transition: all 0.2s ease; font-weight: 600; color: #333; }
+        button:hover { background: #e8e8e8; transform: translateY(-3px); }
+        button:active { background: #e0e0e0; transform: translateY(1px); }
 
-        .logos {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
+        .btn-option { background: #fff; border: 2px solid #ccc; }
+        .btn-option.active { background: #79c255; color: white; border-color: #4e7e28; }
 
-        .logos img {
-            max-height: 120px;
-            max-width: 100%;
-            height: auto;
-            width: auto;
-            object-fit: contain;
-        }
+        .back-link { display: inline-block; margin-top: 30px; color: #79c255; text-decoration: none; font-weight: bold; font-size: 16px; }
+        .back-link:hover { text-decoration: underline; }
+        .loading { text-align: center; padding: 20px; color: #4e7e28; font-weight: bold; }
 
-        h1 {
-            color: #4e7e28;
-            margin-bottom: 30px;
-            font-size: 28px;
-        }
+        .document-modal { display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0, 0, 0, 0.65); padding: 20px; overflow-y: auto; align-items: center; justify-content: center; }
+        .document-modal.visible { display: flex; }
+        .document-modal-content { position: relative; width: 100%; max-width: 680px; max-height: 85vh; overflow-y: auto; background: white; border-radius: 18px; padding: 30px; box-shadow: 0 10px 35px rgba(0, 0, 0, 0.3); text-align: left; }
+        .document-modal-content h2 { color: #4e7e28; margin: 0 50px 10px 0; font-size: 24px; }
+        .document-modal-description { color: #666; margin-bottom: 20px; line-height: 1.5; }
+        .document-modal-close { position: absolute; top: 12px; right: 15px; width: 42px; height: 42px; padding: 0; border-radius: 50%; background: #f1f1f1; font-size: 28px; line-height: 42px; box-shadow: none; }
+        .document-modal-close:hover { background: #ddd; transform: none; }
 
-        /* =====================================================
-           RECUADRO DE CRITERIOS
-        ===================================================== */
+        .document-link { display: flex; align-items: center; gap: 10px; width: 100%; margin-bottom: 12px; padding: 16px; border: 2px solid #79c255; border-radius: 12px; background: #f9fdf6; color: #333; text-align: left; font-size: 16px; cursor: pointer; box-shadow: none; }
+        .document-link:last-child { margin-bottom: 0; }
+        .document-link:hover { background: #79c255; color: white; transform: translateY(-2px); }
 
-        .options-box {
-            border: 2px dashed #79c255;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 25px;
-            background-color: #f9fdf6;
-        }
-
-        .options-title {
-            font-size: 14px;
-            color: #4e7e28;
-            font-weight: bold;
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .options-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            max-width: 500px;
-            margin: 0 auto;
-        }
-
-        /* =====================================================
-           FORMULARIOS
-        ===================================================== */
-
-        .form-group {
-            max-width: 740px;
-            margin: 0 auto 20px auto;
-            text-align: left;
-        }
-
-        label {
-            display: block;
-            color: #555;
-            font-weight: 600;
-            margin-bottom: 8px;
-            font-size: 1.1em;
-        }
-
-        select {
-            width: 100%;
-            padding: 14px 15px;
-            border: 2px solid #ddd;
-            border-radius: 12px;
-            font-size: 16px;
-            background: white;
-            cursor: pointer;
-            transition: border-color 0.3s;
-            outline: none;
-        }
-
-        select:focus {
-            border-color: #79c255;
-        }
-
-        select:disabled {
-            background: #f5f5f5;
-            cursor: not-allowed;
-            border-color: #eee;
-        }
-
-        /* =====================================================
-           BOTONES
-        ===================================================== */
-
-        .action-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-            padding: 0 40px;
-            margin-top: 25px;
-        }
-
-        button {
-            padding: 18px;
-            border-radius: 12px;
-            font-size: 18px;
-            border: none;
-            cursor: pointer;
-            background: #f3f3f3;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            transition: all 0.2s ease;
-            font-weight: 600;
-            color: #333;
-        }
-
-        button:hover {
-            background: #e8e8e8;
-            transform: translateY(-3px);
-        }
-
-        button:active {
-            background: #e0e0e0;
-            transform: translateY(1px);
-        }
-
-        .btn-option {
-            background: #fff;
-            border: 2px solid #ccc;
-        }
-
-        .btn-option.active {
-            background: #79c255;
-            color: white;
-            border-color: #4e7e28;
-        }
-
-        .back-link {
-            display: inline-block;
-            margin-top: 30px;
-            color: #79c255;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 16px;
-        }
-
-        .back-link:hover {
-            text-decoration: underline;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #4e7e28;
-            font-weight: bold;
-        }
-
-        /* =====================================================
-           VENTANA DE DOCUMENTOS
-        ===================================================== */
-
-        .document-modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 9999;
-            background: rgba(0, 0, 0, 0.65);
-            padding: 20px;
-            overflow-y: auto;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .document-modal.visible {
-            display: flex;
-        }
-
-        .document-modal-content {
-            position: relative;
-            width: 100%;
-            max-width: 680px;
-            max-height: 85vh;
-            overflow-y: auto;
-            background: white;
-            border-radius: 18px;
-            padding: 30px;
-            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.3);
-            text-align: left;
-        }
-
-        .document-modal-content h2 {
-            color: #4e7e28;
-            margin: 0 50px 10px 0;
-            font-size: 24px;
-        }
-
-        .document-modal-description {
-            color: #666;
-            margin-bottom: 20px;
-            line-height: 1.5;
-        }
-
-        .document-modal-close {
-            position: absolute;
-            top: 12px;
-            right: 15px;
-            width: 42px;
-            height: 42px;
-            padding: 0;
-            border-radius: 50%;
-            background: #f1f1f1;
-            font-size: 28px;
-            line-height: 42px;
-            box-shadow: none;
-        }
-
-        .document-modal-close:hover {
-            background: #ddd;
-            transform: none;
-        }
-
-        .document-link {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            width: 100%;
-            margin-bottom: 12px;
-            padding: 16px;
-            border: 2px solid #79c255;
-            border-radius: 12px;
-            background: #f9fdf6;
-            color: #333;
-            text-align: left;
-            font-size: 16px;
-            cursor: pointer;
-            box-shadow: none;
-        }
-
-        .document-link:last-child {
-            margin-bottom: 0;
-        }
-
-        .document-link:hover {
-            background: #79c255;
-            color: white;
-            transform: translateY(-2px);
-        }
-
-        .document-number {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            flex: 0 0 36px;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: #79c255;
-            color: white;
-            font-weight: bold;
-        }
-
-        .document-link:hover .document-number {
-            background: white;
-            color: #4e7e28;
-        }
-
-        .document-text {
-            flex: 1;
-            word-break: break-word;
-        }
-
-        /* =====================================================
-           DISEÑO RESPONSIVE
-        ===================================================== */
+        .document-number { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 36px; width: 36px; height: 36px; border-radius: 50%; background: #79c255; color: white; font-weight: bold; }
+        .document-link:hover .document-number { background: white; color: #4e7e28; }
+        .document-text { flex: 1; word-break: break-word; }
 
         @media (max-width: 650px) {
-            .container {
-                padding: 25px 18px;
-            }
-
-            .options-grid,
-            .action-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .action-grid {
-                padding: 0;
-            }
-
-            .document-modal-content {
-                padding: 25px 18px;
-            }
-
-            .document-link {
-                font-size: 15px;
-                padding: 14px;
-            }
+            .container { padding: 25px 18px; }
+            .options-grid, .action-grid { grid-template-columns: 1fr; }
+            .action-grid { padding: 0; }
+            .document-modal-content { padding: 25px 18px; }
+            .document-link { font-size: 15px; padding: 14px; }
         }
     </style>
 </head>
-
 <body>
 
     <div class="container">
-
         <div class="logos">
-            <img
-                src="https://raw.githubusercontent.com/Juanlubaz/Enlaces-estructuras-TSP3/main/GESTI.png"
-                alt="Gestiproject Logo"
-            />
+            <img src="https://raw.githubusercontent.com/Juanlubaz/Enlaces-estructuras-TSP3/main/GESTI.png" alt="Gestiproject Logo" />
         </div>
 
         <h1>Equipment Search</h1>
 
         <div class="options-box">
-
-            <div class="options-title">
-                Search Criteria
-            </div>
-
+            <div class="options-title">Search Criteria</div>
             <div class="options-grid">
-
-                <button
-                    type="button"
-                    id="btnFabricante"
-                    class="btn-option active"
-                    onclick="selectCriteria('fabricante')"
-                >
-                    MANUFACTURER
-                </button>
-
-                <button
-                    type="button"
-                    id="btnEquipo"
-                    class="btn-option"
-                    onclick="selectCriteria('equipo')"
-                >
-                    EQUIPMENT TYPE
-                </button>
-
+                <button type="button" id="btnFabricante" class="btn-option active" onclick="selectCriteria('fabricante')">MANUFACTURER</button>
+                <button type="button" id="btnEquipo" class="btn-option" onclick="selectCriteria('equipo')">EQUIPMENT TYPE</button>
             </div>
         </div>
 
-        <div id="loadingStatus" class="loading">
-            Cargando base de datos de equipos...
-        </div>
+        <div id="loadingStatus" class="loading">Cargando base de datos de equipos...</div>
 
         <div id="dropdownsContainer" style="display: none;">
-
             <div class="form-group">
-
-                <label id="labelNivel1" for="selectNivel1">
-                    Selecciona Fabricante:
-                </label>
-
-                <select id="selectNivel1">
-                    <option value="">
-                        -- Esperando selección --
-                    </option>
-                </select>
-
+                <label id="labelNivel1" for="selectNivel1">Selecciona Fabricante:</label>
+                <select id="selectNivel1"><option value="">-- Esperando selección --</option></select>
             </div>
 
             <div class="form-group">
-
-                <label id="labelNivel2" for="selectNivel2">
-                    Selecciona Equipo:
-                </label>
-
-                <select id="selectNivel2" disabled>
-                    <option value="">
-                        -- Selecciona el paso anterior --
-                    </option>
-                </select>
-
+                <label id="labelNivel2" for="selectNivel2">Selecciona Equipo:</label>
+                <select id="selectNivel2" disabled><option value="">-- Selecciona el paso anterior --</option></select>
             </div>
-
         </div>
 
         <div class="action-grid">
-
-            <button
-                type="button"
-                onclick="executeEquipmentSearch('PLANOS')"
-            >
-                PLANOS
-            </button>
-
-            <button
-                type="button"
-                onclick="executeEquipmentSearch('MANUALES')"
-            >
-                MANUALES
-            </button>
-
+            <button type="button" onclick="executeEquipmentSearch('PLANOS')">PLANOS</button>
+            <button type="button" onclick="executeEquipmentSearch('MANUALES')">MANUALES</button>
         </div>
 
-        <a href="principal.html" class="back-link">
-            ← Back to Principal
-        </a>
-
+        <a href="principal.html" class="back-link">← Back to Principal</a>
     </div>
 
-    <!-- =====================================================
-         VENTANA MODAL DE DOCUMENTOS
-    ====================================================== -->
-
     <div id="documentModal" class="document-modal">
-
         <div class="document-modal-content">
-
-            <button
-                type="button"
-                class="document-modal-close"
-                onclick="cerrarListaDocumentos()"
-                aria-label="Cerrar ventana"
-            >
-                ×
-            </button>
-
-            <h2 id="documentModalTitle">
-                Documentos disponibles
-            </h2>
-
-            <p class="document-modal-description">
-                Selecciona el archivo que deseas abrir:
-            </p>
-
+            <button type="button" class="document-modal-close" onclick="cerrarListaDocumentos()" aria-label="Cerrar ventana">×</button>
+            <h2 id="documentModalTitle">Documentos disponibles</h2>
+            <p class="document-modal-description">Selecciona el archivo que deseas abrir:</p>
             <div id="documentLinksContainer"></div>
-
         </div>
-
     </div>
 
     <script>
-        /* =====================================================
-           VARIABLES GLOBALES
-        ===================================================== */
+        // VERIFICACIÓN DE SESIÓN
+        if (localStorage.getItem('isLoggedIn') !== 'true') {
+            window.location.href = 'index.html';
+        }
+
+        // CONTROL DE INACTIVIDAD (5 MINUTOS)
+        (function() {
+            const TIEMPO_INACTIVIDAD_MS = 5 * 60 * 1000;
+            let timerInactividad;
+
+            function cerrarSesionPorInactividad() {
+                localStorage.removeItem('isLoggedIn');
+                localStorage.removeItem('loggedUser');
+                alert("Tu sesión ha expirado por inactividad (5 minutos). Por favor, vuelve a iniciar sesión.");
+                window.location.href = 'index.html';
+            }
+
+            function reiniciarTemporizador() {
+                clearTimeout(timerInactividad);
+                timerInactividad = setTimeout(cerrarSesionPorInactividad, TIEMPO_INACTIVIDAD_MS);
+            }
+
+            const eventosActividad = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
+            eventosActividad.forEach(evento => {
+                window.addEventListener(evento, reiniciarTemporizador, { passive: true });
+            });
+
+            reiniciarTemporizador();
+        })();
 
         let currentCriteria = 'fabricante';
-
         let rawCsvData = [];
-
-        /*
-         * Ahora guardamos todos los registros coincidentes,
-         * no solamente el primero.
-         */
         let currentMatchedRows = [];
-
         const CSV_FILE_NAME = 'Enlaces equipos.csv';
 
-        /*
-         * URL corregida del Apps Script.
-         * En la versión anterior aparecía una "z" donde debía
-         * aparecer una "x".
-         */
-        const VISOR_PDF_URL =
-            'https://script.google.com/macros/s/AKfycbx7OHOqzkSYfzCTOMdiUJKeiKu204K3Ki8keZmWghKdv1sZp0MZMb6Ngehrtn5TpBO5fw/exec';
-
-
-        /* =====================================================
-           CARGAR Y PROCESAR EL CSV
-        ===================================================== */
+        // URL NATIVA ACTUALIZADA DEL VISOR
+        const VISOR_PDF_URL = 'https://script.google.com/macros/s/AKfycbyAA7JN9jnHYTtQKLUZeNEvBTQm-kl9HMlVxyp_ddFB7ME7RUJzTBylxx6FyyW8RMQl8Q/exec';
 
         function loadCSVData() {
-
             fetch(CSV_FILE_NAME)
                 .then(response => {
-
-                    if (!response.ok) {
-                        throw new Error(
-                            'No se pudo localizar el archivo CSV local.'
-                        );
-                    }
-
+                    if (!response.ok) throw new Error('No se pudo localizar el archivo CSV local.');
                     return response.text();
                 })
                 .then(csvText => {
-
                     Papa.parse(csvText, {
-
                         header: true,
                         skipEmptyLines: true,
-
                         complete: function(results) {
-
                             rawCsvData = [];
-
-                            if (
-                                results.data &&
-                                results.data.length > 0
-                            ) {
-
+                            if (results.data && results.data.length > 0) {
                                 results.data.forEach(row => {
-
-                                    if (!row) {
-                                        return;
-                                    }
-
+                                    if (!row) return;
                                     const cleanRow = {};
-
                                     Object.keys(row).forEach(key => {
-
-                                        if (!key) {
-                                            return;
-                                        }
-
-                                        const cleanKey = key
-                                            .trim()
-                                            .toUpperCase();
-
+                                        if (!key) return;
+                                        const cleanKey = key.trim().toUpperCase();
                                         const value = row[key];
-
-                                        cleanRow[cleanKey] =
-                                            value !== null &&
-                                            value !== undefined
-                                                ? String(value).trim()
-                                                : '';
+                                        cleanRow[cleanKey] = value !== null && value !== undefined ? String(value).trim() : '';
                                     });
-
-                                    if (
-                                        cleanRow.FABRICANTE ||
-                                        cleanRow.EQUIPO
-                                    ) {
+                                    if (cleanRow.FABRICANTE || cleanRow.EQUIPO) {
                                         rawCsvData.push(cleanRow);
                                     }
-
                                 });
                             }
-
-                            document.getElementById(
-                                'loadingStatus'
-                            ).style.display = 'none';
-
-                            document.getElementById(
-                                'dropdownsContainer'
-                            ).style.display = 'block';
-
+                            document.getElementById('loadingStatus').style.display = 'none';
+                            document.getElementById('dropdownsContainer').style.display = 'block';
                             initializeFormStructure();
                         },
-
                         error: function(error) {
-
-                            document.getElementById(
-                                'loadingStatus'
-                            ).innerText =
-                                '⚠️ Error procesando el CSV: ' +
-                                error.message;
+                            document.getElementById('loadingStatus').innerText = '⚠️ Error procesando el CSV: ' + error.message;
                         }
                     });
                 })
                 .catch(error => {
-
-                    document.getElementById(
-                        'loadingStatus'
-                    ).innerText =
-                        '⚠️ Error de sincronización: ' +
-                        error.message;
+                    document.getElementById('loadingStatus').innerText = '⚠️ Error de sincronización: ' + error.message;
                 });
         }
 
-
-        /* =====================================================
-           CAMBIAR CRITERIO DE BÚSQUEDA
-        ===================================================== */
-
         function selectCriteria(criteria) {
-
             currentCriteria = criteria;
-
-            const btnFabricante =
-                document.getElementById('btnFabricante');
-
-            const btnEquipo =
-                document.getElementById('btnEquipo');
+            const btnFabricante = document.getElementById('btnFabricante');
+            const btnEquipo = document.getElementById('btnEquipo');
 
             if (criteria === 'fabricante') {
-
                 btnFabricante.classList.add('active');
                 btnEquipo.classList.remove('active');
-
             } else {
-
                 btnEquipo.classList.add('active');
                 btnFabricante.classList.remove('active');
             }
-
             initializeFormStructure();
         }
 
-
-        /* =====================================================
-           INICIALIZAR DESPLEGABLES
-        ===================================================== */
-
         function initializeFormStructure() {
-
-            const labelNivel1 =
-                document.getElementById('labelNivel1');
-
-            const labelNivel2 =
-                document.getElementById('labelNivel2');
-
-            const selectNivel1 =
-                document.getElementById('selectNivel1');
-
-            const selectNivel2 =
-                document.getElementById('selectNivel2');
+            const labelNivel1 = document.getElementById('labelNivel1');
+            const labelNivel2 = document.getElementById('labelNivel2');
+            const selectNivel1 = document.getElementById('selectNivel1');
+            const selectNivel2 = document.getElementById('selectNivel2');
 
             currentMatchedRows = [];
-
-            selectNivel2.innerHTML =
-                '<option value="">' +
-                '-- Selecciona el paso anterior --' +
-                '</option>';
-
+            selectNivel2.innerHTML = '<option value="">-- Selecciona el paso anterior --</option>';
             selectNivel2.disabled = true;
 
             if (currentCriteria === 'fabricante') {
-
-                labelNivel1.innerText =
-                    'Selecciona Fabricante:';
-
-                labelNivel2.innerText =
-                    'Selecciona Equipo:';
-
-                const fabricantes = [
-                    ...new Set(
-                        rawCsvData.map(item => item.FABRICANTE)
-                    )
-                ]
-                    .filter(Boolean)
-                    .sort((a, b) =>
-                        a.localeCompare(b, 'es', {
-                            sensitivity: 'base'
-                        })
-                    );
-
-                selectNivel1.innerHTML =
-                    '<option value="">' +
-                    '-- Selecciona un FABRICANTE --' +
-                    '</option>';
-
+                labelNivel1.innerText = 'Selecciona Fabricante:';
+                labelNivel2.innerText = 'Selecciona Equipo:';
+                const fabricantes = [...new Set(rawCsvData.map(item => item.FABRICANTE))].filter(Boolean).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
+                selectNivel1.innerHTML = '<option value="">-- Selecciona un FABRICANTE --</option>';
                 fabricantes.forEach(fabricante => {
-
-                    const option =
-                        document.createElement('option');
-
+                    const option = document.createElement('option');
                     option.value = fabricante;
                     option.innerText = fabricante;
-
                     selectNivel1.appendChild(option);
                 });
-
             } else {
-
-                labelNivel1.innerText =
-                    'Selecciona Equipo:';
-
-                labelNivel2.innerText =
-                    'Selecciona Fabricante:';
-
-                const equipos = [
-                    ...new Set(
-                        rawCsvData.map(item => item.EQUIPO)
-                    )
-                ]
-                    .filter(Boolean)
-                    .sort((a, b) =>
-                        a.localeCompare(b, 'es', {
-                            sensitivity: 'base'
-                        })
-                    );
-
-                selectNivel1.innerHTML =
-                    '<option value="">' +
-                    '-- Selecciona un EQUIPO --' +
-                    '</option>';
-
+                labelNivel1.innerText = 'Selecciona Equipo:';
+                labelNivel2.innerText = 'Selecciona Fabricante:';
+                const equipos = [...new Set(rawCsvData.map(item => item.EQUIPO))].filter(Boolean).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
+                selectNivel1.innerHTML = '<option value="">-- Selecciona un EQUIPO --</option>';
                 equipos.forEach(equipo => {
-
-                    const option =
-                        document.createElement('option');
-
+                    const option = document.createElement('option');
                     option.value = equipo;
                     option.innerText = equipo;
-
                     selectNivel1.appendChild(option);
                 });
             }
         }
 
-
-        /* =====================================================
-           CAMBIO DEL PRIMER DESPLEGABLE
-        ===================================================== */
-
         function onNivel1Change() {
-
-            const valorNivel1 =
-                document.getElementById(
-                    'selectNivel1'
-                ).value;
-
-            const selectNivel2 =
-                document.getElementById(
-                    'selectNivel2'
-                );
-
+            const valorNivel1 = document.getElementById('selectNivel1').value;
+            const selectNivel2 = document.getElementById('selectNivel2');
             currentMatchedRows = [];
-
-            selectNivel2.innerHTML =
-                '<option value="">' +
-                '-- Selecciona el paso anterior --' +
-                '</option>';
-
+            selectNivel2.innerHTML = '<option value="">-- Selecciona el paso anterior --</option>';
             selectNivel2.disabled = !valorNivel1;
 
-            if (!valorNivel1) {
-                return;
-            }
+            if (!valorNivel1) return;
 
             let opcionesSecundarias = [];
-
             if (currentCriteria === 'fabricante') {
-
-                opcionesSecundarias = [
-                    ...new Set(
-                        rawCsvData
-                            .filter(
-                                item =>
-                                    item.FABRICANTE ===
-                                    valorNivel1
-                            )
-                            .map(item => item.EQUIPO)
-                    )
-                ]
-                    .filter(Boolean)
-                    .sort((a, b) =>
-                        a.localeCompare(b, 'es', {
-                            sensitivity: 'base'
-                        })
-                    );
-
-                selectNivel2.innerHTML =
-                    '<option value="">' +
-                    '-- Selecciona un EQUIPO --' +
-                    '</option>';
-
+                opcionesSecundarias = [...new Set(rawCsvData.filter(item => item.FABRICANTE === valorNivel1).map(item => item.EQUIPO))].filter(Boolean).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
+                selectNivel2.innerHTML = '<option value="">-- Selecciona un EQUIPO --</option>';
             } else {
-
-                opcionesSecundarias = [
-                    ...new Set(
-                        rawCsvData
-                            .filter(
-                                item =>
-                                    item.EQUIPO ===
-                                    valorNivel1
-                            )
-                            .map(item => item.FABRICANTE)
-                    )
-                ]
-                    .filter(Boolean)
-                    .sort((a, b) =>
-                        a.localeCompare(b, 'es', {
-                            sensitivity: 'base'
-                        })
-                    );
-
-                selectNivel2.innerHTML =
-                    '<option value="">' +
-                    '-- Selecciona un FABRICANTE --' +
-                    '</option>';
+                opcionesSecundarias = [...new Set(rawCsvData.filter(item => item.EQUIPO === valorNivel1).map(item => item.FABRICANTE))].filter(Boolean).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
+                selectNivel2.innerHTML = '<option value="">-- Selecciona un FABRICANTE --</option>';
             }
 
             opcionesSecundarias.forEach(valorOpcion => {
-
-                const option =
-                    document.createElement('option');
-
+                const option = document.createElement('option');
                 option.value = valorOpcion;
                 option.innerText = valorOpcion;
-
                 selectNivel2.appendChild(option);
             });
         }
 
-
-        /* =====================================================
-           CAMBIO DEL SEGUNDO DESPLEGABLE
-        ===================================================== */
-
         function onNivel2Change() {
-
-            const valorNivel1 =
-                document.getElementById(
-                    'selectNivel1'
-                ).value;
-
-            const valorNivel2 =
-                document.getElementById(
-                    'selectNivel2'
-                ).value;
-
+            const valorNivel1 = document.getElementById('selectNivel1').value;
+            const valorNivel2 = document.getElementById('selectNivel2').value;
             currentMatchedRows = [];
 
-            if (!valorNivel1 || !valorNivel2) {
-                return;
-            }
+            if (!valorNivel1 || !valorNivel2) return;
 
             if (currentCriteria === 'fabricante') {
-
-                currentMatchedRows =
-                    rawCsvData.filter(item =>
-                        item.FABRICANTE === valorNivel1 &&
-                        item.EQUIPO === valorNivel2
-                    );
-
+                currentMatchedRows = rawCsvData.filter(item => item.FABRICANTE === valorNivel1 && item.EQUIPO === valorNivel2);
             } else {
-
-                currentMatchedRows =
-                    rawCsvData.filter(item =>
-                        item.EQUIPO === valorNivel1 &&
-                        item.FABRICANTE === valorNivel2
-                    );
+                currentMatchedRows = rawCsvData.filter(item => item.EQUIPO === valorNivel1 && item.FABRICANTE === valorNivel2);
             }
         }
 
-
-        /* =====================================================
-           EJECUTAR BÚSQUEDA DE PLANOS O MANUALES
-        ===================================================== */
-
         function executeEquipmentSearch(columnName) {
-
-            if (
-                !currentMatchedRows ||
-                currentMatchedRows.length === 0
-            ) {
-                alert(
-                    'Por favor, completa las selecciones ' +
-                    'de los desplegables.'
-                );
-
+            if (!currentMatchedRows || currentMatchedRows.length === 0) {
+                alert('Por favor, completa las selecciones de los desplegables.');
                 return;
             }
 
-            /*
-             * Convertimos los registros encontrados en una lista
-             * de documentos válidos.
-             */
             const documentos = currentMatchedRows
                 .map((row, index) => {
-
                     const url = row[columnName];
-
-                    if (
-                        !url ||
-                        !url.toLowerCase().startsWith('http')
-                    ) {
-                        return null;
-                    }
-
-                    return {
-                        url: url,
-                        nombre: obtenerNombreDocumento(
-                            row,
-                            columnName,
-                            index
-                        )
-                    };
+                    if (!url || !url.toLowerCase().startsWith('http')) return null;
+                    return { url: url, nombre: obtenerNombreDocumento(row, columnName, index) };
                 })
                 .filter(Boolean);
 
-            /*
-             * Eliminamos enlaces duplicados.
-             */
             const documentosUnicos = [];
-
             const urlsUtilizadas = new Set();
 
             documentos.forEach(documento => {
-
                 if (!urlsUtilizadas.has(documento.url)) {
-
                     urlsUtilizadas.add(documento.url);
-
                     documentosUnicos.push(documento);
                 }
             });
 
             if (documentosUnicos.length === 0) {
-
-                alert(
-                    'No hay enlaces válidos registrados para ' +
-                    columnName +
-                    ' en esta combinación.'
-                );
-
+                alert('No hay enlaces válidos registrados para ' + columnName + ' en esta combinación.');
                 return;
             }
 
-            /*
-             * Si solo existe un documento, se abre directamente.
-             */
             if (documentosUnicos.length === 1) {
-
-                abrirConVisorUniversal(
-                    documentosUnicos[0].url
-                );
-
+                abrirConVisorUniversal(documentosUnicos[0].url);
                 return;
             }
 
-            /*
-             * Si hay varios, mostramos la ventana de selección.
-             */
-            mostrarListaDocumentos(
-                documentosUnicos,
-                columnName
-            );
+            mostrarListaDocumentos(documentosUnicos, columnName);
         }
 
-
-        /* =====================================================
-           OBTENER NOMBRE DEL DOCUMENTO
-        ===================================================== */
-
-        function obtenerNombreDocumento(
-            row,
-            columnName,
-            index
-        ) {
-
-            /*
-             * El sistema buscará el nombre en cualquiera de estas
-             * columnas del CSV.
-             */
-            const posiblesColumnas = [
-                'NOMBRE',
-                'NOMBRE DOCUMENTO',
-                'NOMBRE_DOCUMENTO',
-                'DOCUMENTO',
-                'DESCRIPCION',
-                'DESCRIPCIÓN',
-                'TITULO',
-                'TÍTULO',
-                'ARCHIVO',
-                'REFERENCIA',
-                'TAG'
-            ];
-
+        function obtenerNombreDocumento(row, columnName, index) {
+            const posiblesColumnas = ['NOMBRE', 'NOMBRE DOCUMENTO', 'NOMBRE_DOCUMENTO', 'DOCUMENTO', 'DESCRIPCION', 'DESCRIPCIÓN', 'TITULO', 'TÍTULO', 'ARCHIVO', 'REFERENCIA', 'TAG'];
             for (const columna of posiblesColumnas) {
-
-                if (
-                    row[columna] &&
-                    String(row[columna]).trim() !== ''
-                ) {
+                if (row[columna] && String(row[columna]).trim() !== '') {
                     return String(row[columna]).trim();
                 }
             }
-
-            /*
-             * Si no existe ninguna columna con nombre,
-             * se crea uno automáticamente.
-             */
-            const tipoDocumento =
-                columnName === 'PLANOS'
-                    ? 'Plano'
-                    : 'Manual';
-
+            const tipoDocumento = columnName === 'PLANOS' ? 'Plano' : 'Manual';
             return tipoDocumento + ' ' + (index + 1);
         }
 
+        function mostrarListaDocumentos(documentos, columnName) {
+            const modal = document.getElementById('documentModal');
+            const title = document.getElementById('documentModalTitle');
+            const container = document.getElementById('documentLinksContainer');
 
-        /* =====================================================
-           MOSTRAR LISTA DE DOCUMENTOS
-        ===================================================== */
-
-        function mostrarListaDocumentos(
-            documentos,
-            columnName
-        ) {
-
-            const modal =
-                document.getElementById(
-                    'documentModal'
-                );
-
-            const title =
-                document.getElementById(
-                    'documentModalTitle'
-                );
-
-            const container =
-                document.getElementById(
-                    'documentLinksContainer'
-                );
-
-            title.innerText =
-                columnName === 'PLANOS'
-                    ? 'Planos disponibles'
-                    : 'Manuales disponibles';
-
+            title.innerText = columnName === 'PLANOS' ? 'Planos disponibles' : 'Manuales disponibles';
             container.innerHTML = '';
 
-            documentos.forEach(
-                (documento, index) => {
+            documentos.forEach((documento, index) => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'document-link';
 
-                    const button =
-                        document.createElement('button');
+                const numero = document.createElement('span');
+                numero.className = 'document-number';
+                numero.innerText = index + 1;
 
-                    button.type = 'button';
-                    button.className = 'document-link';
+                const texto = document.createElement('span');
+                texto.className = 'document-text';
+                texto.innerText = documento.nombre;
 
-                    const numero =
-                        document.createElement('span');
+                button.appendChild(numero);
+                button.appendChild(texto);
 
-                    numero.className =
-                        'document-number';
+                button.addEventListener('click', function() {
+                    cerrarListaDocumentos();
+                    abrirConVisorUniversal(documento.url);
+                });
 
-                    numero.innerText =
-                        index + 1;
-
-                    const texto =
-                        document.createElement('span');
-
-                    texto.className =
-                        'document-text';
-
-                    texto.innerText =
-                        documento.nombre;
-
-                    button.appendChild(numero);
-                    button.appendChild(texto);
-
-                    button.addEventListener(
-                        'click',
-                        function() {
-
-                            cerrarListaDocumentos();
-
-                            abrirConVisorUniversal(
-                                documento.url
-                            );
-                        }
-                    );
-
-                    container.appendChild(button);
-                }
-            );
+                container.appendChild(button);
+            });
 
             modal.classList.add('visible');
-
             document.body.style.overflow = 'hidden';
         }
 
-
-        /* =====================================================
-           CERRAR LISTA DE DOCUMENTOS
-        ===================================================== */
-
         function cerrarListaDocumentos() {
-
-            const modal =
-                document.getElementById(
-                    'documentModal'
-                );
-
+            const modal = document.getElementById('documentModal');
             modal.classList.remove('visible');
-
             document.body.style.overflow = '';
         }
 
-
-        /* =====================================================
-           ABRIR EN VISOR UNIVERSAL
-        ===================================================== */
-
         function abrirConVisorUniversal(url) {
-
             if (!url) {
-
-                alert(
-                    'No hay ningún enlace disponible ' +
-                    'para este documento.'
-                );
-
+                alert('No hay ningún enlace disponible para este documento.');
                 return;
             }
 
             const urlLimpia = String(url).trim();
-
-            const esGoogleDrive =
-                urlLimpia.includes('drive.google.com') ||
-                urlLimpia.includes('docs.google.com');
+            const esGoogleDrive = urlLimpia.includes('drive.google.com') || urlLimpia.includes('docs.google.com');
 
             if (esGoogleDrive) {
-
-                const fileId =
-                    extraerIdGoogleDrive(urlLimpia);
-
+                const fileId = extraerIdGoogleDrive(urlLimpia);
                 if (!fileId) {
-
-                    /*
-                     * Si no conseguimos extraer el ID,
-                     * abrimos el enlace original.
-                     */
-                    window.open(
-                        urlLimpia,
-                        '_blank',
-                        'noopener,noreferrer'
-                    );
-
+                    window.open(urlLimpia, '_blank', 'noopener,noreferrer');
                     return;
                 }
 
-                const separador =
-                    VISOR_PDF_URL.includes('?')
-                        ? '&'
-                        : '?';
-
-                const visorUrl =
-                    VISOR_PDF_URL +
-                    separador +
-                    'id=' +
-                    encodeURIComponent(fileId);
-
-                window.open(
-                    visorUrl,
-                    '_blank',
-                    'noopener,noreferrer'
-                );
-
+                const separador = VISOR_PDF_URL.includes('?') ? '&' : '?';
+                const visorUrl = VISOR_PDF_URL + separador + 'id=' + encodeURIComponent(fileId);
+                window.open(visorUrl, '_blank', 'noopener,noreferrer');
                 return;
             }
 
-            /*
-             * Los enlaces que no son de Google Drive
-             * se abren directamente.
-             */
-            window.open(
-                urlLimpia,
-                '_blank',
-                'noopener,noreferrer'
-            );
+            window.open(urlLimpia, '_blank', 'noopener,noreferrer');
         }
 
-
-        /* =====================================================
-           EXTRAER ID DE GOOGLE DRIVE
-        ===================================================== */
-
         function extraerIdGoogleDrive(url) {
-
-            if (!url) {
-                return null;
-            }
-
+            if (!url) return null;
             const patrones = [
                 /\/file\/d\/([a-zA-Z0-9_-]+)/,
                 /\/d\/([a-zA-Z0-9_-]+)/,
@@ -1206,76 +406,24 @@
             ];
 
             for (const patron of patrones) {
-
-                const coincidencia =
-                    url.match(patron);
-
-                if (
-                    coincidencia &&
-                    coincidencia[1]
-                ) {
-                    return coincidencia[1];
-                }
+                const coincidencia = url.match(patron);
+                if (coincidencia && coincidencia[1]) return coincidencia[1];
             }
-
             return null;
         }
 
+        document.getElementById('selectNivel1').addEventListener('change', onNivel1Change);
+        document.getElementById('selectNivel2').addEventListener('change', onNivel2Change);
 
-        /* =====================================================
-           EVENTOS
-        ===================================================== */
+        document.getElementById('documentModal').addEventListener('click', function(event) {
+            if (event.target === this) cerrarListaDocumentos();
+        });
 
-        document
-            .getElementById('selectNivel1')
-            .addEventListener(
-                'change',
-                onNivel1Change
-            );
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') cerrarListaDocumentos();
+        });
 
-        document
-            .getElementById('selectNivel2')
-            .addEventListener(
-                'change',
-                onNivel2Change
-            );
-
-        /*
-         * Cerrar la ventana al pulsar sobre el fondo oscuro.
-         */
-        document
-            .getElementById('documentModal')
-            .addEventListener(
-                'click',
-                function(event) {
-
-                    if (event.target === this) {
-                        cerrarListaDocumentos();
-                    }
-                }
-            );
-
-        /*
-         * Cerrar la ventana con la tecla Escape.
-         */
-        document.addEventListener(
-            'keydown',
-            function(event) {
-
-                if (event.key === 'Escape') {
-                    cerrarListaDocumentos();
-                }
-            }
-        );
-
-        /*
-         * Cargar el CSV cuando termina de cargar la página.
-         */
-        window.addEventListener(
-            'load',
-            loadCSVData
-        );
+        window.addEventListener('load', loadCSVData);
     </script>
-
 </body>
 </html>
