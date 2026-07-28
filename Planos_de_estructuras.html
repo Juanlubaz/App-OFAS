@@ -6,7 +6,6 @@
   <title>Consulta de Estructuras</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
   <style>
-    /* Estilos originales mantenidos */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; background: linear-gradient(135deg, #5a7f3a 0%, #8fbc3f 50%, #6b8e23 100%); min-height: 100vh; padding: 20px; }
     .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); padding: 30px; }
@@ -52,7 +51,6 @@
       
       <h1>📊 Consulta de Estructuras</h1>
 
-      <!-- NUEVO FILTRO: SELECCIÓN DE PROCESO -->
       <div class="form-group">
         <label for="selectProceso">Selecciona la zona:</label>
         <select id="selectProceso">
@@ -84,6 +82,36 @@
   </div>
 
   <script>
+    // VERIFICACIÓN DE SESIÓN
+    if (localStorage.getItem('isLoggedIn') !== 'true') {
+        window.location.href = 'index.html';
+    }
+
+    // CONTROL DE INACTIVIDAD (5 MINUTOS)
+    (function() {
+        const TIEMPO_INACTIVIDAD_MS = 5 * 60 * 1000;
+        let timerInactividad;
+
+        function cerrarSesionPorInactividad() {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('loggedUser');
+            alert("Tu sesión ha expirado por inactividad (5 minutos). Por favor, vuelve a iniciar sesión.");
+            window.location.href = 'index.html';
+        }
+
+        function reiniciarTemporizador() {
+            clearTimeout(timerInactividad);
+            timerInactividad = setTimeout(cerrarSesionPorInactividad, TIEMPO_INACTIVIDAD_MS);
+        }
+
+        const eventosActividad = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
+        eventosActividad.forEach(evento => {
+            window.addEventListener(evento, reiniciarTemporizador, { passive: true });
+        });
+
+        reiniciarTemporizador();
+    })();
+
     var data = [];
     var selectedProceso = '';
     var selectedEquipo = '';
@@ -115,7 +143,6 @@
         });
     }
 
-    // Rellena el nuevo selector de PROCESO
     function populateProcesoSelect() {
       var selectProceso = document.getElementById('selectProceso');
       var uniqueProcesos = [...new Set(data.map(item => item.PROCESO))].filter(Boolean).sort();
@@ -128,7 +155,6 @@
       });
     }
 
-    // Al cambiar el Proceso, filtramos los Equipos correspondientes
     function onProcesoChange() {
       selectedProceso = document.getElementById('selectProceso').value;
       var selectEquipo = document.getElementById('selectEquipo');
@@ -144,7 +170,6 @@
       selectedEquipo = '';
 
       if (selectedProceso) {
-        // Filtrar equipos que pertenecen al proceso seleccionado
         var uniqueEquipos = [...new Set(data.filter(item => item.PROCESO === selectedProceso).map(item => item.EQUIPO))].filter(Boolean).sort();
         uniqueEquipos.forEach(equipo => {
           var option = document.createElement('option');
@@ -164,7 +189,6 @@
       document.getElementById('infoSection').classList.add('hidden');
 
       if (selectedEquipo) {
-        // Filtrar zonas que pertenecen al proceso y equipo seleccionados
         var zones = [...new Set(data.filter(item => item.PROCESO === selectedProceso && item.EQUIPO === selectedEquipo).map(item => item.ZONA))].filter(Boolean).sort();
         zones.forEach(zone => {
           var option = document.createElement('option');
@@ -178,7 +202,6 @@
     function onIdChange() {
       var selectedId = document.getElementById('selectId').value;
       if (selectedProceso && selectedEquipo && selectedId) {
-        // Buscamos la fila que coincida con Proceso, Equipo y Zona
         var item = data.find(i => i.PROCESO === selectedProceso && i.EQUIPO === selectedEquipo && i.ZONA === selectedId);
         if (item) displayItemInfo(item);
       } else {
@@ -215,7 +238,8 @@
       document.getElementById('infoSection').classList.remove('hidden');
     }
 
-    var VISOR_PDF_URL = 'https://script.google.com/macros/s/AKfycbx7OHOqzkSYfzCTOMdiUJKeiKu204K3Ki8keZmWghKdv1sZp0MZMb6Ngehrtn5TpBO5fw/exec';
+    // URL NATIVA ACTUALIZADA DEL VISOR
+    var VISOR_PDF_URL = 'https://script.google.com/macros/s/AKfycbyAA7JN9jnHYTtQKLUZeNEvBTQm-kl9HMlVxyp_ddFB7ME7RUJzTBylxx6FyyW8RMQl8Q/exec';
 
     function abrirDocumento(url) {
       if (!url) {
@@ -229,11 +253,6 @@
         var fileId = extraerIdGoogleDrive(url);
         if (!fileId) {
           alert('No se pudo identificar el archivo de Google Drive.');
-          return;
-        }
-
-        if (!VISOR_PDF_URL || VISOR_PDF_URL.includes('PEGA_AQUI')) {
-          alert('Debes configurar la URL del visor PDF de Google Apps Script.');
           return;
         }
 
@@ -261,7 +280,6 @@
       return null;
     }
 
-    // Agregamos los escuchadores de eventos actualizados
     document.getElementById('selectProceso').addEventListener('change', onProcesoChange);
     document.getElementById('selectEquipo').addEventListener('change', onEquipoChange);
     document.getElementById('selectId').addEventListener('change', onIdChange);
