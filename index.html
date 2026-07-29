@@ -72,7 +72,7 @@
         color: #333;
     }
     .btn-next { background: #4e7e28; color: white; }
-    #message { margin-top: 15px; font-size: 14px; font-weight: bold; min-height: 20px; }
+    #message { margin-top: 15px; font-size: 14px; font-weight: bold; min-height: 20px; line-height: 1.4; }
 </style>
 </head>
 <body>
@@ -109,6 +109,13 @@
 
 <script>
     const API_URL = 'https://script.google.com/macros/s/AKfycbzCYdQHxJQs6VWDOynidXLpr3kK6-UYA4kylZLzH37Vv0l94ZclNwZ66NB6c6wXmlDHCw/exec';
+
+    // Función que verifica si la contraseña cumple las reglas de seguridad
+    function esContrasenaSegura(password) {
+        // Al menos 6 caracteres, 1 mayúscula, 1 minúscula y 1 número
+        const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/;
+        return regex.test(password);
+    }
 
     // Alterna la visibilidad del campo contraseña
     function togglePasswordVisibility() {
@@ -162,6 +169,18 @@
             const result = await response.json();
 
             if (result.success) {
+                // COMPROBACIÓN DE REQUISITOS DE CONTRASEÑA SEGURA
+                if (!esContrasenaSegura(passValue)) {
+                    messageDiv.style.color = 'orange';
+                    messageDiv.innerText = 'Tu contraseña debe ser actualizada (mín. 6 caracteres, mayúscula, minúscula y número). Redirigiendo a cambio de clave...';
+                    
+                    setTimeout(() => {
+                        window.location.href = 'change.html';
+                    }, 2500);
+                    return;
+                }
+
+                // SI CUMPLE TODOS LOS REQUISITOS
                 messageDiv.style.color = '#4e7e28';
                 messageDiv.innerText = 'ACCESO CORRECTO';
 
