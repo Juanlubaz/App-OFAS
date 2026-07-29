@@ -101,9 +101,10 @@
 
     #message {
         margin-top: 15px;
-        font-size: 14px;
+        font-size: 13px;
         font-weight: bold;
         min-height: 20px;
+        line-height: 1.4;
     }
 </style>
 </head>
@@ -146,6 +147,20 @@
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbzCYdQHxJQs6VWDOynidXLpr3kK6-UYA4kylZLzH37Vv0l94ZclNwZ66NB6c6wXmlDHCw/exec";
 
+    // Función que valida las reglas de complejidad de la contraseña
+    function esContrasenaSegura(password) {
+        // Mínimo 6 caracteres, al menos 1 letra minúscula, 1 mayúscula y 1 número
+        const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/;
+        return regex.test(password);
+    }
+
+    // Permitir envío pulsando Enter en cualquiera de los inputs
+    document.querySelectorAll('.form-group input').forEach(input => {
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') processChange();
+        });
+    });
+
     async function processChange() {
         const user = document.getElementById('changeUser').value.trim().toLowerCase();
         const oldP = document.getElementById('oldPass').value.trim();
@@ -154,15 +169,24 @@
         const msg = document.getElementById('message');
         const btn = document.getElementById('submitBtn');
 
+        // Comprobar campos vacíos
         if (!user || !oldP || !n1 || !n2) {
             msg.style.color = "orange";
             msg.innerText = "Completa todos los campos.";
             return;
         }
 
+        // Comprobar coincidencia de las dos contraseñas
         if (n1 !== n2) {
             msg.style.color = "red";
             msg.innerText = "Las nuevas contraseñas no coinciden.";
+            return;
+        }
+
+        // VALIDACIÓN DE SEGURIDAD
+        if (!esContrasenaSegura(n1)) {
+            msg.style.color = "red";
+            msg.innerText = "La contraseña debe tener al menos 6 caracteres, incluir una mayúscula, una minúscula y un número.";
             return;
         }
 
