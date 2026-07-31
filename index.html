@@ -108,103 +108,369 @@
 </div>
 
 <script>
+    const API_URL =
+        'https://script.google.com/macros/s/AKfycby5kptA52YPD4noy_GwoLIYNkHpATmvDtmGASnlo5GB6m-ozHRqU4F4t_jR5-uhbrhJRA/exec';
 
-   
-    //const API_URL = 'https://script.google.com/macros/s/AKfycbzCYdQHxJQs6VWDOynidXLpr3kK6-UYA4kylZLzH37Vv0l94ZclNwZ66NB6c6wXmlDHCw/exec';
-    const API_URL = 'https://script.google.com/macros/s/AKfycby5kptA52YPD4noy_GwoLIYNkHpATmvDtmGASnlo5GB6m-ozHRqU4F4t_jR5-uhbrhJRA/exec';                 
-    
-   // Función que verifica si la contraseña cumple las reglas de seguridad
+    // Comprueba los requisitos mínimos de la contraseña.
     function esContrasenaSegura(password) {
-        // Al menos 6 caracteres, 1 mayúscula, 1 minúscula y 1 número
         const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/;
         return regex.test(password);
     }
 
-    // Alterna la visibilidad del campo contraseña
+    // Alterna la visibilidad de la contraseña.
     function togglePasswordVisibility() {
         const passInput = document.getElementById('passInput');
         const checkbox = document.getElementById('togglePass');
-        passInput.type = checkbox.checked ? 'text' : 'password';
+
+        passInput.type = checkbox.checked
+            ? 'text'
+            : 'password';
     }
 
-    // Escucha la tecla Intro (Enter) en los inputs
-    document.getElementById('userInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') validateLogin();
-    });
+    // Ejecutar el login al pulsar Enter.
+    document
+        .getElementById('userInput')
+        .addEventListener('keypress', function (event) {
+            if (event.key === 'Enter') {
+                validateLogin();
+            }
+        });
 
-    document.getElementById('passInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') validateLogin();
-    });
+    document
+        .getElementById('passInput')
+        .addEventListener('keypress', function (event) {
+            if (event.key === 'Enter') {
+                validateLogin();
+            }
+        });
+
+    // Detecta aproximadamente el navegador.
+    function obtenerNavegador() {
+        const agente = navigator.userAgent;
+
+        if (agente.includes('Edg/')) {
+            return 'Microsoft Edge';
+        }
+
+        if (agente.includes('OPR/') || agente.includes('Opera')) {
+            return 'Opera';
+        }
+
+        if (agente.includes('Firefox/')) {
+            return 'Mozilla Firefox';
+        }
+
+        if (
+            agente.includes('Chrome/') &&
+            !agente.includes('Edg/')
+        ) {
+            return 'Google Chrome';
+        }
+
+        if (
+            agente.includes('Safari/') &&
+            !agente.includes('Chrome/')
+        ) {
+            return 'Safari';
+        }
+
+        return 'Desconocido';
+    }
+
+    // Detecta aproximadamente el sistema operativo.
+    function obtenerSistemaOperativo() {
+        const agente = navigator.userAgent;
+        const plataforma =
+            navigator.userAgentData?.platform ||
+            navigator.platform ||
+            '';
+
+        if (
+            agente.includes('Windows NT') ||
+            plataforma.includes('Win')
+        ) {
+            return 'Windows';
+        }
+
+        if (
+            agente.includes('Android')
+        ) {
+            return 'Android';
+        }
+
+        if (
+            agente.includes('iPhone') ||
+            agente.includes('iPad') ||
+            agente.includes('iPod')
+        ) {
+            return 'iOS';
+        }
+
+        if (
+            agente.includes('Mac OS') ||
+            plataforma.includes('Mac')
+        ) {
+            return 'macOS';
+        }
+
+        if (
+            agente.includes('Linux') ||
+            plataforma.includes('Linux')
+        ) {
+            return 'Linux';
+        }
+
+        return 'Desconocido';
+    }
+
+    // Obtiene la IP pública y su ubicación aproximada.
+    async function obtenerDatosConexion() {
+        const datosVacios = {
+            ip: '',
+            pais: '',
+            codigoPais: '',
+            region: '',
+            provincia: '',
+            ciudad: '',
+            codigoPostal: '',
+            operador: '',
+            organizacion: '',
+            navegador: obtenerNavegador(),
+            sistema: obtenerSistemaOperativo(),
+            idioma: navigator.language || '',
+            zonaHoraria:
+                Intl.DateTimeFormat()
+                    .resolvedOptions()
+                    .timeZone || '',
+            vpn: false,
+            proxy: false,
+            tor: false,
+            hosting: false,
+            geolocalizacionCorrecta: false
+        };
+
+        try {
+            const response = await fetch(
+                'https://ipwho.is/?lang=es',
+                {
+                    method: 'GET',
+                    cache: 'no-store'
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error(
+                    'No se pudo consultar la ubicación de la IP'
+                );
+            }
+
+            const datos = await response.json();
+
+            if (!datos.success) {
+                throw new Error(
+                    datos.message ||
+                    'Geolocalización no disponible'
+                );
+            }
+
+            return {
+                ip: datos.ip || '',
+                pais: datos.country || '',
+                codigoPais: datos.country_code || '',
+                region: datos.region || '',
+
+                /*
+                 * La geolocalización por IP no proporciona
+                 * siempre una provincia independiente.
+                 * De momento se deja vacía para no guardar
+                 * información incorrecta.
+                 */
+                provincia: '',
+
+                ciudad: datos.city || '',
+                codigoPostal: datos.postal || '',
+                operador:
+                    datos.connection?.isp || '',
+                organizacion:
+                    datos.connection?.org || '',
+                navegador: obtenerNavegador(),
+                sistema: obtenerSistemaOperativo(),
+                idioma: navigator.language || '',
+                zonaHoraria:
+                    Intl.DateTimeFormat()
+                        .resolvedOptions()
+                        .timeZone || '',
+                vpn:
+                    datos.security?.vpn === true,
+                proxy:
+                    datos.security?.proxy === true,
+                tor:
+                    datos.security?.tor === true,
+                hosting:
+                    datos.security?.hosting === true,
+                geolocalizacionCorrecta: true
+            };
+
+        } catch (error) {
+            console.warn(
+                'No se pudo obtener la ubicación:',
+                error
+            );
+
+            /*
+             * El login continuará aunque falle el servicio
+             * de geolocalización.
+             */
+            return datosVacios;
+        }
+    }
 
     async function validateLogin() {
-        const userValue = document.getElementById('userInput').value.trim().toLowerCase();
-        const passValue = document.getElementById('passInput').value.trim();
-        const messageDiv = document.getElementById('message');
-        const loginBtn = document.getElementById('loginBtn');
+        const userValue =
+            document
+                .getElementById('userInput')
+                .value
+                .trim()
+                .toLowerCase();
+
+        const passValue =
+            document
+                .getElementById('passInput')
+                .value
+                .trim();
+
+        const messageDiv =
+            document.getElementById('message');
+
+        const loginBtn =
+            document.getElementById('loginBtn');
 
         if (!userValue || !passValue) {
             messageDiv.style.color = 'orange';
-            messageDiv.innerText = 'Por favor, rellena todos los campos';
+            messageDiv.innerText =
+                'Por favor, rellena todos los campos';
+
             return;
         }
 
         loginBtn.disabled = true;
         messageDiv.style.color = '#666';
-        messageDiv.innerText = 'Verificando...';
-
-        // Capturamos la fecha/hora del cliente para enviarla en el payload
-        const fechaHoraCliente = new Date().toLocaleString('es-ES');
+        messageDiv.innerText =
+            'Verificando acceso...';
 
         try {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'text/plain;charset=utf-8'
-                },
-                body: JSON.stringify({
-                    action: 'login',
-                    user: userValue,
-                    password: passValue,
-                    timestamp: fechaHoraCliente
-                })
-            });
+            /*
+             * Obtenemos la información de conexión antes
+             * de enviar el login al Apps Script.
+             */
+            const conexion =
+                await obtenerDatosConexion();
+
+            const response = await fetch(
+                API_URL,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type':
+                            'text/plain;charset=utf-8'
+                    },
+                    body: JSON.stringify({
+                        action: 'login',
+                        user: userValue,
+                        password: passValue,
+
+                        // Información del acceso
+                        ip: conexion.ip,
+                        pais: conexion.pais,
+                        codigoPais:
+                            conexion.codigoPais,
+                        region: conexion.region,
+                        provincia:
+                            conexion.provincia,
+                        ciudad: conexion.ciudad,
+                        codigoPostal:
+                            conexion.codigoPostal,
+                        operador:
+                            conexion.operador,
+                        organizacion:
+                            conexion.organizacion,
+                        navegador:
+                            conexion.navegador,
+                        sistema:
+                            conexion.sistema,
+                        idioma:
+                            conexion.idioma,
+                        zonaHorariaCliente:
+                            conexion.zonaHoraria,
+                        vpn: conexion.vpn,
+                        proxy: conexion.proxy,
+                        tor: conexion.tor,
+                        hosting:
+                            conexion.hosting,
+                        geolocalizacionCorrecta:
+                            conexion
+                                .geolocalizacionCorrecta
+                    })
+                }
+            );
 
             if (!response.ok) {
-                throw new Error('Respuesta no válida del servidor');
+                throw new Error(
+                    'Respuesta no válida del servidor'
+                );
             }
 
             const result = await response.json();
 
             if (result.success) {
-                // COMPROBACIÓN DE REQUISITOS DE CONTRASEÑA SEGURA
                 if (!esContrasenaSegura(passValue)) {
                     messageDiv.style.color = 'orange';
-                    messageDiv.innerText = 'Tu contraseña debe ser actualizada (mín. 6 caracteres, mayúscula, minúscula y número). Redirigiendo a cambio de clave...';
-                    
-                    setTimeout(() => {
-                        window.location.href = 'change.html';
+                    messageDiv.innerText =
+                        'Tu contraseña debe actualizarse. ' +
+                        'Debe tener al menos 6 caracteres, ' +
+                        'una mayúscula, una minúscula y un número.';
+
+                    setTimeout(function () {
+                        window.location.href =
+                            'change.html';
                     }, 2500);
+
                     return;
                 }
 
-                // SI CUMPLE TODOS LOS REQUISITOS
                 messageDiv.style.color = '#4e7e28';
-                messageDiv.innerText = 'ACCESO CORRECTO';
+                messageDiv.innerText =
+                    'ACCESO CORRECTO';
 
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('loggedUser', userValue);
+                localStorage.setItem(
+                    'isLoggedIn',
+                    'true'
+                );
 
-                setTimeout(() => {
-                    window.location.href = 'principal.html';
+                localStorage.setItem(
+                    'loggedUser',
+                    userValue
+                );
+
+                setTimeout(function () {
+                    window.location.href =
+                        'principal.html';
                 }, 800);
+
             } else {
                 messageDiv.style.color = '#d93025';
-                messageDiv.innerText = result.message || 'Usuario o contraseña incorrectos';
+                messageDiv.innerText =
+                    result.message ||
+                    'Usuario o contraseña incorrectos';
             }
+
         } catch (error) {
             console.error(error);
+
             messageDiv.style.color = 'red';
-            messageDiv.innerText = 'Error al conectar con la base de datos';
+            messageDiv.innerText =
+                'Error al conectar con la base de datos';
+
         } finally {
             loginBtn.disabled = false;
         }
