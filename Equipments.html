@@ -143,7 +143,7 @@
         reiniciarTemporizador();
     })();
 
-    // ID de la carpeta raíz de Equipments extraído de la URL facilitada
+    // ID de la carpeta raíz de Equipments
     const ROOT_FOLDER_ID = "1KE1UtCPFc02h7tvcWxql20sD2h_Fdq_p";
     
     // Backend explorador de carpetas
@@ -167,7 +167,7 @@
             return;
         }
 
-        // Filtra y valida las carpetas del primer nivel
+        // Filtra y valida las carpetas del primer nivel (sin duplicados)
         filterFoldersWithPdfs(response.folders, function(validFolders) {
             if (validFolders.length === 0) {
                 grid.innerHTML = '<div style="color:#d9534f; grid-column:1/-1;">No se encontraron carpetas con archivos PDF.</div>';
@@ -220,7 +220,7 @@
         const hasFiles = pdfFilesOnly.length > 0;
         const subfolders = response.folders || [];
 
-        // Filtrar subcarpetas que realmente tengan PDFs más abajo
+        // Filtrar subcarpetas que realmente tengan PDFs más abajo (sin duplicados)
         filterFoldersWithPdfs(subfolders, function(validSubfolders) {
             const hasFolders = validSubfolders.length > 0;
 
@@ -298,7 +298,7 @@
         });
     }
 
-    // FILTRA EL LISTADO DE CARPETAS DEJANDO SOLO LAS QUE GUARDAN ALGÚN PDF EN SU INTERIOR
+    // FILTRA EL LISTADO DE CARPETAS DEJANDO SOLO LAS QUE GUARDAN ALGÚN PDF EN SU INTERIOR (SIN DUPLICADOS)
     function filterFoldersWithPdfs(folders, callback) {
         if (!folders || folders.length === 0) {
             callback([]);
@@ -311,7 +311,10 @@
         folders.forEach(folder => {
             checkFolderHasPdf(folder.id, function(hasPdf) {
                 if (hasPdf) {
-                    validFolders.push(folder);
+                    const yaExiste = validFolders.some(f => f.id === folder.id);
+                    if (!yaExiste) {
+                        validFolders.push(folder);
+                    }
                 }
                 completed++;
                 if (completed === folders.length) {
