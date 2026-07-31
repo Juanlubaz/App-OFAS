@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Equipment Search - GestiProject</title>
 <style>
-    /* ESTILOS BASE Y ESTÉTICA EXACTA A LA IMAGEN */
+    /* ESTILOS BASE Y ESTÉTICA FIEL A LA IMAGEN */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #6fb543, #79c255); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
     .container { background: white; width: 100%; max-width: 900px; border-radius: 20px; padding: 40px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); text-align: center; }
@@ -15,7 +15,7 @@
     
     h1 { color: #4e7e28; margin-bottom: 25px; font-size: 28px; font-weight: bold; }
 
-    /* RECUADRO DE SEARCH CRITERIA CON BORDE PUNTEADO VERDE */
+    /* RECUADRO DE SEARCH CRITERIA */
     .options-box {
         border: 2px dashed #79c255;
         border-radius: 15px;
@@ -33,7 +33,7 @@
         margin: 0 auto; 
     }
 
-    /* BOTONES DE MANUFACTURER Y EQUIPMENT TYPE */
+    /* BOTONES CRITERIO */
     button.btn-criteria {
         padding: 16px 20px;
         border-radius: 12px;
@@ -49,7 +49,6 @@
     }
     button.btn-criteria:hover { background: #f5f5f5; transform: translateY(-2px); }
     
-    /* BOTÓN ACTIVO ESTILO VERDE VERDE VERDE */
     button.btn-criteria.active { 
         background: #79c255; 
         color: white; 
@@ -57,14 +56,14 @@
         box-shadow: 0 4px 12px rgba(121, 194, 85, 0.4);
     }
 
-    /* CONTENEDOR DE FORMULARIOS DESPLEGABLES */
+    /* DESPLEGABLES */
     .form-group { max-width: 740px; margin: 0 auto 20px auto; text-align: left; }
     label { display: block; color: #555; font-weight: 600; margin-bottom: 8px; font-size: 1.1em; }
     select { width: 100%; padding: 14px 15px; border: 2px solid #ddd; border-radius: 12px; font-size: 16px; background: white; cursor: pointer; transition: border-color 0.3s; outline: none; }
     select:focus { border-color: #79c255; }
     select:disabled { background: #f5f5f5; cursor: not-allowed; border-color: #eee; }
 
-    /* CONTENEDOR DINÁMICO DE DOCUMENTOS PDF */
+    /* DOCUMENTOS PDF */
     .docs-box {
         display: none;
         background: #f4fbf1;
@@ -100,8 +99,6 @@
 
     .back-link { display: inline-block; margin-top: 30px; color: #79c255; text-decoration: none; font-weight: bold; font-size: 16px; }
     .back-link:hover { text-decoration: underline; }
-
-    .loading { text-align: center; padding: 15px; color: #4e7e28; font-weight: bold; }
 </style>
 </head>
 <body>
@@ -113,7 +110,6 @@
     
     <h1>Equipment Search</h1>
 
-    <!-- CAJA DE SEARCH CRITERIA CON ESTÉTICA FIEL A LA IMAGEN -->
     <div class="options-box">
         <div class="options-title">SEARCH CRITERIA</div>
         <div class="options-grid">
@@ -122,24 +118,22 @@
         </div>
     </div>
 
-    <!-- NIVELES NAVEGACIONALES DESPLEGABLES -->
     <div id="dropdownsContainer">
         <div class="form-group">
             <label id="labelNivel1" for="selectNivel1">Selecciona Tipo de Equipo:</label>
             <select id="selectNivel1">
-                <option value="">-- Consultando Google Drive... --</option>
+                <option value="">-- Cuestionando Google Drive... --</option>
             </select>
         </div>
 
         <div class="form-group">
-            <label id="labelNivel2" for="selectNivel2">Selecciona Fabricante / Subcarpeta:</label>
+            <label id="labelNivel2" for="selectNivel2">Selecciona Fabricante / Carpeta:</label>
             <select id="selectNivel2" disabled>
                 <option value="">-- Esperando selección superior --</option>
             </select>
         </div>
     </div>
 
-    <!-- LISTA DE ARCHIVOS ENCONTRADOS -->
     <div id="docsBox" class="docs-box">
         <div class="docs-title">📄 Documentos disponibles (Pulsa para abrir):</div>
         <div id="docsGrid" class="docs-grid"></div>
@@ -149,12 +143,11 @@
 </div>
 
 <script>
-    // VERIFICACIÓN DE SESIÓN
     if (localStorage.getItem('isLoggedIn') !== 'true') {
         window.location.href = 'index.html';
     }
 
-    // CONTROL DE INACTIVIDAD (5 MINUTOS)
+    // INACTIVIDAD 5 MINUTOS
     (function() {
         const TIEMPO_INACTIVIDAD_MS = 5 * 60 * 1000;
         let timerInactividad;
@@ -171,39 +164,31 @@
             timerInactividad = setTimeout(cerrarSesionPorInactividad, TIEMPO_INACTIVIDAD_MS);
         }
 
-        const eventosActividad = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
-        eventosActividad.forEach(evento => {
-            window.addEventListener(evento, reiniciarTemporizador, { passive: true });
+        ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'].forEach(e => {
+            window.addEventListener(e, reiniciarTemporizador, { passive: true });
         });
 
         reiniciarTemporizador();
     })();
 
-    // ID de la carpeta raíz de Equipments
     const ROOT_FOLDER_ID = "1KE1UtCPFc02h7tvcWxql20sD2h_Fdq_p";
-    
-    // Backend explorador de carpetas
     const SCRIPT_PUENTE_URL = "https://script.google.com/macros/s/AKfycby5kptA52YPD4noy_GwoLIYNkHpATmvDtmGASnlo5GB6m-ozHRqU4F4t_jR5-uhbrhJRA/exec";
-    
-    // Visor universal de PDF
     const VISOR_PDF_URL = 'https://script.google.com/macros/s/AKfycbyAA7JN9jnHYTtQKLUZeNEvBTQm-kl9HMlVxyp_ddFB7ME7RUJzTBylxx6FyyW8RMQl8Q/exec';
 
     let activeCallbackCount = 0;
-    let currentCriteria = 'equipment'; // 'equipment' o 'manufacturer'
-    let driveStructureCache = null; // Guardado temporal para conmutar rápido
+    let currentCriteria = 'equipment'; 
+    let rootFoldersCache = null;
 
     function initLiveDriveSearch() {
         requestDriveData(ROOT_FOLDER_ID, function(response) {
+            const select1 = document.getElementById('selectNivel1');
             if (!response || response.status === "error" || !response.folders) {
-                document.getElementById('selectNivel1').innerHTML = '<option value="">Error al cargar la carpeta raíz de Drive</option>';
+                select1.innerHTML = '<option value="">Error al conectar con Google Drive</option>';
                 return;
             }
 
-            // Filtrar solo las carpetas que contengan PDFs
-            filterFoldersWithPdfs(response.folders, function(validFolders) {
-                driveStructureCache = validFolders;
-                renderNivel1();
-            });
+            rootFoldersCache = response.folders;
+            renderNivel1();
         });
     }
 
@@ -212,16 +197,8 @@
         
         currentCriteria = criteria;
         
-        const btnManufacturer = document.getElementById('btnManufacturer');
-        const btnEquipmentType = document.getElementById('btnEquipmentType');
-
-        if (criteria === 'manufacturer') {
-            btnManufacturer.classList.add('active');
-            btnEquipmentType.classList.remove('active');
-        } else {
-            btnEquipmentType.classList.add('active');
-            btnManufacturer.classList.remove('active');
-        }
+        document.getElementById('btnManufacturer').classList.toggle('active', criteria === 'manufacturer');
+        document.getElementById('btnEquipmentType').classList.toggle('active', criteria === 'equipment');
 
         hideDocsBox();
         renderNivel1();
@@ -237,8 +214,8 @@
         select2.innerHTML = '<option value="">-- Esperando selección superior --</option>';
         select2.disabled = true;
 
-        if (!driveStructureCache || driveStructureCache.length === 0) {
-            select1.innerHTML = '<option value="">No hay carpetas válidas disponibles</option>';
+        if (!rootFoldersCache || rootFoldersCache.length === 0) {
+            select1.innerHTML = '<option value="">No hay carpetas disponibles</option>';
             return;
         }
 
@@ -247,35 +224,23 @@
             label2.innerText = 'Selecciona Fabricante:';
             
             select1.innerHTML = '<option value="">-- Selecciona un Equipo --</option>';
-            driveStructureCache.forEach(folder => {
+            rootFoldersCache.forEach(folder => {
                 let opt = document.createElement('option');
                 opt.value = folder.id;
                 opt.innerText = folder.name;
                 select1.appendChild(opt);
             });
         } else {
-            label1.innerText = 'Selecciona Fabricante:';
+            label1.innerText = 'Selecciona Fabricante (Buscar en todo Drive):';
             label2.innerText = 'Selecciona Tipo de Equipo:';
             
-            select1.innerHTML = '<option value="">Buscando fabricantes en Drive...</option>';
-            select1.disabled = true;
-
-            // Invertimos la jerarquía: Escaneamos las subcarpetas para extraer los fabricantes
-            buildManufacturerMap(function(manufacturerMap) {
-                select1.innerHTML = '<option value="">-- Selecciona un Fabricante --</option>';
-                select1.disabled = false;
-
-                const sortedManufacturers = Object.keys(manufacturerMap).sort((a,b) => a.localeCompare(b));
-                
-                sortedManufacturers.forEach(mName => {
-                    let opt = document.createElement('option');
-                    opt.value = mName;
-                    opt.innerText = mName;
-                    select1.appendChild(opt);
-                });
-
-                // Guardamos la asignación de mapa en el select para recuperar rápido
-                select1.dataset.mMap = JSON.stringify(manufacturerMap);
+            // Si elige Manufacturer, mostramos las carpetas primarias e indicamos selección directa
+            select1.innerHTML = '<option value="">-- Selecciona una carpeta raíz --</option>';
+            rootFoldersCache.forEach(folder => {
+                let opt = document.createElement('option');
+                opt.value = folder.id;
+                opt.innerText = folder.name;
+                select1.appendChild(opt);
             });
         }
     }
@@ -285,7 +250,6 @@
         const select2 = document.getElementById('selectNivel2');
         
         hideDocsBox();
-        select2.innerHTML = '<option value="">Consultando subcarpetas...</option>';
         select2.disabled = true;
 
         if (!val1) {
@@ -293,54 +257,21 @@
             return;
         }
 
-        if (currentCriteria === 'equipment') {
-            // Cargar los fabricantes dentro del equipo seleccionado
-            requestDriveData(val1, "cbFolderContent");
-        } else {
-            // Cargar los equipos que corresponden al fabricante
-            const select1 = document.getElementById('selectNivel1');
-            const manufacturerMap = JSON.parse(select1.dataset.mMap || '{}');
-            const subFolders = manufacturerMap[val1] || [];
+        select2.innerHTML = '<option value="">Consultando Google Drive...</option>';
 
-            if (subFolders.length > 0) {
-                select2.innerHTML = '<option value="">-- Selecciona un Equipo --</option>';
-                subFolders.forEach(sf => {
-                    let opt = document.createElement('option');
-                    opt.value = sf.id;
-                    opt.innerText = sf.equipmentName;
-                    select2.appendChild(opt);
-                });
-                select2.disabled = false;
-            } else {
-                select2.innerHTML = '<option value="">-- Sin equipos asociados --</option>';
+        requestDriveData(val1, function(response) {
+            if (!response || response.status === "error") {
+                select2.innerHTML = '<option value="">Error al cargar contenido</option>';
+                return;
             }
-        }
-    }
 
-    window.cbFolderContent = function(response) {
-        const select2 = document.getElementById('selectNivel2');
-        
-        if (!response || response.status === "error") {
-            select2.innerHTML = '<option value="">Error al consultar Drive</option>';
-            return;
-        }
+            // Archivos PDF en el nivel actual
+            let pdfFilesOnly = (response.files || []).filter(f => f.mimeType === 'application/pdf' || (f.name && f.name.toLowerCase().endsWith('.pdf')));
+            let subfolders = response.folders || [];
 
-        let pdfFilesOnly = [];
-        if (response.files && response.files.length > 0) {
-            pdfFilesOnly = response.files.filter(file => {
-                return file.mimeType === 'application/pdf' || (file.name && file.name.toLowerCase().endsWith('.pdf'));
-            });
-        }
-
-        const hasFiles = pdfFilesOnly.length > 0;
-        const subfolders = response.folders || [];
-
-        filterFoldersWithPdfs(subfolders, function(validSubfolders) {
-            const hasFolders = validSubfolders.length > 0;
-
-            if (hasFolders) {
-                select2.innerHTML = '<option value="">-- Selecciona una subcarpeta / fabricante --</option>';
-                validSubfolders.forEach(sf => {
+            if (subfolders.length > 0) {
+                select2.innerHTML = '<option value="">-- Selecciona Subcarpeta --</option>';
+                subfolders.forEach(sf => {
                     let opt = document.createElement('option');
                     opt.value = sf.id;
                     opt.innerText = sf.name;
@@ -349,116 +280,29 @@
                 select2.disabled = false;
             } else {
                 select2.innerHTML = '<option value="">-- Sin más subcarpetas --</option>';
-                select2.disabled = true;
             }
 
-            if (hasFiles) {
+            if (pdfFilesOnly.length > 0) {
                 renderPdfFiles(pdfFilesOnly);
-            } else {
-                hideDocsBox();
             }
         });
-    };
+    }
 
     function onNivel2Change() {
         const folderId = document.getElementById('selectNivel2').value;
         if (!folderId) return;
 
         hideDocsBox();
-        requestDriveData(folderId, "cbFolderContent");
-    }
+        requestDriveData(folderId, function(response) {
+            if (!response || response.status === "error") return;
 
-    // MAPEA Y REAGRUPA DRIVE POR FABRICANTE EN SEGUNDO PLANO
-    function buildManufacturerMap(callback) {
-        let manufacturerMap = {};
-        let pending = driveStructureCache.length;
-
-        if (pending === 0) {
-            callback({});
-            return;
-        }
-
-        driveStructureCache.forEach(eqFolder => {
-            requestDriveData(eqFolder.id, function(res) {
-                if (res && res.folders) {
-                    filterFoldersWithPdfs(res.folders, function(validSubfolders) {
-                        validSubfolders.forEach(mfFolder => {
-                            if (!manufacturerMap[mfFolder.name]) {
-                                manufacturerMap[mfFolder.name] = [];
-                            }
-                            manufacturerMap[mfFolder.name].push({
-                                id: mfFolder.id,
-                                equipmentName: eqFolder.name
-                            });
-                        });
-                        pending--;
-                        if (pending === 0) callback(manufacturerMap);
-                    });
-                } else {
-                    pending--;
-                    if (pending === 0) callback(manufacturerMap);
-                }
-            });
-        });
-    }
-
-    // VERIFICACIÓN RECURSIVA PARA DESCARTAR RUTA SIN PDFs
-    function checkFolderHasPdf(folderId, callback) {
-        requestDriveData(folderId, function(res) {
-            if (!res || res.status === "error") {
-                callback(false);
-                return;
-            }
-
-            let hasPdfHere = false;
-            if (res.files && res.files.length > 0) {
-                hasPdfHere = res.files.some(file => {
-                    return file.mimeType === 'application/pdf' || (file.name && file.name.toLowerCase().endsWith('.pdf'));
-                });
-            }
-
-            if (hasPdfHere) {
-                callback(true);
-                return;
-            }
-
-            if (res.folders && res.folders.length > 0) {
-                let pending = res.folders.length;
-                let foundInSubfolder = false;
-
-                res.folders.forEach(subFolder => {
-                    checkFolderHasPdf(subFolder.id, function(hasPdf) {
-                        if (hasPdf) foundInSubfolder = true;
-                        pending--;
-                        if (pending === 0 || foundInSubfolder) {
-                            callback(foundInSubfolder);
-                        }
-                    });
-                });
+            let pdfFilesOnly = (response.files || []).filter(f => f.mimeType === 'application/pdf' || (f.name && f.name.toLowerCase().endsWith('.pdf')));
+            
+            if (pdfFilesOnly.length > 0) {
+                renderPdfFiles(pdfFilesOnly);
             } else {
-                callback(false);
+                alert("Esta carpeta no contiene archivos PDF directamente.");
             }
-        });
-    }
-
-    function filterFoldersWithPdfs(folders, callback) {
-        if (!folders || folders.length === 0) {
-            callback([]);
-            return;
-        }
-
-        let validFolders = [];
-        let completed = 0;
-
-        folders.forEach(folder => {
-            checkFolderHasPdf(folder.id, function(hasPdf) {
-                if (hasPdf) validFolders.push(folder);
-                completed++;
-                if (completed === folders.length) {
-                    validFolders.sort((a, b) => a.name.localeCompare(b.name));
-                    callback(validFolders);
-                }
-            });
         });
     }
 
@@ -490,22 +334,19 @@
         document.getElementById('docsBox').style.display = 'none';
     }
 
-    function requestDriveData(folderId, callbackOrName) {
+    function requestDriveData(folderId, callback) {
         activeCallbackCount++;
-        const callbackName = "cb_equip_" + activeCallbackCount;
+        const callbackName = "cb_eq_" + activeCallbackCount;
         
         window[callbackName] = function(data) {
-            if (typeof callbackOrName === 'string') {
-                if (typeof window[callbackOrName] === 'function') {
-                    window[callbackOrName](data);
-                }
-            } else if (typeof callbackOrName === 'function') {
-                callbackOrName(data);
-            }
+            callback(data);
             delete window[callbackName];
+            const scriptEl = document.getElementById(callbackName);
+            if (scriptEl) scriptEl.remove();
         };
 
         const script = document.createElement('script');
+        script.id = callbackName;
         script.src = SCRIPT_PUENTE_URL + "?folderId=" + encodeURIComponent(folderId) + "&callback=" + encodeURIComponent(callbackName);
         document.body.appendChild(script);
     }
