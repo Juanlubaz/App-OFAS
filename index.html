@@ -108,9 +108,12 @@
 </div>
 
 <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbzCYdQHxJQs6VWDOynidXLpr3kK6-UYA4kylZLzH37Vv0l94ZclNwZ66NB6c6wXmlDHCw/exec';
 
-    // Función que verifica si la contraseña cumple las reglas de seguridad
+   
+    //const API_URL = 'https://script.google.com/macros/s/AKfycbzCYdQHxJQs6VWDOynidXLpr3kK6-UYA4kylZLzH37Vv0l94ZclNwZ66NB6c6wXmlDHCw/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycby5kptA52YPD4noy_GwoLIYNkHpATmvDtmGASnlo5GB6m-ozHRqU4F4t_jR5-uhbrhJRA/exec';                 
+    
+   // Función que verifica si la contraseña cumple las reglas de seguridad
     function esContrasenaSegura(password) {
         // Al menos 6 caracteres, 1 mayúscula, 1 minúscula y 1 número
         const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/;
