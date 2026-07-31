@@ -1,0 +1,208 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --azul: #14375f;
+  --azul-oscuro: #0e2948;
+  --naranja: #f4a51c;
+  --texto: #122b49;
+  --blanco: #ffffff;
+  --borde: #d2d9e2;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  font-family: Arial, Helvetica, sans-serif;
+  color: var(--texto);
+}
+
+body {
+  min-height: 100vh;
+}
+
+/* La imagen Operario.png debe estar en la misma carpeta. */
+.hero,
+.contacto-layout {
+  min-height: 100vh;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.10)),
+    url("Operario.png") center / cover no-repeat fixed;
+}
+
+.hero {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.capa {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 31, 56, 0.22);
+}
+
+.contenido-inicio {
+  position: relative;
+  width: min(680px, 100%);
+  padding: clamp(28px, 6vw, 64px);
+  text-align: center;
+  background: rgba(255, 255, 255, 0.91);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 24px;
+  box-shadow: 0 18px 55px rgba(7, 35, 66, 0.25);
+  backdrop-filter: blur(7px);
+}
+
+.contenido-inicio h1 {
+  margin: 0 0 18px;
+  font-size: clamp(2rem, 5vw, 4rem);
+  line-height: 1.05;
+}
+
+.contenido-inicio p {
+  margin: 8px 0;
+  font-size: clamp(1.05rem, 2.2vw, 1.35rem);
+}
+
+.boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  margin-top: 28px;
+  padding: 0 34px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--azul);
+  color: var(--blanco);
+  font-size: 1rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+.boton:hover {
+  background: var(--azul-oscuro);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(14, 41, 72, 0.25);
+}
+
+.boton:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+.volver:focus-visible {
+  outline: 3px solid var(--naranja);
+  outline-offset: 3px;
+}
+
+.contacto-layout {
+  display: grid;
+  place-items: center;
+  padding: 34px 18px;
+}
+
+.tarjeta-formulario {
+  width: min(790px, 100%);
+  padding: clamp(24px, 5vw, 54px);
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 24px;
+  box-shadow: 0 18px 55px rgba(7, 35, 66, 0.24);
+  backdrop-filter: blur(5px);
+}
+
+.tarjeta-formulario h1 {
+  margin: 18px 0 8px;
+  text-align: center;
+  font-size: clamp(2.25rem, 6vw, 3.8rem);
+}
+
+.introduccion {
+  max-width: 650px;
+  margin: 0 auto 34px;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.volver {
+  color: var(--azul);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.campo {
+  margin-bottom: 22px;
+}
+
+.campo label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.campo label span {
+  color: #a02222;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  padding: 15px 16px;
+  background: #fff;
+  color: var(--texto);
+  font: inherit;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 145px;
+}
+
+.privacidad {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 8px 0 4px;
+  line-height: 1.45;
+}
+
+.privacidad input {
+  width: auto;
+  margin-top: 4px;
+}
+
+.boton-enviar {
+  width: 100%;
+}
+
+.nota {
+  margin: 16px 0 0;
+  color: #6e7f92;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.oculto {
+  position: absolute !important;
+  left: -9999px !important;
+}
+
+@media (max-width: 650px) {
+  .hero,
+  .contacto-layout {
+    background-attachment: scroll;
+  }
+
+  .contenido-inicio,
+  .tarjeta-formulario {
+    border-radius: 17px;
+  }
+}
