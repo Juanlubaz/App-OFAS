@@ -149,6 +149,9 @@
         messageDiv.style.color = '#666';
         messageDiv.innerText = 'Verificando...';
 
+        // Capturamos la fecha/hora del cliente para enviarla en el payload
+        const fechaHoraCliente = new Date().toLocaleString('es-ES');
+
         try {
             const response = await fetch(API_URL, {
                 method: 'POST',
@@ -158,7 +161,8 @@
                 body: JSON.stringify({
                     action: 'login',
                     user: userValue,
-                    password: passValue
+                    password: passValue,
+                    timestamp: fechaHoraCliente
                 })
             });
 
