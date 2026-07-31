@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Equipment Search - GestiProject</title>
 <style>
-    /* ESTILOS BASE Y ESTÉTICA FIEL A LA IMAGEN */
+    /* ESTILOS BASE Y ESTÉTICA EXACTA A LA IMAGEN */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #6fb543, #79c255); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
     .container { background: white; width: 100%; max-width: 900px; border-radius: 20px; padding: 40px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); text-align: center; }
@@ -15,7 +15,7 @@
     
     h1 { color: #4e7e28; margin-bottom: 25px; font-size: 28px; font-weight: bold; }
 
-    /* RECUADRO DE SEARCH CRITERIA */
+    /* RECUADRO DE SEARCH CRITERIA CON BORDE PUNTEADO VERDE */
     .options-box {
         border: 2px dashed #79c255;
         border-radius: 15px;
@@ -33,7 +33,7 @@
         margin: 0 auto; 
     }
 
-    /* BOTONES CRITERIO */
+    /* BOTONES DE MANUFACTURER Y EQUIPMENT TYPE */
     button.btn-criteria {
         padding: 16px 20px;
         border-radius: 12px;
@@ -122,12 +122,12 @@
         <div class="form-group">
             <label id="labelNivel1" for="selectNivel1">Selecciona Tipo de Equipo:</label>
             <select id="selectNivel1">
-                <option value="">-- Cuestionando Google Drive... --</option>
+                <option value="">-- Conectando con Google Drive... --</option>
             </select>
         </div>
 
         <div class="form-group">
-            <label id="labelNivel2" for="selectNivel2">Selecciona Fabricante / Carpeta:</label>
+            <label id="labelNivel2" for="selectNivel2">Selecciona Fabricante:</label>
             <select id="selectNivel2" disabled>
                 <option value="">-- Esperando selección superior --</option>
             </select>
@@ -147,7 +147,7 @@
         window.location.href = 'index.html';
     }
 
-    // INACTIVIDAD 5 MINUTOS
+    // CONTROL DE INACTIVIDAD (5 MINUTOS)
     (function() {
         const TIEMPO_INACTIVIDAD_MS = 5 * 60 * 1000;
         let timerInactividad;
@@ -177,7 +177,8 @@
 
     let activeCallbackCount = 0;
     let currentCriteria = 'equipment'; 
-    let rootFoldersCache = null;
+    let equipmentFolders = [];
+    let manufacturerMap = {}; // Guarda { "NombreFabricante": [ { id: "...", equipmentName: "..." } ] }
 
     function initLiveDriveSearch() {
         requestDriveData(ROOT_FOLDER_ID, function(response) {
@@ -187,9 +188,46 @@
                 return;
             }
 
-            rootFoldersCache = response.folders;
-            renderNivel1();
+            equipmentFolders = response.folders;
+            
+            // Una vez leídas las carpetas raíz de Equipos, escaneamos secuencialmente los Fabricantes para tener la lista de MANUFACTURER precargada
+            cargarMapaFabricantes(function() {
+                renderNivel1();
+            });
         });
+    }
+
+    // Carga secuencial para no saturate el backend de Apps Script
+    function cargarMapaFabricantes(callback) {
+        manufacturerMap = {};
+        let index = 0;
+
+        function cargarSiguiente() {
+            if (index >= equipmentFolders.length) {
+                callback();
+                return;
+            }
+
+            let eqFolder = equipmentFolders[index];
+            requestDriveData(eqFolder.id, function(res) {
+                if (res && res.folders) {
+                    res.folders.forEach(mfFolder => {
+                        let nombreMf = mfFolder.name.trim();
+                        if (!manufacturerMap[nombreMf]) {
+                            manufacturerMap[nombreMf] = [];
+                        }
+                        manufacturerMap[nombreMf].push({
+                            id: mfFolder.id,
+                            equipmentName: eqFolder.name
+                        });
+                    });
+                }
+                index++;
+                cargarSiguiente();
+            });
+        }
+
+        cargarSiguiente();
     }
 
     function selectCriteria(criteria) {
@@ -214,32 +252,33 @@
         select2.innerHTML = '<option value="">-- Esperando selección superior --</option>';
         select2.disabled = true;
 
-        if (!rootFoldersCache || rootFoldersCache.length === 0) {
-            select1.innerHTML = '<option value="">No hay carpetas disponibles</option>';
-            return;
-        }
-
         if (currentCriteria === 'equipment') {
             label1.innerText = 'Selecciona Tipo de Equipo:';
             label2.innerText = 'Selecciona Fabricante:';
             
             select1.innerHTML = '<option value="">-- Selecciona un Equipo --</option>';
-            rootFoldersCache.forEach(folder => {
+            equipmentFolders.forEach(folder => {
                 let opt = document.createElement('option');
                 opt.value = folder.id;
                 opt.innerText = folder.name;
                 select1.appendChild(opt);
             });
         } else {
-            label1.innerText = 'Selecciona Fabricante (Buscar en todo Drive):';
+            label1.innerText = 'Selecciona Fabricante:';
             label2.innerText = 'Selecciona Tipo de Equipo:';
             
-            // Si elige Manufacturer, mostramos las carpetas primarias e indicamos selección directa
-            select1.innerHTML = '<option value="">-- Selecciona una carpeta raíz --</option>';
-            rootFoldersCache.forEach(folder => {
+            let fabricantesOrdenados = Object.keys(manufacturerMap).sort((a,b) => a.localeCompare(b));
+            
+            if (fabricantesOrdenados.length === 0) {
+                select1.innerHTML = '<option value="">No se encontraron fabricantes</option>';
+                return;
+            }
+
+            select1.innerHTML = '<option value="">-- Selecciona un Fabricante --</option>';
+            fabricantesOrdenados.forEach(mName => {
                 let opt = document.createElement('option');
-                opt.value = folder.id;
-                opt.innerText = folder.name;
+                opt.value = mName;
+                opt.innerText = mName;
                 select1.appendChild(opt);
             });
         }
@@ -257,35 +296,53 @@
             return;
         }
 
-        select2.innerHTML = '<option value="">Consultando Google Drive...</option>';
+        if (currentCriteria === 'equipment') {
+            // Cargar fabricantes del equipo seleccionado
+            select2.innerHTML = '<option value="">Consultando fabricantes en Drive...</option>';
 
-        requestDriveData(val1, function(response) {
-            if (!response || response.status === "error") {
-                select2.innerHTML = '<option value="">Error al cargar contenido</option>';
-                return;
-            }
+            requestDriveData(val1, function(response) {
+                if (!response || response.status === "error") {
+                    select2.innerHTML = '<option value="">Error al cargar fabricantes</option>';
+                    return;
+                }
 
-            // Archivos PDF en el nivel actual
-            let pdfFilesOnly = (response.files || []).filter(f => f.mimeType === 'application/pdf' || (f.name && f.name.toLowerCase().endsWith('.pdf')));
-            let subfolders = response.folders || [];
+                let subfolders = response.folders || [];
+                let pdfFilesOnly = (response.files || []).filter(f => f.mimeType === 'application/pdf' || (f.name && f.name.toLowerCase().endsWith('.pdf')));
 
-            if (subfolders.length > 0) {
-                select2.innerHTML = '<option value="">-- Selecciona Subcarpeta --</option>';
-                subfolders.forEach(sf => {
+                if (subfolders.length > 0) {
+                    select2.innerHTML = '<option value="">-- Selecciona Fabricante --</option>';
+                    subfolders.forEach(sf => {
+                        let opt = document.createElement('option');
+                        opt.value = sf.id;
+                        opt.innerText = sf.name;
+                        select2.appendChild(opt);
+                    });
+                    select2.disabled = false;
+                } else {
+                    select2.innerHTML = '<option value="">-- Sin subcarpetas de fabricante --</option>';
+                }
+
+                if (pdfFilesOnly.length > 0) {
+                    renderPdfFiles(pdfFilesOnly);
+                }
+            });
+        } else {
+            // Cargar tipos de equipo para el fabricante seleccionado
+            let eqList = manufacturerMap[val1] || [];
+
+            if (eqList.length > 0) {
+                select2.innerHTML = '<option value="">-- Selecciona Tipo de Equipo --</option>';
+                eqList.forEach(item => {
                     let opt = document.createElement('option');
-                    opt.value = sf.id;
-                    opt.innerText = sf.name;
+                    opt.value = item.id;
+                    opt.innerText = item.equipmentName;
                     select2.appendChild(opt);
                 });
                 select2.disabled = false;
             } else {
-                select2.innerHTML = '<option value="">-- Sin más subcarpetas --</option>';
+                select2.innerHTML = '<option value="">-- Sin equipos asociados --</option>';
             }
-
-            if (pdfFilesOnly.length > 0) {
-                renderPdfFiles(pdfFilesOnly);
-            }
-        });
+        }
     }
 
     function onNivel2Change() {
