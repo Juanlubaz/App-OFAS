@@ -20,9 +20,29 @@
         padding: 20px;
         margin-bottom: 25px;
         background-color: #f9fdf6;
+        transition: all 0.3s ease;
     }
     .options-title { font-size: 14px; color: #4e7e28; font-weight: bold; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
     .options-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 0 auto; }
+
+    /* BOTÓN RESET / RESTAURAR */
+    .btn-reset {
+        display: none;
+        margin: 0 auto 20px auto;
+        padding: 10px 20px;
+        background: #f0f4ef;
+        color: #4e7e28;
+        border: 2px solid #79c255;
+        border-radius: 10px;
+        font-weight: bold;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .btn-reset:hover {
+        background: #79c255;
+        color: white;
+    }
 
     /* CONTENEDOR DE FORMULARIOS DESPLEGABLES */
     .form-group { max-width: 740px; margin: 0 auto 20px auto; text-align: left; }
@@ -85,8 +105,11 @@
     
     <h1>Equipment Documents</h1>
 
+    <!-- Botón para restaurar la vista de botones superiores -->
+    <button id="btnReset" type="button" class="btn-reset" onclick="resetFormView()">🔄 Reset / Cambiar Categoría</button>
+
     <!-- Nivel 1: Áreas primarias de Equipos -->
-    <div class="options-box">
+    <div id="optionsBox" class="options-box">
         <div class="options-title">Categoría / Familia de Equipos</div>
         <div id="firstLevelGrid" class="options-grid">
             <div id="loadingStatus" class="loading">Conectando con Google Drive...</div>
@@ -167,27 +190,27 @@
             return;
         }
 
-        // Filtra y valida las carpetas del primer nivel (sin duplicados)
-        filterFoldersWithPdfs(response.folders, function(validFolders) {
-            if (validFolders.length === 0) {
-                grid.innerHTML = '<div style="color:#d9534f; grid-column:1/-1;">No se encontraron carpetas con archivos PDF.</div>';
-                return;
-            }
+        // Carga directa y veloz sin recursión bloqueante
+        const folders = response.folders;
+        folders.sort((a, b) => a.name.localeCompare(b.name));
 
-            validFolders.forEach(folder => {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'btn-option';
-                btn.innerText = folder.name.toUpperCase();
-                btn.onclick = function() { onFirstLevelClick(folder.id, this); };
-                grid.appendChild(btn);
-            });
+        folders.forEach(folder => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn-option';
+            btn.innerText = folder.name.toUpperCase();
+            btn.onclick = function() { onFirstLevelClick(folder.id, this); };
+            grid.appendChild(btn);
         });
     };
 
     function onFirstLevelClick(folderId, btnElement) {
         document.querySelectorAll('.btn-option').forEach(b => b.classList.remove('active'));
         btnElement.classList.add('active');
+
+        // OCULTAR CAJA DE BOTONES Y MOSTRAR BOTÓN DE RESET
+        document.getElementById('optionsBox').style.display = 'none';
+        document.getElementById('btnReset').style.display = 'inline-block';
 
         hideDocsBox();
 
@@ -207,7 +230,7 @@
             return;
         }
 
-        // Obtener solo los PDFs presentes en la carpeta actual
+        // Filtrar archivos PDF
         let pdfFilesOnly = [];
         if (response.files && response.files.length > 0) {
             pdfFilesOnly = response.files.filter(file => {
@@ -219,34 +242,37 @@
 
         const hasFiles = pdfFilesOnly.length > 0;
         const subfolders = response.folders || [];
+        const hasFolders = subfolders.length > 0;
 
-        // Filtrar subcarpetas que realmente tengan PDFs más abajo (sin duplicados)
-        filterFoldersWithPdfs(subfolders, function(validSubfolders) {
-            const hasFolders = validSubfolders.length > 0;
-
-            if (hasFolders) {
-                select.innerHTML = '<option value="">-- Selecciona una subcarpeta / equipo --</option>';
-                validSubfolders.forEach(sf => {
+        if (hasFolders) {
+            subfolders.sort((a, b) => a.name.localeCompare(b.name));
+            select.innerHTML = '<option value="">-- Selecciona una subcarpeta / equipo --</option>';
+            
+            // Eliminar duplicados si los hubiera por nombre/ID
+            const addedIds = new Set();
+            subfolders.forEach(sf => {
+                if (!addedIds.has(sf.id)) {
+                    addedIds.add(sf.id);
                     let opt = document.createElement('option');
                     opt.value = sf.id;
                     opt.innerText = sf.name;
                     select.appendChild(opt);
-                });
-                select.disabled = false;
-            } else {
-                select.innerHTML = '<option value="">-- Sin más subcarpetas --</option>';
-                select.disabled = true;
-            }
-
-            if (hasFiles) {
-                renderPdfFiles(pdfFilesOnly);
-            } else {
-                hideDocsBox();
-                if (!hasFolders) {
-                    alert("Esta carpeta no contiene ningún archivo PDF.");
                 }
+            });
+            select.disabled = false;
+        } else {
+            select.innerHTML = '<option value="">-- Sin más subcarpetas --</option>';
+            select.disabled = true;
+        }
+
+        if (hasFiles) {
+            renderPdfFiles(pdfFilesOnly);
+        } else {
+            hideDocsBox();
+            if (!hasFolders) {
+                alert("Esta carpeta no contiene ningún archivo PDF.");
             }
-        });
+        }
     };
 
     function onSubcategoryChange() {
@@ -257,73 +283,15 @@
         requestDriveData(folderId, "cbFolderContent");
     }
 
-    // FUNCIÓN RECURSIVA PARA VERIFICAR SI UNA CARPETA O SUS SUBCARPETAS TIENEN PDF
-    function checkFolderHasPdf(folderId, callback) {
-        requestDriveData(folderId, function(res) {
-            if (!res || res.status === "error") {
-                callback(false);
-                return;
-            }
-
-            // Comprobar si hay PDFs en el nivel actual
-            let hasPdfHere = false;
-            if (res.files && res.files.length > 0) {
-                hasPdfHere = res.files.some(file => {
-                    return file.mimeType === 'application/pdf' || (file.name && file.name.toLowerCase().endsWith('.pdf'));
-                });
-            }
-
-            if (hasPdfHere) {
-                callback(true);
-                return;
-            }
-
-            // Si no hay PDFs aquí, verificar sus subcarpetas en profundidad
-            if (res.folders && res.folders.length > 0) {
-                let pending = res.folders.length;
-                let foundInSubfolder = false;
-
-                res.folders.forEach(subFolder => {
-                    checkFolderHasPdf(subFolder.id, function(hasPdf) {
-                        if (hasPdf) foundInSubfolder = true;
-                        pending--;
-                        if (pending === 0 || foundInSubfolder) {
-                            callback(foundInSubfolder);
-                        }
-                    });
-                });
-            } else {
-                callback(false);
-            }
-        });
-    }
-
-    // FILTRA EL LISTADO DE CARPETAS DEJANDO SOLO LAS QUE GUARDAN ALGÚN PDF EN SU INTERIOR (SIN DUPLICADOS)
-    function filterFoldersWithPdfs(folders, callback) {
-        if (!folders || folders.length === 0) {
-            callback([]);
-            return;
-        }
-
-        let validFolders = [];
-        let completed = 0;
-
-        folders.forEach(folder => {
-            checkFolderHasPdf(folder.id, function(hasPdf) {
-                if (hasPdf) {
-                    const yaExiste = validFolders.some(f => f.id === folder.id);
-                    if (!yaExiste) {
-                        validFolders.push(folder);
-                    }
-                }
-                completed++;
-                if (completed === folders.length) {
-                    // Mantener el orden alfabético
-                    validFolders.sort((a, b) => a.name.localeCompare(b.name));
-                    callback(validFolders);
-                }
-            });
-        });
+    function resetFormView() {
+        // Restaurar visor de botones
+        document.getElementById('optionsBox').style.display = 'block';
+        document.getElementById('btnReset').style.display = 'none';
+        document.getElementById('dropdownsContainer').style.display = 'none';
+        
+        // Desmarcar botones activos y ocultar PDFs
+        document.querySelectorAll('.btn-option').forEach(b => b.classList.remove('active'));
+        hideDocsBox();
     }
 
     function renderPdfFiles(files) {
@@ -366,10 +334,15 @@
             } else if (typeof callbackOrName === 'function') {
                 callbackOrName(data);
             }
+            
+            // Limpieza del elemento DOM <script> dinámico para evitar sobrecarga de memoria
             delete window[callbackName];
+            const scriptEl = document.getElementById(callbackName);
+            if (scriptEl) scriptEl.remove();
         };
 
         const script = document.createElement('script');
+        script.id = callbackName;
         script.src = SCRIPT_PUENTE_URL + "?folderId=" + encodeURIComponent(folderId) + "&callback=" + encodeURIComponent(callbackName);
         document.body.appendChild(script);
     }
