@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Equipments - Explorador en Tiempo Real</title>
+<title>Equipments - Explorador Inteligente</title>
 <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #6fb543, #79c255); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
@@ -128,7 +128,7 @@
     <div id="optionsBox" class="options-box">
         <div class="options-title">Categoría / Familia de Equipos</div>
         <div id="firstLevelGrid" class="options-grid">
-            <div id="loadingStatus" class="loading">Conectando con Google Drive...</div>
+            <div id="loadingStatus" class="loading">Cargando carpetas con documentos...</div>
         </div>
     </div>
 
@@ -159,30 +159,6 @@
         window.location.href = 'index.html';
     }
 
-    (function() {
-        const TIEMPO_INACTIVIDAD_MS = 5 * 60 * 1000;
-        let timerInactividad;
-
-        function cerrarSesionPorInactividad() {
-            localStorage.removeItem('isLoggedIn');
-            localStorage.removeItem('loggedUser');
-            alert("Tu sesión ha expirado por inactividad (5 minutos). Por favor, vuelve a iniciar sesión.");
-            window.location.href = 'index.html';
-        }
-
-        function reiniciarTemporizador() {
-            clearTimeout(timerInactividad);
-            timerInactividad = setTimeout(cerrarSesionPorInactividad, TIEMPO_INACTIVIDAD_MS);
-        }
-
-        const eventosActividad = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
-        eventosActividad.forEach(evento => {
-            window.addEventListener(evento, reiniciarTemporizador, { passive: true });
-        });
-
-        reiniciarTemporizador();
-    })();
-
     const ROOT_FOLDER_ID = "1KE1UtCPFc02h7tvcWxql20sD2h_Fdq_p";
     const SCRIPT_PUENTE_URL = "https://script.google.com/macros/s/AKfycby5kptA52YPD4noy_GwoLIYNkHpATmvDtmGASnlo5GB6m-ozHRqU4F4t_jR5-uhbrhJRA/exec";
     const VISOR_PDF_URL = 'https://script.google.com/macros/s/AKfycbyAA7JN9jnHYTtQKLUZeNEvBTQm-kl9HMlVxyp_ddFB7ME7RUJzTBylxx6FyyW8RMQl8Q/exec';
@@ -199,13 +175,11 @@
         grid.innerHTML = '';
 
         if (!response || response.status === "error" || !response.folders || response.folders.length === 0) {
-            grid.innerHTML = '<div style="color:#d9534f; grid-column:1/-1;">No se encontraron subcarpetas en la carpeta de Drive.</div>';
+            grid.innerHTML = '<div style="color:#d9534f; grid-column:1/-1;">No se encontraron carpetas con documentos PDF.</div>';
             return;
         }
 
         const folders = response.folders;
-        folders.sort((a, b) => a.name.localeCompare(b.name));
-
         folders.forEach(folder => {
             const btn = document.createElement('button');
             btn.type = 'button';
@@ -233,7 +207,7 @@
 
     function loadFolderData(folderId) {
         const select = document.getElementById('selectSubcategoria');
-        select.innerHTML = '<option value="">Filtrando subcarpetas con documentos PDF...</option>';
+        select.innerHTML = '<option value="">Consultando contenido útil en Drive...</option>';
         select.disabled = true;
         document.getElementById('dropdownsContainer').style.display = 'block';
 
@@ -248,23 +222,12 @@
             return;
         }
 
-        // 1. Filtrar los archivos PDF presentes en este nivel
-        let pdfFilesOnly = [];
-        if (response.files && response.files.length > 0) {
-            pdfFilesOnly = response.files.filter(file => {
-                const esMimePdf = file.mimeType === 'application/pdf';
-                const esExtPdf = file.name && file.name.toLowerCase().endsWith('.pdf');
-                return esMimePdf || esExtPdf;
-            });
-        }
-
+        const pdfFiles = response.files || [];
         const subfolders = response.folders || [];
 
-        // 2. Si hay subcarpetas, las agregamos al desplegable
+        // Llenar el desplegable solo con carpetas válidas
         if (subfolders.length > 0) {
-            subfolders.sort((a, b) => a.name.localeCompare(b.name));
-            select.innerHTML = '<option value="">-- Selecciona una subcarpeta / equipo --</option>';
-            
+            select.innerHTML = '<option value="">-- Selecciona una opción --</option>';
             subfolders.forEach(sf => {
                 let opt = document.createElement('option');
                 opt.value = sf.id;
@@ -273,18 +236,15 @@
             });
             select.disabled = false;
         } else {
-            select.innerHTML = '<option value="">-- Sin más subcarpetas --</option>';
+            select.innerHTML = '<option value="">-- Selecciona un documento de la lista --</option>';
             select.disabled = true;
         }
 
-        // 3. Renderizar archivos PDF o indicar si la rama no contiene PDFs
-        if (pdfFilesOnly.length > 0) {
-            renderPdfFiles(pdfFilesOnly);
+        // Mostrar PDFs si existen en el nivel actual
+        if (pdfFiles.length > 0) {
+            renderPdfFiles(pdfFiles);
         } else {
             hideDocsBox();
-            if (subfolders.length === 0) {
-                alert("Esta subcarpeta no contiene archivos PDF.");
-            }
         }
     };
 
