@@ -5,107 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Cambiar Contraseña - Gestiproject</title>
 <style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-    
-    body {
-        font-family: Arial, sans-serif;
-        background: linear-gradient(135deg, #6fb543, #79c255);
-        min-height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 20px;
-    }
-    
-    .container {
-        background: white;
-        width: 100%;
-        max-width: 450px;
-        border-radius: 20px;
-        padding: 40px;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-        text-align: center;
-    }
-    
-    .logos img {
-        max-height: 100px;
-        margin-bottom: 20px;
-    }
-    
-    h1 {
-        color: #4e7e28;
-        margin-bottom: 25px;
-        font-size: 24px;
-        text-transform: uppercase;
-    }
-
-    .form-group {
-        text-align: left;
-        margin-bottom: 15px;
-    }
-
-    label {
-        display: block;
-        color: #4e7e28;
-        font-size: 13px;
-        margin-bottom: 6px;
-        font-weight: bold;
-    }
-
-    input {
-        width: 100%;
-        padding: 14px;
-        border: 2px solid #f3f3f3;
-        border-radius: 12px;
-        font-size: 15px;
-        outline: none;
-        background: #f9f9f9;
-        transition: all 0.3s ease;
-    }
-
-    input:focus {
-        border-color: #79c255;
-        background: white;
-    }
-
-    .btn-update {
-        width: 100%;
-        padding: 16px;
-        margin-top: 20px;
-        background: #4e7e28;
-        color: white;
-        border: none;
-        border-radius: 12px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .btn-update:disabled {
-        background: #ccc;
-        cursor: not-allowed;
-    }
-
-    .back-link {
-        display: inline-block;
-        margin-top: 20px;
-        color: #666;
-        text-decoration: none;
-        font-size: 14px;
-    }
-
-    #message {
-        margin-top: 15px;
-        font-size: 13px;
-        font-weight: bold;
-        min-height: 20px;
-        line-height: 1.4;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #6fb543, #79c255); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+    .container { background: white; width: 100%; max-width: 450px; border-radius: 20px; padding: 40px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); text-align: center; }
+    .logos img { max-height: 100px; margin-bottom: 20px; }
+    h1 { color: #4e7e28; margin-bottom: 25px; font-size: 24px; text-transform: uppercase; }
+    .form-group { text-align: left; margin-bottom: 15px; }
+    label { display: block; color: #4e7e28; font-size: 13px; margin-bottom: 6px; font-weight: bold; }
+    input { width: 100%; padding: 14px; border: 2px solid #f3f3f3; border-radius: 12px; font-size: 15px; outline: none; background: #f9f9f9; transition: all 0.3s ease; }
+    input:focus { border-color: #79c255; background: white; }
+    .btn-update { width: 100%; padding: 16px; margin-top: 20px; background: #4e7e28; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
+    .btn-update:disabled { background: #ccc; cursor: not-allowed; }
+    .back-link { display: inline-block; margin-top: 20px; color: #666; text-decoration: none; font-size: 14px; }
+    #message { margin-top: 15px; font-size: 13px; font-weight: bold; min-height: 20px; line-height: 1.4; }
 </style>
 </head>
 <body>
@@ -145,20 +57,15 @@
 </div>
 
 <script>
-    //const API_URL = "https://script.google.com/macros/s/AKfycbzCYdQHxJQs6VWDOynidXLpr3kK6-UYA4kylZLzH37Vv0l94ZclNwZ66NB6c6wXmlDHCw/exec";
     const API_URL = 'https://script.google.com/macros/s/AKfycby5kptA52YPD4noy_GwoLIYNkHpATmvDtmGASnlo5GB6m-ozHRqU4F4t_jR5-uhbrhJRA/exec'; 
-    // Función que valida las reglas de complejidad de la contraseña
+
     function esContrasenaSegura(password) {
-        // Mínimo 6 caracteres, al menos 1 letra minúscula, 1 mayúscula y 1 número
         const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/;
         return regex.test(password);
     }
 
-    // Permitir envío pulsando Enter en cualquiera de los inputs
     document.querySelectorAll('.form-group input').forEach(input => {
-        input.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') processChange();
-        });
+        input.addEventListener('keypress', function(e) { if (e.key === 'Enter') processChange(); });
     });
 
     async function processChange() {
@@ -169,21 +76,18 @@
         const msg = document.getElementById('message');
         const btn = document.getElementById('submitBtn');
 
-        // Comprobar campos vacíos
         if (!user || !oldP || !n1 || !n2) {
             msg.style.color = "orange";
             msg.innerText = "Completa todos los campos.";
             return;
         }
 
-        // Comprobar coincidencia de las dos contraseñas
         if (n1 !== n2) {
             msg.style.color = "red";
             msg.innerText = "Las nuevas contraseñas no coinciden.";
             return;
         }
 
-        // VALIDACIÓN DE SEGURIDAD
         if (!esContrasenaSegura(n1)) {
             msg.style.color = "red";
             msg.innerText = "La contraseña debe tener al menos 6 caracteres, incluir una mayúscula, una minúscula y un número.";
@@ -195,32 +99,28 @@
         msg.innerText = "Procesando...";
 
         try {
+            const token = localStorage.getItem('sessionToken') || "";
+
             const response = await fetch(API_URL, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'text/plain;charset=utf-8'
-                },
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({
                     action: 'changePassword',
+                    token: token,
                     user: user,
                     oldPassword: oldP,
                     newPassword: n1
                 })
             });
 
-            if (!response.ok) {
-                throw new Error("Respuesta no válida del servidor");
-            }
+            if (!response.ok) throw new Error("Respuesta no válida del servidor");
 
             const result = await response.json();
 
             if (result.success) {
                 msg.style.color = "#4e7e28";
                 msg.innerText = result.message || "CONTRASEÑA ACTUALIZADA";
-
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 1500);
+                setTimeout(() => { window.location.href = 'index.html'; }, 1500);
             } else {
                 msg.style.color = "red";
                 msg.innerText = result.message || "No se pudo cambiar la contraseña.";
