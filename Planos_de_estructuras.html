@@ -88,6 +88,32 @@
         window.location.href = 'index.html';
     }
 
+    // CONTROL DE INACTIVIDAD (5 MINUTOS)
+    (function() {
+        const TIEMPO_INACTIVIDAD_MS = 5 * 60 * 1000;
+        let timerInactividad;
+
+        function cerrarSesionPorInactividad() {
+            localStorage.removeItem('sessionToken');
+            localStorage.removeItem('loggedUser');
+            localStorage.clear();
+            alert("Tu sesión ha expirado por inactividad (5 minutos). Por favor, vuelve a iniciar sesión.");
+            window.location.href = 'index.html';
+        }
+
+        function reiniciarTemporizador() {
+            clearTimeout(timerInactividad);
+            timerInactividad = setTimeout(cerrarSesionPorInactividad, TIEMPO_INACTIVIDAD_MS);
+        }
+
+        const eventosActividad = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
+        eventosActividad.forEach(evento => {
+            window.addEventListener(evento, reiniciarTemporizador, { passive: true });
+        });
+
+        reiniciarTemporizador();
+    })();
+
     var data = [];
     var selectedProceso = '';
     var selectedEquipo = '';
