@@ -155,7 +155,9 @@
 </div>
 
 <script>
-    if (localStorage.getItem('isLoggedIn') !== 'true') {
+    // CONTROL DE SESIÓN POR TOKEN
+    const sessionToken = localStorage.getItem('sessionToken');
+    if (!sessionToken) {
         window.location.href = 'index.html';
     }
 
@@ -225,7 +227,6 @@
         const pdfFiles = response.files || [];
         const subfolders = response.folders || [];
 
-        // Llenar el desplegable solo con carpetas válidas
         if (subfolders.length > 0) {
             select.innerHTML = '<option value="">-- Selecciona una opción --</option>';
             subfolders.forEach(sf => {
@@ -240,7 +241,6 @@
             select.disabled = true;
         }
 
-        // Mostrar PDFs si existen en el nivel actual
         if (pdfFiles.length > 0) {
             renderPdfFiles(pdfFiles);
         } else {
@@ -316,10 +316,23 @@
     }
 
     function requestDriveData(folderId, callbackOrName) {
+        const token = localStorage.getItem('sessionToken');
+        if (!token) {
+            window.location.href = 'index.html';
+            return;
+        }
+
         activeCallbackCount++;
         const callbackName = "cb_equip_" + activeCallbackCount;
         
         window[callbackName] = function(data) {
+            if (data && data.status === "unauthorized") {
+                alert(data.message);
+                localStorage.clear();
+                window.location.href = 'index.html';
+                return;
+            }
+
             if (typeof callbackOrName === 'string') {
                 if (typeof window[callbackOrName] === 'function') {
                     window[callbackOrName](data);
@@ -335,7 +348,8 @@
 
         const script = document.createElement('script');
         script.id = callbackName;
-        script.src = SCRIPT_PUENTE_URL + "?folderId=" + encodeURIComponent(folderId) + "&callback=" + encodeURIComponent(callbackName);
+        // INCLUYE EL TOKEN PARA VALIDAR EN SERVIDOR
+        script.src = SCRIPT_PUENTE_URL + "?folderId=" + encodeURIComponent(folderId) + "&token=" + encodeURIComponent(token) + "&callback=" + encodeURIComponent(callbackName);
         document.body.appendChild(script);
     }
 
