@@ -161,6 +161,32 @@
         window.location.href = 'index.html';
     }
 
+    // CONTROL DE INACTIVIDAD (5 MINUTOS)
+    (function() {
+        const TIEMPO_INACTIVIDAD_MS = 5 * 60 * 1000;
+        let timerInactividad;
+
+        function cerrarSesionPorInactividad() {
+            localStorage.removeItem('sessionToken');
+            localStorage.removeItem('loggedUser');
+            localStorage.clear();
+            alert("Tu sesión ha expirado por inactividad (5 minutos). Por favor, vuelve a iniciar sesión.");
+            window.location.href = 'index.html';
+        }
+
+        function reiniciarTemporizador() {
+            clearTimeout(timerInactividad);
+            timerInactividad = setTimeout(cerrarSesionPorInactividad, TIEMPO_INACTIVIDAD_MS);
+        }
+
+        const eventosActividad = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
+        eventosActividad.forEach(evento => {
+            window.addEventListener(evento, reiniciarTemporizador, { passive: true });
+        });
+
+        reiniciarTemporizador();
+    })();
+
     const ROOT_FOLDER_ID = "1KE1UtCPFc02h7tvcWxql20sD2h_Fdq_p";
     const SCRIPT_PUENTE_URL = "https://script.google.com/macros/s/AKfycby5kptA52YPD4noy_GwoLIYNkHpATmvDtmGASnlo5GB6m-ozHRqU4F4t_jR5-uhbrhJRA/exec";
     const VISOR_PDF_URL = 'https://script.google.com/macros/s/AKfycbyAA7JN9jnHYTtQKLUZeNEvBTQm-kl9HMlVxyp_ddFB7ME7RUJzTBylxx6FyyW8RMQl8Q/exec';
@@ -348,7 +374,6 @@
 
         const script = document.createElement('script');
         script.id = callbackName;
-        // INCLUYE EL TOKEN PARA VALIDAR EN SERVIDOR
         script.src = SCRIPT_PUENTE_URL + "?folderId=" + encodeURIComponent(folderId) + "&token=" + encodeURIComponent(token) + "&callback=" + encodeURIComponent(callbackName);
         document.body.appendChild(script);
     }
