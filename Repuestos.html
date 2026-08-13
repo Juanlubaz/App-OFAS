@@ -65,65 +65,29 @@
         </button>
     </div>
 
-    <a href="principal.html" class="back-link">
-        ← Back to Principal
-    </a>
+    <a href="principal.html" class="back-link">← Back to Principal</a>
 </div>
 
 <script>
-    // VERIFICACIÓN DE SESIÓN
-    if (localStorage.getItem('isLoggedIn') !== 'true') {
+    const sessionToken = localStorage.getItem('sessionToken');
+    if (!sessionToken) {
         window.location.href = 'index.html';
     }
 
-    // CONTROL DE INACTIVIDAD (5 MINUTOS)
-    (function() {
-        const TIEMPO_INACTIVIDAD_MS = 5 * 60 * 1000;
-        let timerInactividad;
-
-        function cerrarSesionPorInactividad() {
-            localStorage.removeItem('isLoggedIn');
-            localStorage.removeItem('loggedUser');
-            alert("Tu sesión ha expirado por inactividad (5 minutos). Por favor, vuelve a iniciar sesión.");
-            window.location.href = 'index.html';
-        }
-
-        function reiniciarTemporizador() {
-            clearTimeout(timerInactividad);
-            timerInactividad = setTimeout(cerrarSesionPorInactividad, TIEMPO_INACTIVIDAD_MS);
-        }
-
-        const eventosActividad = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
-        eventosActividad.forEach(evento => {
-            window.addEventListener(evento, reiniciarTemporizador, { passive: true });
-        });
-
-        reiniciarTemporizador();
-    })();
-
-    // URL NATIVA ACTUALIZADA DEL VISOR
     const VISOR_PDF_URL = 'https://script.google.com/macros/s/AKfycbyAA7JN9jnHYTtQKLUZeNEvBTQm-kl9HMlVxyp_ddFB7ME7RUJzTBylxx6FyyW8RMQl8Q/exec';
 
     function abrirConVisorUniversal(url) {
-        if (!url) {
-            alert('No hay ningún enlace disponible para este documento.');
-            return;
-        }
+        if (!url) { alert('No hay ningún enlace disponible para este documento.'); return; }
 
         const urlLimpia = String(url).trim();
         const esGoogleDrive = urlLimpia.includes('drive.google.com') || urlLimpia.includes('docs.google.com');
 
         if (esGoogleDrive) {
             const fileId = extraerIdGoogleDrive(urlLimpia);
-
-            if (!fileId) {
-                window.open(urlLimpia, '_blank', 'noopener,noreferrer');
-                return;
-            }
+            if (!fileId) { window.open(urlLimpia, '_blank', 'noopener,noreferrer'); return; }
 
             const separador = VISOR_PDF_URL.includes('?') ? '&' : '?';
             const visorUrl = VISOR_PDF_URL + separador + 'id=' + encodeURIComponent(fileId);
-
             window.open(visorUrl, '_blank', 'noopener,noreferrer');
             return;
         }
@@ -133,19 +97,10 @@
 
     function extraerIdGoogleDrive(url) {
         if (!url) return null;
-
-        const patrones = [
-            /\/file\/d\/([a-zA-Z0-9_-]+)/,
-            /\/d\/([a-zA-Z0-9_-]+)/,
-            /[?&]id=([a-zA-Z0-9_-]+)/,
-            /\/uc\?.*?[?&]id=([a-zA-Z0-9_-]+)/
-        ];
-
+        const patrones = [ /\/file\/d\/([a-zA-Z0-9_-]+)/, /\/d\/([a-zA-Z0-9_-]+)/, /[?&]id=([a-zA-Z0-9_-]+)/, /\/uc\?.*?[?&]id=([a-zA-Z0-9_-]+)/ ];
         for (const patron of patrones) {
             const coincidencia = url.match(patron);
-            if (coincidencia && coincidencia[1]) {
-                return coincidencia[1];
-            }
+            if (coincidencia && coincidencia[1]) return coincidencia[1];
         }
         return null;
     }
